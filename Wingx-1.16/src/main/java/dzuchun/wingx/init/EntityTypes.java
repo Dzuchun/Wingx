@@ -24,9 +24,9 @@ public class EntityTypes {
 
 	public static void init(IEventBus bus) {
 
-		final DeferredRegister<EntityType<? extends Entity>> REGISTER = DeferredRegister
+		final DeferredRegister<EntityType<? extends Entity>> register = DeferredRegister
 				.create(ForgeRegistries.ENTITIES, Wingx.MOD_ID);
-		WINGS_ENTITY_TYPE = REGISTER.register("wings",
+		WINGS_ENTITY_TYPE = register.register("wings",
 				() -> EntityType.Builder
 						.<WingsEntity>create(
 								(EntityType<WingsEntity> entityType, World worldIn) -> new WingsEntity(worldIn),
@@ -34,7 +34,6 @@ public class EntityTypes {
 						.setCustomClientFactory((spawnEntity, world) -> new WingsEntity(world))
 						.build(new ResourceLocation(Wingx.MOD_ID, WINGS_NAME).toString()));
 		LOG.info("Registered wings entity type in deferred register");
-
-		REGISTER.register(bus);
+		register.register(bus);
 	}
 }
