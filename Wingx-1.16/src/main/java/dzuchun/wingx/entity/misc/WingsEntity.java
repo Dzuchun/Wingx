@@ -1,18 +1,24 @@
 package dzuchun.wingx.entity.misc;
 
+import java.util.UUID;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.init.EntityTypes;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.NetworkHooks;
 
-public class WingsEntity extends Entity {
+public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	public static final EntityType<WingsEntity> TYPE = EntityTypes.WINGS_ENTITY_TYPE.get();
 	private static final Logger LOG = LogManager.getLogger();
 	private PlayerEntity owner;
@@ -20,6 +26,8 @@ public class WingsEntity extends Entity {
 	public WingsEntity(World worldIn) {
 		super(TYPE, worldIn);
 		LOG.info("Creating wings");
+		this.setInvulnerable(true);
+		this.setNoGravity(true);
 	}
 
 	public void setOwner(PlayerEntity newOwner) {
@@ -40,6 +48,7 @@ public class WingsEntity extends Entity {
 
 	@Override
 	protected void registerData() {
+
 	}
 
 	@Override
@@ -64,25 +73,53 @@ public class WingsEntity extends Entity {
 
 	@Override
 	protected void readAdditional(CompoundNBT compound) {
-		this.owner = this.world.getPlayerByUuid(compound.getUniqueId(OWNER_UUID_KEY));
-		if (owner == null) {
-			LOG.warn("Owner is null, do something about it!");
-		} else {
-			LOG.info("Succesfully readed wings owner, which is {}", owner.getGameProfile().getName());
-		}
 	}
 
 	@Override
 	protected void writeAdditional(CompoundNBT compound) {
-		compound.putUniqueId(OWNER_UUID_KEY, owner.getUniqueID());
 	}
 
 	public void moveToOwner() {
-		this.setPositionAndUpdate(owner.getPosX(), owner.getPosY(), owner.getPosZ());
-		this.setMotion(owner.getMotion());
+		this.setRawPosition(owner.getPosX(), owner.getPosY(), owner.getPosZ());
 	}
 
 	public PlayerEntity getOwner() {
 		return this.owner;
 	}
+
+	@Override
+	public void writeSpawnData(PacketBuffer buffer) {
+		LOG.info("Writing wings additional spawn data");
+		if (this.owner == null) {
+			LOG.warn("Writing data of the wings with no owner");
+			buffer.writeBoolean(false);
+		} else {
+			buffer.writeBoolean(true);
+			buffer.writeUniqueId(owner.getUniqueID());
+		}
+	}
+
+	@Override
+	public void readSpawnData(PacketBuffer additionalData) {
+		LOG.info("Reading wings additional data");
+		Boolean hasOwner = additionalData.readBoolean();
+		if (!hasOwner) {
+			LOG.warn("Readed data of the wings with no owner, leaving owner unchanged");
+			this.owner = null;
+		} else {
+			UUID uuid;
+			PlayerEntity owner = ((ClientWorld) this.world).getPlayerByUuid(uuid = additionalData.readUniqueId());
+			if (owner == null) {
+				LOG.warn("No player with such UUID in the world now: {}, leaving owner unchanged", uuid.toString());
+			} else {
+				this.owner = owner;
+				LOG.info("Wings owner set to {}", this.owner.getGameProfile().getName());
+			}
+		}
+	}
+//	
+//	@Override
+//	public Vector3d getPositionVec() {
+//		return (owner != null) ? owner.getPositionVec() : super.getPositionVec();
+//	}
 }
