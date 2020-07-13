@@ -39,13 +39,15 @@ public class WingsRenderer extends EntityRenderer<WingsEntity> {
 	@Override
 	public void render(WingsEntity entityIn, float entityYaw, float partialTicks, MatrixStack matrixStackIn,
 			IRenderTypeBuffer bufferIn, int packedLightIn) {
-		PlayerEntity owner = entityIn.getOwner();
-		if (owner != null) {
+		if (entityIn.getOwner() != null) {
+			PlayerEntity owner = entityIn.world.getPlayerByUuid(entityIn.getOwner().getUniqueID());
+			entityIn.setRawPosition(owner.getPosX(), owner.getPosY(), owner.getPosZ());
 			matrixStackIn.push();
-			Vector3d move = owner.getPositionVec().add(entityIn.getPositionVec().scale(-1));
-			matrixStackIn.translate(move.x, move.y, move.z);
-			LOG.info("Moving matrix a bit: {}", move.toString());
-			model.setRotationAngles(entityIn, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F);
+//			Vector3d move = owner.getPositionVec().add(entityIn.getPositionVec().scale(-1)).add(owner.getMotion().scale(partialTicks-1f));
+//			Vector3d move = owner.getMotion().scale(partialTicks);
+//			matrixStackIn.translate(move.x, move.y, move.z);
+//			LOG.info("Moving matrix a bit: {}, owner's motion: {}", move.toString(), owner.getMotion().toString());
+			model.setRotationAngles(entityIn, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F); // TODO describe
 			IVertexBuilder ivertexbuilder = bufferIn.getBuffer(model.getRenderType(this.getEntityTexture(entityIn)));
 			model.render(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F,
 					1.0F);
