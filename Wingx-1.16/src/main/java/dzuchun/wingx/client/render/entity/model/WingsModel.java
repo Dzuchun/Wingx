@@ -17,7 +17,7 @@ public class WingsModel<T extends Entity> extends EntityModel<WingsEntity> {
 
 	public WingsModel() {
 		a = new ModelRenderer(1, 1, 0, 0);
-		a.addBox("test", 0, 0, 0, 1, 1, 1, 1, 0, 0);
+		a.addBox(0, 0, 0, 10, 10, 10);
 		a.showModel = true;
 	}
 
@@ -30,5 +30,6 @@ public class WingsModel<T extends Entity> extends EntityModel<WingsEntity> {
 	@Override
 	public void setRotationAngles(WingsEntity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks,
 			float netHeadYaw, float headPitch) {
+		//TODO set angles
 	}
 }
