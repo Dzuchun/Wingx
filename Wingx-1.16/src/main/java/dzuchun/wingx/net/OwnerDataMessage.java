@@ -1,0 +1,105 @@
+package dzuchun.wingx.net;
+
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import dzuchun.wingx.entity.misc.WingsEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.network.NetworkEvent;
+
+public class OwnerDataMessage {
+
+	private static final Logger LOG = LogManager.getLogger();
+	private boolean hasOwner;
+	private double x, y, z;
+	private float yaw;
+	private UUID uuid;
+
+	public OwnerDataMessage(WingsEntity entityIn) {
+		if (entityIn.hasOwner()) {
+			hasOwner = true;
+			PlayerEntity owner = entityIn.getOwner();
+			x = owner.lastTickPosX;
+			y = owner.lastTickPosY;
+			z = owner.lastTickPosZ;
+			yaw = owner.rotationYaw;
+		} else {
+			hasOwner = false;
+		}
+		uuid = entityIn.getUniqueID();
+	}
+
+	private OwnerDataMessage(boolean hasOwner, double x, double y, double z, float yaw, UUID uuid) {
+		this.hasOwner = hasOwner;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.yaw = yaw;
+		this.uuid = uuid;
+	}
+
+	private OwnerDataMessage(UUID uuid) {
+		this.hasOwner = false;
+		this.uuid = uuid;
+	}
+
+	public static OwnerDataMessage decode(PacketBuffer buf) {
+		boolean hasOwner = buf.readBoolean();
+		if (hasOwner) {
+			return new OwnerDataMessage(true, buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readFloat(), buf.readUniqueId());
+		} else {
+			return new OwnerDataMessage(buf.readUniqueId());
+		}
+	}
+
+	public void encode(PacketBuffer buf) {
+		if (hasOwner) {
+			buf.writeBoolean(true);
+			buf.writeDouble(x);
+			buf.writeDouble(y);
+			buf.writeDouble(z);
+			buf.writeFloat(yaw);
+		} else {
+			buf.writeBoolean(false);
+		}
+		buf.writeUniqueId(uuid);
+	}
+
+	private static Entity entity;
+	public static void handle(OwnerDataMessage msg, Supplier<NetworkEvent.Context> ctx) {
+		ctx.get().enqueueWork(() -> {
+			Minecraft.getInstance().world.getAllEntities().forEach((Entity entityI) -> {
+				if (entityI.getUniqueID().equals(msg.uuid)) {
+					entity = entityI;
+				} else {
+					if (entityI instanceof WingsEntity)
+					{
+						LOG.warn("Hit wings with UUID {}, but we need {}", entityI.getUniqueID(), msg.uuid);
+					}
+				}
+			});
+			if (entity == null) {
+				LOG.info("No entity found, saaad");
+				return;
+			}
+			if (entity instanceof WingsEntity) {
+				WingsEntity wings = (WingsEntity)entity;
+				if (msg.hasOwner) {
+					//TODO OPTIMIZE!!
+					LOG.info("Setting position at client");
+					wings.realSetPosAndUpdate(msg.x, msg.y, msg.z, msg.yaw);
+				}
+			} else {
+				LOG.info("UUID is not unique");
+			}
+		});
+		ctx.get().setPacketHandled(true);
+	}
+}
