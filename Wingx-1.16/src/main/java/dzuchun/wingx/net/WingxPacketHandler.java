@@ -20,6 +20,7 @@ public class WingxPacketHandler {
 			PROTOCOL_VERSION::equals);
 
 	public static final int TOGGLE_MESSAGE_INDEX = 355;
+	public static final int OWNER_DATA_INDEX = 357;
 
 	public static void init() {
 		
@@ -29,5 +30,8 @@ public class WingxPacketHandler {
 		INSTANCE.registerMessage(TOGGLE_MESSAGE_INDEX+1, ToggleWingsMessageResponse.class, ToggleWingsMessageResponse::encode, ToggleWingsMessageResponse::decode,
 				ToggleWingsMessageResponse::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 		
+		//Registering data transfer to clients
+		INSTANCE.registerMessage(OWNER_DATA_INDEX, OwnerDataMessage.class, OwnerDataMessage::encode, OwnerDataMessage::decode,
+				OwnerDataMessage::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 	}
 }

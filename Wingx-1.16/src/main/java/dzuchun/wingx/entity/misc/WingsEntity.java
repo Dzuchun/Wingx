@@ -6,6 +6,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.init.EntityTypes;
+import dzuchun.wingx.net.OwnerDataMessage;
+import dzuchun.wingx.net.WingxPacketHandler;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -17,6 +19,7 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	public static final EntityType<WingsEntity> TYPE = EntityTypes.WINGS_ENTITY_TYPE.get();
@@ -38,17 +41,12 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 		if (owner != null) {
 			LOG.warn("Reassigning {}'s wigns to {}", owner.getGameProfile().getName(),
 					newOwner.getGameProfile().getName());
+			owner.stopRiding();
 		} else {
 			LOG.info("Assigning wigns to {}", newOwner.getGameProfile().getName());
 		}
-
 		owner = newOwner;
-		this.moveToOwner();
-	}
-
-	@Override
-	protected void registerData() {
-
+		this.setPosition(owner.lastTickPosX, owner.lastTickPosY, owner.lastTickPosZ);
 	}
 
 	@Override
@@ -59,28 +57,13 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 
 	@Override
 	public void tick() {
-		super.tick();
-		if (owner != null) {
-			this.moveToOwner();
-			if (this.getEntityWorld().getGameTime() % 40 == 0) {
-				LOG.info("Ticked for {}'s wings, current position - ({},  {}, {})", owner.getGameProfile().getName(),
-						this.getPosX(), this.getPosY(), this.getPosZ());
-			}
+//		LOG.info("Tick!");
+		if (owner != null && !world.isRemote) {
+			
+//			PlayerEntity owner = world.getPlayerByUuid(this.owner.getUniqueID());
+			this.setPosition(owner.getPosX(), owner.getPosY(), owner.getPosZ());
+			WingxPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(()-> world.getChunk(chunkCoordX, chunkCoordZ)), new OwnerDataMessage(this));
 		}
-	}
-
-	private final static String OWNER_UUID_KEY = "owner_uuid";
-
-	@Override
-	protected void readAdditional(CompoundNBT compound) {
-	}
-
-	@Override
-	protected void writeAdditional(CompoundNBT compound) {
-	}
-
-	public void moveToOwner() {
-		this.setRawPosition(owner.getPosX(), owner.getPosY(), owner.getPosZ());
 	}
 
 	public PlayerEntity getOwner() {
@@ -105,7 +88,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 		Boolean hasOwner = additionalData.readBoolean();
 		if (!hasOwner) {
 			LOG.warn("Readed data of the wings with no owner, leaving owner unchanged");
-			this.owner = null;
+//			this.owner = null;
 		} else {
 			UUID uuid;
 			PlayerEntity owner = ((ClientWorld) this.world).getPlayerByUuid(uuid = additionalData.readUniqueId());
@@ -115,11 +98,59 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 				this.owner = owner;
 				LOG.info("Wings owner set to {}", this.owner.getGameProfile().getName());
 			}
+			this.setPosition(owner.lastTickPosX, owner.lastTickPosY, owner.lastTickPosZ);
 		}
+		this.setInvulnerable(true);
+		this.setNoGravity(true);
 	}
-//	
-//	@Override
-//	public Vector3d getPositionVec() {
-//		return (owner != null) ? owner.getPositionVec() : super.getPositionVec();
-//	}
+
+	@Override
+	protected void registerData() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void readAdditional(CompoundNBT compound) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void writeAdditional(CompoundNBT compound) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public boolean hasOwner() {
+		return this.owner != null; //TODO rewrite
+	}
+	
+	private double realLastX=0, realLastY=0, realLastZ=0;
+	private double realLastXV=0, realLastYV=0, realLastZV=0;
+	private float realLastYaw=0, realLastYawV=0;
+	public void realSetPosAndUpdate(double x, double y, double z, float yaw) {
+		realLastXV = x-realLastX;
+		realLastYV = y-realLastY;
+		realLastZV = z-realLastZ;
+		realLastYawV = yaw-realLastYaw;
+		realLastX = x;
+		realLastY = y;
+		realLastZ = z;
+		realLastYaw = yaw;
+		this.setPositionAndRotationDirect(x, y, z, yaw, 0, 0, false);
+		this.setMotion(realLastXV, realLastYV, realLastZV);
+	}
+	
+	public Vector3d getRealMotion() {
+		return new Vector3d(realLastXV, realLastYV, realLastZV);
+	}
+	
+	public float getRealYawSpeed() {
+		return realLastYawV;
+	}
+	
+	public Vector3d getRealPos() {
+		return new Vector3d(realLastX, realLastY, realLastZ);
+	}
 }

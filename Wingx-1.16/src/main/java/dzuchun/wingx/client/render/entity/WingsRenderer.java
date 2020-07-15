@@ -12,9 +12,10 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -35,27 +36,28 @@ public class WingsRenderer extends EntityRenderer<WingsEntity> {
 		return PIG_TEXTURES;
 	}
 
-	@OnlyIn(value = Dist.CLIENT)
+	private Long prevPosTime = 0L;
+	private Vector3d prevPos = Vector3d.ZERO;
 	@Override
 	public void render(WingsEntity entityIn, float entityYaw, float partialTicks, MatrixStack matrixStackIn,
 			IRenderTypeBuffer bufferIn, int packedLightIn) {
-		if (entityIn.getOwner() != null) {
-			PlayerEntity owner = entityIn.world.getPlayerByUuid(entityIn.getOwner().getUniqueID());
-			entityIn.setRawPosition(owner.getPosX(), owner.getPosY(), owner.getPosZ());
-			matrixStackIn.push();
-//			Vector3d move = owner.getPositionVec().add(entityIn.getPositionVec().scale(-1)).add(owner.getMotion().scale(partialTicks-1f));
-//			Vector3d move = owner.getMotion().scale(partialTicks);
-//			matrixStackIn.translate(move.x, move.y, move.z);
-//			LOG.info("Moving matrix a bit: {}, owner's motion: {}", move.toString(), owner.getMotion().toString());
-			model.setRotationAngles(entityIn, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F); // TODO describe
-			IVertexBuilder ivertexbuilder = bufferIn.getBuffer(model.getRenderType(this.getEntityTexture(entityIn)));
-			model.render(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F,
-					1.0F);
-
-			matrixStackIn.pop();
-		} else {
-			LOG.info("Owner is null, not rendering");
+		if (prevPos != entityIn.getPositionVec()) {
+			Long currentTime = System.currentTimeMillis();
+			LOG.info("Render after {}ms at new position", currentTime-prevPosTime);
+			prevPosTime = currentTime;
+			prevPos = entityIn.getPositionVec();
 		}
+		matrixStackIn.push();
+//		Vector3d move = entityIn.getRealMotion().scale(partialTicks).add(entityIn.getRealPos().add(entityIn.getPositionVec().scale(-1)));
+		Vector3d move = entityIn.getRealPos().add(entityIn.getPositionVec().scale(-1));
+		matrixStackIn.translate(move.x, move.y, move.z);
+		move = entityIn.getRealMotion().scale(partialTicks);
+		matrixStackIn.translate(move.x, move.y, move.z);
+		matrixStackIn.rotate(new Quaternion(Vector3f.YN, entityYaw + entityIn.getRealYawSpeed()*partialTicks, true));
+		model.setRotationAngles(entityIn, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F); // TODO describe
+		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(model.getRenderType(this.getEntityTexture(entityIn)));
+		model.render(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+		matrixStackIn.pop();
 		super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
 	}
 }
