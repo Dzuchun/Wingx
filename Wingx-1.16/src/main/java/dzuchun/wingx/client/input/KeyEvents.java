@@ -1,8 +1,5 @@
 package dzuchun.wingx.client.input;
 
-import java.awt.event.KeyEvent;
-import java.util.LinkedHashMap;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,33 +27,108 @@ public class KeyEvents {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 
-	private static enum KeyName {
-		SUMMON_WINGS
-	}
-
-	private static final LinkedHashMap<KeyName, KeyBinding> keyBindings = new LinkedHashMap<KeyName, KeyBinding>() {
-		private static final long serialVersionUID = 1L;
-		{
-			this.put(KeyName.SUMMON_WINGS, new KeyBinding("key.wingx.summon_wings", KeyConflictContext.IN_GAME,
-					KeyModifier.NONE, InputMappings.Type.KEYSYM.getOrMakeInput(-1), "Wingx mod"));
-		}
-	};
-
 	public static void init() {
-		for (KeyBinding key : keyBindings.values()) {
-			ClientRegistry.registerKeyBinding(key);
+		for (WingxKey key : WingxKey.values()) {
+			key.register();
 		}
 	}
 
 	@SuppressWarnings("resource")
 	@SubscribeEvent
 	public static void onKeyPressed(InputEvent.KeyInputEvent event) {
-//		LOG.info("Input event detected");
-		if (keyBindings.get(KeyName.SUMMON_WINGS).isPressed()) {
-//			LOG.info("Wings summoning event detected");
-//			Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wings.summoned")
-//					.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.AQUA)), true);
-			WingxPacketHandler.INSTANCE.sendToServer(new ToggleWingsMessage(true));
+		for (WingxKey key : WingxKey.values()) {
+			if (key.isPressed()) {
+				key.execute();
+			}
 		}
 	}
+}
+
+enum WingxKey {
+	SUMMON_WINGS {
+
+		@Override
+		public void execute() {
+			WingxPacketHandler.INSTANCE.sendToServer(new ToggleWingsMessage(true));
+		}
+
+		@Override
+		public boolean isPressed() {
+			return this.key.isPressed();
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.summon_wings", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	},
+	MEDITATE {
+
+		@SuppressWarnings("resource")
+		@Override
+		public void execute() {
+			Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wingx.meditating")
+					.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.DARK_GREEN)), true);
+		}
+
+		@Override
+		public boolean isPressed() {
+			if (this.key != null) {
+				return this.key.isPressed();
+			} else {
+				return super.isPressed();
+			}
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	},
+	TEMPLATE {
+
+		@Override
+		public void execute() {
+			// TODO specify execute
+		}
+
+		@Override
+		public boolean isPressed() {
+			if (this.key != null) {
+				return this.key.isPressed();
+			} else {
+				return super.isPressed();
+			}
+		}
+
+		@Override
+		public void register() {
+//			this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+//					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	};
+
+	private static final Logger LOG = LogManager.getLogger();
+	private static final String SECTION_NAME = "Wingx mod";
+
+	protected KeyBinding key;
+
+	public void register() {
+		if (key != null) {
+			ClientRegistry.registerKeyBinding(key);
+		} else {
+			LOG.warn("Tried to register null keybinding for {} wingx key", this.toString());
+		}
+	}
+
+	public boolean isPressed() {
+		return false;
+	}
+
+	public abstract void execute();
 }
