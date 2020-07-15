@@ -29,7 +29,7 @@ public class ToggleWingsMessage {
 			ServerPlayerEntity sender = ctx.get().getSender(); // the client that sent this packet
 			ServerWorld world = (ServerWorld)sender.world;
 			WingsEntity wings = new WingsEntity(world);
-			wings.setOwner(sender);
+			wings.setOwner(sender.getUniqueID(), true);
 			world.summonEntity(wings);
 		});
 		ctx.get().setPacketHandled(true);

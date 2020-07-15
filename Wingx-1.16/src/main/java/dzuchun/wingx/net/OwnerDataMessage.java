@@ -1,7 +1,6 @@
 package dzuchun.wingx.net;
 
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +20,7 @@ public class OwnerDataMessage {
 	private double x, y, z;
 	private float yaw;
 	private UUID uuid;
+	private UUID ownerUniqueId;
 
 	public OwnerDataMessage(WingsEntity entityIn) {
 		if (entityIn.hasOwner()) {
@@ -30,19 +30,21 @@ public class OwnerDataMessage {
 			y = owner.lastTickPosY;
 			z = owner.lastTickPosZ;
 			yaw = owner.rotationYaw;
+			ownerUniqueId = owner.getUniqueID();
 		} else {
 			hasOwner = false;
 		}
 		uuid = entityIn.getUniqueID();
 	}
 
-	private OwnerDataMessage(boolean hasOwner, double x, double y, double z, float yaw, UUID uuid) {
+	private OwnerDataMessage(boolean hasOwner, UUID ownerUniqueId, double x, double y, double z, float yaw, UUID uuid) {
 		this.hasOwner = hasOwner;
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.yaw = yaw;
 		this.uuid = uuid;
+		this.ownerUniqueId = ownerUniqueId;
 	}
 
 	private OwnerDataMessage(UUID uuid) {
@@ -53,7 +55,7 @@ public class OwnerDataMessage {
 	public static OwnerDataMessage decode(PacketBuffer buf) {
 		boolean hasOwner = buf.readBoolean();
 		if (hasOwner) {
-			return new OwnerDataMessage(true, buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readFloat(), buf.readUniqueId());
+			return new OwnerDataMessage(true, buf.readUniqueId(), buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readFloat(), buf.readUniqueId());
 		} else {
 			return new OwnerDataMessage(buf.readUniqueId());
 		}
@@ -62,6 +64,7 @@ public class OwnerDataMessage {
 	public void encode(PacketBuffer buf) {
 		if (hasOwner) {
 			buf.writeBoolean(true);
+			buf.writeUniqueId(ownerUniqueId);
 			buf.writeDouble(x);
 			buf.writeDouble(y);
 			buf.writeDouble(z);
@@ -73,6 +76,7 @@ public class OwnerDataMessage {
 	}
 
 	private static Entity entity;
+	@SuppressWarnings("resource")
 	public static void handle(OwnerDataMessage msg, Supplier<NetworkEvent.Context> ctx) {
 		ctx.get().enqueueWork(() -> {
 			Minecraft.getInstance().world.getAllEntities().forEach((Entity entityI) -> {
@@ -95,6 +99,7 @@ public class OwnerDataMessage {
 					//TODO OPTIMIZE!!
 					LOG.info("Setting position at client");
 					wings.realSetPosAndUpdate(msg.x, msg.y, msg.z, msg.yaw);
+					wings.setOwner(msg.ownerUniqueId, true);
 				}
 			} else {
 				LOG.info("UUID is not unique");

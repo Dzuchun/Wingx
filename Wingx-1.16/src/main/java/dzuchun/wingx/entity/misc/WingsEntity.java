@@ -25,6 +25,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	public static final EntityType<WingsEntity> TYPE = EntityTypes.WINGS_ENTITY_TYPE.get();
 	private static final Logger LOG = LogManager.getLogger();
 	private PlayerEntity owner;
+	private UUID ownerUniqueId;
 
 	public WingsEntity(World worldIn) {
 		super(TYPE, worldIn);
@@ -33,20 +34,27 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 		this.setNoGravity(true);
 	}
 
-	public void setOwner(PlayerEntity newOwner) {
+	public boolean setOwner(UUID newOwnerUUID, boolean force) {
+		if (force) {
+			this.ownerUniqueId = newOwnerUUID;
+		}
+		PlayerEntity newOwner = world.getPlayerByUuid(newOwnerUUID);
 		if (newOwner == null) {
-			LOG.warn("Owner can't be null!");
-			return;
-		}
-		if (owner != null) {
-			LOG.warn("Reassigning {}'s wigns to {}", owner.getGameProfile().getName(),
-					newOwner.getGameProfile().getName());
-			owner.stopRiding();
+			LOG.warn("Can't find owner with UUID {}", newOwnerUUID);
+			return false;
 		} else {
-			LOG.info("Assigning wigns to {}", newOwner.getGameProfile().getName());
+			if (owner != null) {
+				LOG.warn("Reassigning {}'s wigns to {}", owner.getGameProfile().getName(),
+						newOwner.getGameProfile().getName());
+				owner.stopRiding();
+			} else {
+				LOG.info("Assigning wigns to {}", newOwner.getGameProfile().getName());
+			}
+			owner = newOwner;
+			this.setPosition(owner.lastTickPosX, owner.lastTickPosY, owner.lastTickPosZ);
+			ownerUniqueId = null;
+			return true;
 		}
-		owner = newOwner;
-		this.setPosition(owner.lastTickPosX, owner.lastTickPosY, owner.lastTickPosZ);
 	}
 
 	@Override
@@ -58,11 +66,24 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	@Override
 	public void tick() {
 //		LOG.info("Tick!");
+		if (!world.isRemote && world.getGameTime() % 40 == 0) {
+			if (ownerUniqueId != null) {
+				if (owner == null || (owner != null && !owner.getUniqueID().equals(ownerUniqueId))) {
+					LOG.info("Trying to find my owner");
+					if (setOwner(ownerUniqueId, true)) {
+						LOG.info("Here he is - {}", owner.getGameProfile().getName());
+					}
+				}
+			}
+		}
+		
 		if (owner != null && !world.isRemote) {
-			
+
 //			PlayerEntity owner = world.getPlayerByUuid(this.owner.getUniqueID());
 			this.setPosition(owner.getPosX(), owner.getPosY(), owner.getPosZ());
-			WingxPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(()-> world.getChunk(chunkCoordX, chunkCoordZ)), new OwnerDataMessage(this));
+			WingxPacketHandler.INSTANCE.send(
+					PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunk(chunkCoordX, chunkCoordZ)),
+					new OwnerDataMessage(this));
 		}
 	}
 
@@ -90,15 +111,9 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 			LOG.warn("Readed data of the wings with no owner, leaving owner unchanged");
 //			this.owner = null;
 		} else {
-			UUID uuid;
-			PlayerEntity owner = ((ClientWorld) this.world).getPlayerByUuid(uuid = additionalData.readUniqueId());
-			if (owner == null) {
-				LOG.warn("No player with such UUID in the world now: {}, leaving owner unchanged", uuid.toString());
-			} else {
-				this.owner = owner;
-				LOG.info("Wings owner set to {}", this.owner.getGameProfile().getName());
+			if (setOwner(additionalData.readUniqueId(), true)) {
+				this.setPosition(owner.lastTickPosX, owner.lastTickPosY, owner.lastTickPosZ);
 			}
-			this.setPosition(owner.lastTickPosX, owner.lastTickPosY, owner.lastTickPosZ);
 		}
 		this.setInvulnerable(true);
 		this.setNoGravity(true);
@@ -107,33 +122,34 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	@Override
 	protected void registerData() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	protected void readAdditional(CompoundNBT compound) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	protected void writeAdditional(CompoundNBT compound) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	public boolean hasOwner() {
-		return this.owner != null; //TODO rewrite
+		return this.owner != null; // TODO rewrite
 	}
-	
-	private double realLastX=0, realLastY=0, realLastZ=0;
-	private double realLastXV=0, realLastYV=0, realLastZV=0;
-	private float realLastYaw=0, realLastYawV=0;
+
+	private double realLastX = 0, realLastY = 0, realLastZ = 0;
+	private double realLastXV = 0, realLastYV = 0, realLastZV = 0;
+	private float realLastYaw = 0, realLastYawV = 0;
+
 	public void realSetPosAndUpdate(double x, double y, double z, float yaw) {
-		realLastXV = x-realLastX;
-		realLastYV = y-realLastY;
-		realLastZV = z-realLastZ;
-		realLastYawV = yaw-realLastYaw;
+		realLastXV = x - realLastX;
+		realLastYV = y - realLastY;
+		realLastZV = z - realLastZ;
+		realLastYawV = yaw - realLastYaw;
 		realLastX = x;
 		realLastY = y;
 		realLastZ = z;
@@ -141,16 +157,38 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 		this.setPositionAndRotationDirect(x, y, z, yaw, 0, 0, false);
 		this.setMotion(realLastXV, realLastYV, realLastZV);
 	}
-	
+
 	public Vector3d getRealMotion() {
 		return new Vector3d(realLastXV, realLastYV, realLastZV);
 	}
-	
+
 	public float getRealYawSpeed() {
 		return realLastYawV;
 	}
-	
+
 	public Vector3d getRealPos() {
 		return new Vector3d(realLastX, realLastY, realLastZ);
+	}
+	
+	private static final String OWNER_UUID_TAG = "owner_uuid";
+	
+	@Override 
+	public CompoundNBT writeWithoutTypeId(CompoundNBT compound) {
+		//TODO write mine
+		if (hasOwner()) {
+			compound.putUniqueId(OWNER_UUID_TAG, owner.getUniqueID());
+		}
+		return super.writeWithoutTypeId(compound);
+	}
+	
+	@Override
+	public void read(CompoundNBT compound) {
+		//TODO read mine
+		if (compound.hasUniqueId(OWNER_UUID_TAG)) {
+			setOwner(compound.getUniqueId(OWNER_UUID_TAG), true);
+		} else {
+			LOG.warn("Wings object with UUID {} has no owner tag", getUniqueID());
+		}
+		super.read(compound);
 	}
 }
