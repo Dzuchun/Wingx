@@ -37,8 +37,8 @@ public class KeyEvents {
 	private static final LinkedHashMap<KeyName, KeyBinding> keyBindings = new LinkedHashMap<KeyName, KeyBinding>() {
 		private static final long serialVersionUID = 1L;
 		{
-			this.put(KeyName.SUMMON_WINGS, new KeyBinding("key.Wingx.summon_wings", KeyConflictContext.IN_GAME,
-					KeyModifier.NONE, InputMappings.Type.KEYSYM.getOrMakeInput(KeyEvent.VK_F), "Test Mod"));
+			this.put(KeyName.SUMMON_WINGS, new KeyBinding("key.wingx.summon_wings", KeyConflictContext.IN_GAME,
+					KeyModifier.NONE, InputMappings.Type.KEYSYM.getOrMakeInput(-1), "Wingx mod"));
 		}
 	};
 
@@ -54,8 +54,8 @@ public class KeyEvents {
 //		LOG.info("Input event detected");
 		if (keyBindings.get(KeyName.SUMMON_WINGS).isPressed()) {
 //			LOG.info("Wings summoning event detected");
-			Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wings.summoned")
-					.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.AQUA)), true);
+//			Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wings.summoned")
+//					.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.AQUA)), true);
 			WingxPacketHandler.INSTANCE.sendToServer(new ToggleWingsMessage(true));
 		}
 	}
