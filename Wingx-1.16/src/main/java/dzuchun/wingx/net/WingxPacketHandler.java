@@ -26,9 +26,9 @@ public class WingxPacketHandler {
 		
 		//Registering toggle wings
 		INSTANCE.registerMessage(TOGGLE_MESSAGE_INDEX, ToggleWingsMessage.class, ToggleWingsMessage::encode, ToggleWingsMessage::decode,
-				ToggleWingsMessage::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-		INSTANCE.registerMessage(TOGGLE_MESSAGE_INDEX+1, ToggleWingsMessageResponse.class, ToggleWingsMessageResponse::encode, ToggleWingsMessageResponse::decode,
-				ToggleWingsMessageResponse::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+				ToggleWingsMessage::handle);
+//		INSTANCE.registerMessage(TOGGLE_MESSAGE_INDEX+1, ToggleWingsMessageResponse.class, ToggleWingsMessageResponse::encode, ToggleWingsMessageResponse::decode,
+//				ToggleWingsMessageResponse::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 		
 		//Registering data transfer to clients
 		INSTANCE.registerMessage(OWNER_DATA_INDEX, OwnerDataMessage.class, OwnerDataMessage::encode, OwnerDataMessage::decode,
