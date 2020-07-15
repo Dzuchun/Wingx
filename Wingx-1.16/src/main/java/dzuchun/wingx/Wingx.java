@@ -3,6 +3,8 @@ package dzuchun.wingx;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dzuchun.wingx.capability.wings.CapabilityWings;
+import dzuchun.wingx.capability.wings.WingsProvider;
 import dzuchun.wingx.client.input.KeyEvents;
 import dzuchun.wingx.client.render.entity.WingsRenderer;
 import dzuchun.wingx.init.EntityTypes;
@@ -39,6 +41,11 @@ public class Wingx {
 		LOG.info("Registering net channels");
 		WingxPacketHandler.init();
 		LOG.info("Registered net channels");
+		
+		LOG.info("Registering capabilities");
+		CapabilityWings.register();
+		WingsProvider.init();
+		LOG.info("Registered capabilities");
 	}
 
 	@SubscribeEvent
