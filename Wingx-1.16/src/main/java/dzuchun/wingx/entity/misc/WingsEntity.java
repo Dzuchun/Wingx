@@ -44,6 +44,9 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 			return false;
 		} else {
 			if (owner != null) {
+				if (owner.equals(newOwner)) {
+					return true;
+				}
 				LOG.warn("Reassigning {}'s wigns to {}", owner.getGameProfile().getName(),
 						newOwner.getGameProfile().getName());
 				owner.stopRiding();
