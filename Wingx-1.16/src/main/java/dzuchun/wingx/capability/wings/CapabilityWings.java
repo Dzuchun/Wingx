@@ -37,7 +37,9 @@ public class CapabilityWings {
 				if (!cnbt.hasUniqueId(WINGS_UUID_TAG) && instance.isActive()) {
 					LOG.warn("Wings are active, but no UUID specified");
 				} else {
-					instance.setWingsUniqueId(cnbt.getUniqueId(WINGS_UUID_TAG));
+					if (instance.isActive()) {
+						instance.setWingsUniqueId(cnbt.getUniqueId(WINGS_UUID_TAG));
+					}
 				}
 			}
 		}, WingsCapability::new);
