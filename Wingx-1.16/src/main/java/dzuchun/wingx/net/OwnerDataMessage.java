@@ -6,6 +6,8 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dzuchun.wingx.capability.wings.IWingsCapability;
+import dzuchun.wingx.capability.wings.WingsProvider;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -90,7 +92,7 @@ public class OwnerDataMessage {
 				}
 			});
 			if (entity == null) {
-				LOG.info("No entity found, saaad");
+				LOG.info("No entity found with UUID {}, saaad", msg.uuid);
 				return;
 			}
 			if (entity instanceof WingsEntity) {
@@ -98,12 +100,19 @@ public class OwnerDataMessage {
 				if (msg.hasOwner) {
 					//TODO OPTIMIZE!!
 					LOG.info("Setting position at client");
-					wings.realSetPosAndUpdate(msg.x, msg.y, msg.z, msg.yaw);
+					wings.realSetPosAndUpdateNoTime(msg.x, msg.y, msg.z, msg.yaw);
 					wings.setOwner(msg.ownerUniqueId, true);
+					wings.getOwner().getCapability(WingsProvider.WINGS).ifPresent((IWingsCapability wingsCap) -> {
+						if (!wingsCap.isActive()) {
+							wingsCap.setActive(true);
+						}
+						wingsCap.setWingsUniqueId(wings.getUniqueID());
+					});
 				}
 			} else {
 				LOG.info("UUID is not unique");
 			}
+			entity = null;
 		});
 		ctx.get().setPacketHandled(true);
 	}
