@@ -28,36 +28,41 @@ public class Wingx {
 	public Wingx() {
 		LOG.info("Wingx awakened!");
 
-		LOG.info("Initing");
+		LOG.debug("Initing");
 		final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 		EntityTypes.init(modEventBus);
-		LOG.info("Inited");
+		LOG.debug("Inited");
 	}
 
 	@SubscribeEvent
 	public static void commonSetup(final FMLCommonSetupEvent event) {
 		LOG.info("Performing common setup");
 
-		LOG.info("Registering net channels");
+		LOG.debug("Initing listeners");
+		ForgeBusEventListener.init();
+		ModBusEventListener.init();
+		LOG.debug("Inited listeners");
+
+		LOG.debug("Registering net channels");
 		WingxPacketHandler.init();
-		LOG.info("Registered net channels");
+		LOG.debug("Registered net channels");
 		
-		LOG.info("Registering capabilities");
+		LOG.debug("Registering capabilities");
 		CapabilityWings.register();
 		WingsProvider.init();
-		LOG.info("Registered capabilities");
+		LOG.debug("Registered capabilities");
 	}
 
 	@SubscribeEvent
 	public static void clientSetup(final FMLClientSetupEvent event) {
 		LOG.info("Performing client setup");
 
-		LOG.info("Binding renderers");
+		LOG.debug("Binding renderers");
 		RenderingRegistry.registerEntityRenderingHandler(EntityTypes.WINGS_ENTITY_TYPE.get(), WingsRenderer::new);
-		LOG.info("Binded renderers");
+		LOG.debug("Binded renderers");
 
-		LOG.info("Registering key bindings");
+		LOG.debug("Registering key bindings");
 		KeyEvents.init();
-		LOG.info("Registered key bindings");
+		LOG.debug("Registered key bindings");
 	}
 }
