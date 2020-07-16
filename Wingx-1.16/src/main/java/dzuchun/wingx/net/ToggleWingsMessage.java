@@ -80,13 +80,17 @@ public class ToggleWingsMessage {
 						}
 					} else {
 						WingsEntity wings = new WingsEntity(world);
-						world.summonEntity(wings);
 						wings.setOwner(sender.getUniqueID(), true);
+						wings.setPosition(sender.getPosX(), sender.getPosY(), sender.getPosZ());
+						world.summonEntity(wings);
 						wingsCap.setWingsUniqueId(wings.getUniqueID());
-						wingsCap.setActive(true);
+						if (!wingsCap.isActive()) {
+							wingsCap.setActive(true);
+						}
 						WingxPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> sender),
 								new ToggleWingsMessage(true));
 					}
+					foundEntity = null;
 				});
 			});
 		} else if (context.getDirection().equals(NetworkDirection.PLAY_TO_CLIENT)) {
