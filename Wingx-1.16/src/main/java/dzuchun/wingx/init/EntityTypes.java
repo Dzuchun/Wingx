@@ -32,6 +32,9 @@ public class EntityTypes {
 								(EntityType<WingsEntity> entityType, World worldIn) -> new WingsEntity(worldIn),
 								EntityClassification.MISC)
 						.setCustomClientFactory((spawnEntity, world) -> new WingsEntity(world))
+						.setUpdateInterval(3)
+						.immuneToFire()
+						.setShouldReceiveVelocityUpdates(false)
 						.build(new ResourceLocation(Wingx.MOD_ID, WINGS_NAME).toString()));
 		LOG.info("Registered wings entity type in deferred register");
 		register.register(bus);
