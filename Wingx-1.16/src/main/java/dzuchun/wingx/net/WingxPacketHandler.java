@@ -21,6 +21,7 @@ public class WingxPacketHandler {
 
 	public static final int TOGGLE_MESSAGE_INDEX = 355;
 	public static final int OWNER_DATA_INDEX = 357;
+	public static final int TRICK_PERFORMED_INDEX = 359;
 
 	public static void init() {
 		
@@ -33,5 +34,9 @@ public class WingxPacketHandler {
 		//Registering data transfer to clients
 		INSTANCE.registerMessage(OWNER_DATA_INDEX, OwnerDataMessage.class, OwnerDataMessage::encode, OwnerDataMessage::decode,
 				OwnerDataMessage::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+		//Registering trick performed message
+		INSTANCE.registerMessage(TRICK_PERFORMED_INDEX, TrickPerformedMessage.class, TrickPerformedMessage::encode, TrickPerformedMessage::decode,
+				TrickPerformedMessage::handle);
 	}
 }
