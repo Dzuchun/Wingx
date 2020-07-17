@@ -24,7 +24,7 @@ displayURL="https://github.com/Dzuchun/Wingx" #optional
 # A file name (in the root of the mod JAR) containing a logo for display
 logoFile="wingx.png" #optional
 # A text field displayed in the mod UI
-credits="All Minecraft Forge community, you're awesome!" #optional
+credits="Thank s all Minecraft Forge community, you're awesome!" #optional
 # A text field displayed in the mod UI
 authors="NullPointerTeam" #optional
 # The description text for the mod (multi line!) (#mandatory)
