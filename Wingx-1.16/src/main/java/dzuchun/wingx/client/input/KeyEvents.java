@@ -5,7 +5,10 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.net.ToggleWingsMessage;
+import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
+import dzuchun.wingx.trick.DashPlayerTrick;
+import dzuchun.wingx.util.Facing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
@@ -85,6 +88,31 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	},
+	DASH {
+
+		@SuppressWarnings("resource")
+		@Override
+		public void execute() {
+			WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(
+					new DashPlayerTrick(Minecraft.getInstance().player, Facing.UP, 1.0d, true)));
+		}
+
+		@Override
+		public boolean isPressed() {
+			if (this.key != null) {
+				return this.key.isPressed();
+			} else {
+				return super.isPressed();
+			}
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.dash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
 					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
 			super.register();
 		}
