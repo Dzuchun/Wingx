@@ -30,6 +30,6 @@ public class WingsModel<T extends Entity> extends EntityModel<WingsEntity> {
 	@Override
 	public void setRotationAngles(WingsEntity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks,
 			float netHeadYaw, float headPitch) {
-		//TODO set angles
+		// TODO set angles
 	}
 }

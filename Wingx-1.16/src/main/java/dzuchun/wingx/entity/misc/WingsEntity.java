@@ -8,7 +8,6 @@ import org.apache.logging.log4j.Logger;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.net.OwnerDataMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,7 +21,7 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.fml.network.PacketDistributor;
 
 public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
-	public static final EntityType<WingsEntity> TYPE = EntityTypes.WINGS_ENTITY_TYPE.get();
+	public static final EntityType<WingsEntity> TYPE = EntityTypes.wings_entity_type.get();
 	private static final Logger LOG = LogManager.getLogger();
 	private PlayerEntity owner;
 	private UUID ownerUniqueId;
@@ -62,19 +61,18 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 
 	@Override
 	public IPacket<?> createSpawnPacket() {
-		LOG.info("Creating network packet");
+		LOG.debug("Creating network packet");
 		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 
 	@Override
 	public void tick() {
-//		LOG.info("Tick!");
 		if (!world.isRemote && world.getGameTime() % 40 == 0) {
 			if (ownerUniqueId != null) {
 				if (owner == null || (owner != null && !owner.getUniqueID().equals(ownerUniqueId))) {
-					LOG.info("Trying to find my owner");
+					LOG.debug("Trying to find my owner");
 					if (setOwner(ownerUniqueId, true)) {
-						LOG.info("Here he is - {}", owner.getGameProfile().getName());
+						LOG.debug("Here he is - {}", owner.getGameProfile().getName());
 					}
 				}
 			}
@@ -82,9 +80,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 
 		if (hasOwner() && !world.isRemote) {
 
-//			PlayerEntity owner = world.getPlayerByUuid(this.owner.getUniqueID());
 			this.setPositionAndUpdate(owner.getPosX(), owner.getPosY(), owner.getPosZ());
-//			LOG.info("Setting wings position to {}", getPositionVec());
 			WingxPacketHandler.INSTANCE.send(
 					PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunk(chunkCoordX, chunkCoordZ)),
 					new OwnerDataMessage(this));
@@ -98,7 +94,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 
 	@Override
 	public void writeSpawnData(PacketBuffer buffer) {
-		LOG.info("Writing wings additional spawn data");
+		LOG.debug("Writing wings additional spawn data");
 		if (this.owner == null) {
 			LOG.warn("Writing data of the wings with no owner");
 			buffer.writeBoolean(false);
@@ -122,27 +118,21 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 			}
 		}
 		this.setUniqueId(additionalData.readUniqueId());
-		LOG.info("Setting UUID {} to wings", getUniqueID());
+		LOG.debug("Setting UUID {} to wings", getUniqueID());
 		this.setInvulnerable(true);
 		this.setNoGravity(true);
 	}
 
 	@Override
 	protected void registerData() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	protected void readAdditional(CompoundNBT compound) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	protected void writeAdditional(CompoundNBT compound) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public boolean hasOwner() {
@@ -199,7 +189,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	public Vector3d getRealPos() {
 		return new Vector3d(realLastX, realLastY, realLastZ);
 	}
-	
+
 	public float getRealYaw() {
 		return this.realLastYaw;
 	}
@@ -225,34 +215,4 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 		}
 		super.read(compound);
 	}
-
-//	@Override
-//	public void remove(boolean b) {
-//		LOG.info("Removed from:\n{}", new Object() {
-//			@Override
-//			public String toString() {
-//				String res = "";
-//				for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
-//					res += e.toString() + "\n";
-//				}
-//				return res;
-//			}
-//		});
-//		super.remove(b);
-//	}
-//
-//	@Override
-//	public void setPosition(double x, double y, double z) {
-//		LOG.info("Setting entity position to ({}, {}, {}) from\n{}", x, y, z, new Object() {
-//			@Override
-//			public String toString() {
-//				String res = "";
-//				for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
-//					res += e.toString() + "\n";
-//				}
-//				return res;
-//			}
-//		});
-//		super.setPosition(x, y, z);
-//	}
 }

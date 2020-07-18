@@ -8,6 +8,7 @@ import dzuchun.wingx.net.ToggleWingsMessage;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.DashPlayerTrick;
+import dzuchun.wingx.trick.SmashPlayerTrick;
 import dzuchun.wingx.util.Facing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -36,7 +37,6 @@ public class KeyEvents {
 		}
 	}
 
-	@SuppressWarnings("resource")
 	@SubscribeEvent
 	public static void onKeyPressed(InputEvent.KeyInputEvent event) {
 		for (WingxKey key : WingxKey.values()) {
@@ -113,6 +113,32 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.dash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	},
+	SMASH {
+
+		@SuppressWarnings("resource")
+		@Override
+		public void execute() {
+			WingxPacketHandler.INSTANCE
+					.sendToServer(new TrickPerformedMessage(new SmashPlayerTrick(Minecraft.getInstance().player, 20,
+							1.0d, 1.0f, 5.0f, Minecraft.getInstance().player.getForward())));
+		}
+
+		@Override
+		public boolean isPressed() {
+			if (this.key != null) {
+				return this.key.isPressed();
+			} else {
+				return super.isPressed();
+			}
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.smash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
 					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
 			super.register();
 		}

@@ -17,13 +17,17 @@ public class PlayerTrick extends AbstractTrick {
 	public PlayerTrick() {
 		super();
 	}
-	
+
 	public PlayerTrick(PlayerEntity caster) {
 		setCaster(caster);
 	}
-	
+
 	public PlayerEntity getCaster(World worldIn) {
 		return casterUniqueId == null ? null : worldIn.getPlayerByUuid(casterUniqueId);
+	}
+
+	public UUID getCasterUniUuid() {
+		return casterUniqueId;
 	}
 
 	public boolean hasCaster(World worldIn) {

@@ -6,8 +6,8 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.capability.wings.IWingsCapability;
-import dzuchun.wingx.capability.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.IWingsCapability;
+import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -46,14 +46,14 @@ public class ToggleWingsMessage {
 		if (context.getDirection().equals(NetworkDirection.PLAY_TO_SERVER)) {
 			context.enqueueWork(() -> {
 				LOG.warn("Handling on server");
-				// Work that needs to be threadsafe (most work)
-				ServerPlayerEntity sender = context.getSender(); // the client that sent this packet
+				ServerPlayerEntity sender = context.getSender();
 				ServerWorld world = (ServerWorld) sender.world;
 				sender.getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wingsCap) -> {
 					if (wingsCap.isActive()) {
 						UUID targetUniqueId = wingsCap.getWingsUniqueId();
 						if (targetUniqueId == null) {
-							LOG.warn("Wings active for {}, but no UUID specified, deactivating", sender.getGameProfile().getName());
+							LOG.warn("Wings active for {}, but no UUID specified, deactivating",
+									sender.getGameProfile().getName());
 							wingsCap.setActive(false);
 							return;
 						}
@@ -73,8 +73,8 @@ public class ToggleWingsMessage {
 										new ToggleWingsMessage(false));
 								wingsCap.setActive(false);
 							} else {
-								LOG.warn("Entity with UUID {} should be wings, but it is {}. Deactivating wings.", targetUniqueId,
-										foundEntity.getClass().getName());
+								LOG.warn("Entity with UUID {} should be wings, but it is {}. Deactivating wings.",
+										targetUniqueId, foundEntity.getClass().getName());
 								wingsCap.setActive(false);
 							}
 						}

@@ -3,8 +3,10 @@ package dzuchun.wingx;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.capability.wings.CapabilityWings;
-import dzuchun.wingx.capability.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.CapabilityWings;
+import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
+import dzuchun.wingx.capability.world.tricks.CapabilityActiveTricks;
 import dzuchun.wingx.client.input.KeyEvents;
 import dzuchun.wingx.client.render.entity.WingsRenderer;
 import dzuchun.wingx.init.EntityTypes;
@@ -28,7 +30,7 @@ public class Wingx {
 	private static final Logger LOG = LogManager.getLogger();
 
 	public Wingx() {
-		LOG.info("Wingx awakened!");
+		LOG.debug("Wingx awakened!");
 
 		LOG.debug("Initing");
 		final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -48,10 +50,12 @@ public class Wingx {
 		LOG.debug("Registering net channels");
 		WingxPacketHandler.init();
 		LOG.debug("Registered net channels");
-		
+
 		LOG.debug("Registering capabilities");
 		CapabilityWings.register();
 		WingsProvider.init();
+		CapabilityActiveTricks.register();
+		ActiveTricksProvider.init();
 		LOG.debug("Registered capabilities");
 	}
 

@@ -22,21 +22,24 @@ public class WingxPacketHandler {
 	public static final int TOGGLE_MESSAGE_INDEX = 355;
 	public static final int OWNER_DATA_INDEX = 357;
 	public static final int TRICK_PERFORMED_INDEX = 359;
+	public static final int TRICK_FINISHED_INDEX = 361;
 
 	public static void init() {
-		
-		//Registering toggle wings
-		INSTANCE.registerMessage(TOGGLE_MESSAGE_INDEX, ToggleWingsMessage.class, ToggleWingsMessage::encode, ToggleWingsMessage::decode,
-				ToggleWingsMessage::handle);
-//		INSTANCE.registerMessage(TOGGLE_MESSAGE_INDEX+1, ToggleWingsMessageResponse.class, ToggleWingsMessageResponse::encode, ToggleWingsMessageResponse::decode,
-//				ToggleWingsMessageResponse::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-		
-		//Registering data transfer to clients
-		INSTANCE.registerMessage(OWNER_DATA_INDEX, OwnerDataMessage.class, OwnerDataMessage::encode, OwnerDataMessage::decode,
-				OwnerDataMessage::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
-		//Registering trick performed message
-		INSTANCE.registerMessage(TRICK_PERFORMED_INDEX, TrickPerformedMessage.class, TrickPerformedMessage::encode, TrickPerformedMessage::decode,
-				TrickPerformedMessage::handle);
+		// Registering toggle wings
+		INSTANCE.registerMessage(TOGGLE_MESSAGE_INDEX, ToggleWingsMessage.class, ToggleWingsMessage::encode,
+				ToggleWingsMessage::decode, ToggleWingsMessage::handle);
+
+		// Registering data transfer to clients
+		INSTANCE.registerMessage(OWNER_DATA_INDEX, OwnerDataMessage.class, OwnerDataMessage::encode,
+				OwnerDataMessage::decode, OwnerDataMessage::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+		// Registering trick performed message
+		INSTANCE.registerMessage(TRICK_PERFORMED_INDEX, TrickPerformedMessage.class, TrickPerformedMessage::encode,
+				TrickPerformedMessage::decode, TrickPerformedMessage::handle);
+
+		// Registering trick finished message
+		INSTANCE.registerMessage(TRICK_FINISHED_INDEX, TrickFinishMessage.class, TrickFinishMessage::encode,
+				TrickFinishMessage::decode, TrickFinishMessage::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 	}
 }

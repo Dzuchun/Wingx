@@ -5,8 +5,9 @@ import javax.annotation.Nullable;
 import net.minecraft.util.ResourceLocation;
 
 public abstract class AbstractTrick implements ITrick {
-	
+
 	private ResourceLocation registryName = null;
+
 	@Override
 	public AbstractTrick setRegistryName(ResourceLocation name) {
 		this.registryName = name;

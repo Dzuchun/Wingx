@@ -20,23 +20,19 @@ public class EntityTypes {
 
 	public static final String WINGS_NAME = "wings";
 
-	public static RegistryObject<EntityType<WingsEntity>> WINGS_ENTITY_TYPE;
+	public static RegistryObject<EntityType<WingsEntity>> wings_entity_type;
 
-	public static void init(IEventBus bus) {
+	public static void registerEntityTypes(IEventBus bus) {
 
 		final DeferredRegister<EntityType<? extends Entity>> register = DeferredRegister
 				.create(ForgeRegistries.ENTITIES, Wingx.MOD_ID);
-		WINGS_ENTITY_TYPE = register.register("wings",
-				() -> EntityType.Builder
-						.<WingsEntity>create(
-								(EntityType<WingsEntity> entityType, World worldIn) -> new WingsEntity(worldIn),
-								EntityClassification.MISC)
-						.setCustomClientFactory((spawnEntity, world) -> new WingsEntity(world))
-						.setUpdateInterval(3)
-						.immuneToFire()
-						.setShouldReceiveVelocityUpdates(false)
-						.build(new ResourceLocation(Wingx.MOD_ID, WINGS_NAME).toString()));
-		LOG.info("Registered wings entity type in deferred register");
+		wings_entity_type = register.register("wings", () -> EntityType.Builder
+				.<WingsEntity>create((EntityType<WingsEntity> entityType, World worldIn) -> new WingsEntity(worldIn),
+						EntityClassification.MISC)
+				.setCustomClientFactory((spawnEntity, world) -> new WingsEntity(world)).setUpdateInterval(3)
+				.immuneToFire().setShouldReceiveVelocityUpdates(false)
+				.build(new ResourceLocation(Wingx.MOD_ID, WINGS_NAME).toString()));
+		LOG.debug("Registered wings entity type in deferred register");
 		register.register(bus);
 	}
 }

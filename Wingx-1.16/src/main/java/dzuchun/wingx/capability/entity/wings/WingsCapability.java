@@ -1,4 +1,4 @@
-package dzuchun.wingx.capability.wings;
+package dzuchun.wingx.capability.entity.wings;
 
 import java.util.UUID;
 
@@ -10,6 +10,7 @@ public class WingsCapability implements IWingsCapability {
 	@Override
 	public boolean setActive(boolean active) {
 		this.active = active;
+//		System.out.println("Setting active to " + active);
 		return true;
 	}
 

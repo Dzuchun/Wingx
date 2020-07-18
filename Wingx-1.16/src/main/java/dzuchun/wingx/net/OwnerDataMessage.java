@@ -6,8 +6,8 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.capability.wings.IWingsCapability;
-import dzuchun.wingx.capability.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.IWingsCapability;
+import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -57,7 +57,8 @@ public class OwnerDataMessage {
 	public static OwnerDataMessage decode(PacketBuffer buf) {
 		boolean hasOwner = buf.readBoolean();
 		if (hasOwner) {
-			return new OwnerDataMessage(true, buf.readUniqueId(), buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readFloat(), buf.readUniqueId());
+			return new OwnerDataMessage(true, buf.readUniqueId(), buf.readDouble(), buf.readDouble(), buf.readDouble(),
+					buf.readFloat(), buf.readUniqueId());
 		} else {
 			return new OwnerDataMessage(buf.readUniqueId());
 		}
@@ -78,6 +79,7 @@ public class OwnerDataMessage {
 	}
 
 	private static Entity entity;
+
 	@SuppressWarnings("resource")
 	public static void handle(OwnerDataMessage msg, Supplier<NetworkEvent.Context> ctx) {
 		ctx.get().enqueueWork(() -> {
@@ -85,24 +87,23 @@ public class OwnerDataMessage {
 				if (entityI.getUniqueID().equals(msg.uuid)) {
 					entity = entityI;
 				} else {
-					if (entityI instanceof WingsEntity)
-					{
+					if (entityI instanceof WingsEntity) {
 						LOG.warn("Hit wings with UUID {}, but we need {}", entityI.getUniqueID(), msg.uuid);
 					}
 				}
 			});
 			if (entity == null) {
-				LOG.info("No entity found with UUID {}, saaad", msg.uuid);
+				LOG.debug("No entity found with UUID {}, saaad", msg.uuid);
 				return;
 			}
 			if (entity instanceof WingsEntity) {
-				WingsEntity wings = (WingsEntity)entity;
+				WingsEntity wings = (WingsEntity) entity;
 				if (msg.hasOwner) {
-					//TODO OPTIMIZE!!
+					// TODO OPTIMIZE!!
 					LOG.info("Setting position at client");
 					wings.realSetPosAndUpdateNoTime(msg.x, msg.y, msg.z, msg.yaw);
 					wings.setOwner(msg.ownerUniqueId, true);
-					wings.getOwner().getCapability(WingsProvider.WINGS).ifPresent((IWingsCapability wingsCap) -> {
+					wings.getOwner().getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wingsCap) -> {
 						if (!wingsCap.isActive()) {
 							wingsCap.setActive(true);
 						}
@@ -110,7 +111,7 @@ public class OwnerDataMessage {
 					});
 				}
 			} else {
-				LOG.info("UUID is not unique");
+				LOG.error("UUID is not unique");
 			}
 			entity = null;
 		});
