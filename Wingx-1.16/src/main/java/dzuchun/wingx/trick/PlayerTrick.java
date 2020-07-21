@@ -2,14 +2,19 @@ package dzuchun.wingx.trick;
 
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class PlayerTrick extends AbstractTrick {
+public abstract class PlayerTrick extends AbstractTrick {
 	private static final Logger LOG = LogManager.getLogger();
 
 	private UUID casterUniqueId = null;
@@ -18,20 +23,20 @@ public class PlayerTrick extends AbstractTrick {
 		super();
 	}
 
-	public PlayerTrick(PlayerEntity caster) {
+	public PlayerTrick(@Nonnull PlayerEntity caster) {
 		setCaster(caster);
 	}
 
 	public PlayerEntity getCaster(World worldIn) {
-		return casterUniqueId == null ? null : worldIn.getPlayerByUuid(casterUniqueId);
+		return this.casterUniqueId == null ? null : worldIn.getPlayerByUuid(this.casterUniqueId);
 	}
 
 	public UUID getCasterUniUuid() {
-		return casterUniqueId;
+		return this.casterUniqueId;
 	}
 
 	public boolean hasCaster(World worldIn) {
-		return worldIn.getPlayerByUuid(casterUniqueId) != null ? true : false;
+		return worldIn.getPlayerByUuid(this.casterUniqueId) != null ? true : false;
 	}
 
 	protected void setCaster(PlayerEntity caster) {
@@ -43,18 +48,32 @@ public class PlayerTrick extends AbstractTrick {
 	}
 
 	protected void setCaster(UUID uuid) {
-		casterUniqueId = uuid;
+		this.casterUniqueId = uuid;
 	}
 
 	@Override
 	public ITrick readFromBuf(PacketBuffer buf) {
-		this.casterUniqueId = buf.readUniqueId();
+		if (buf.readBoolean()) {
+			this.casterUniqueId = buf.readUniqueId();
+		} else {
+			this.casterUniqueId = null;
+		}
 		return this;
 	}
 
 	@Override
 	public ITrick writeToBuf(PacketBuffer buf) {
-		buf.writeUniqueId(casterUniqueId);
+		if (this.casterUniqueId == null) {
+			buf.writeBoolean(false);
+		} else {
+			buf.writeBoolean(true);
+			buf.writeUniqueId(this.casterUniqueId);
+		}
 		return this;
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public boolean amICaster() {
+		return this.casterUniqueId != null && this.casterUniqueId.equals(Minecraft.getInstance().player.getUniqueID());
 	}
 }
