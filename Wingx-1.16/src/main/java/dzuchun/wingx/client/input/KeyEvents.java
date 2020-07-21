@@ -2,17 +2,21 @@ package dzuchun.wingx.client.input;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 import dzuchun.wingx.Wingx;
+import dzuchun.wingx.client.render.overlay.LivingEntitySelectOverlay;
 import dzuchun.wingx.net.ToggleWingsMessage;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.DashPlayerTrick;
+import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
 import dzuchun.wingx.util.Facing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -39,25 +43,23 @@ public class KeyEvents {
 
 	@SubscribeEvent
 	public static void onKeyPressed(InputEvent.KeyInputEvent event) {
-		for (WingxKey key : WingxKey.values()) {
-			if (key.isPressed()) {
-				key.execute();
+		if (event.getAction() == GLFW.GLFW_PRESS) {
+			for (WingxKey key : WingxKey.values()) {
+				if (key.isPressed()) {
+					key.execute();
+				}
 			}
 		}
 	}
 }
 
+@OnlyIn(value = Dist.CLIENT)
 enum WingxKey {
 	SUMMON_WINGS {
 
 		@Override
 		public void execute() {
 			WingxPacketHandler.INSTANCE.sendToServer(new ToggleWingsMessage(true));
-		}
-
-		@Override
-		public boolean isPressed() {
-			return this.key.isPressed();
 		}
 
 		@Override
@@ -77,15 +79,6 @@ enum WingxKey {
 		}
 
 		@Override
-		public boolean isPressed() {
-			if (this.key != null) {
-				return this.key.isPressed();
-			} else {
-				return super.isPressed();
-			}
-		}
-
-		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
 					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
@@ -99,15 +92,6 @@ enum WingxKey {
 		public void execute() {
 			WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(
 					new DashPlayerTrick(Minecraft.getInstance().player, Facing.UP, 1.0d, true)));
-		}
-
-		@Override
-		public boolean isPressed() {
-			if (this.key != null) {
-				return this.key.isPressed();
-			} else {
-				return super.isPressed();
-			}
 		}
 
 		@Override
@@ -128,17 +112,59 @@ enum WingxKey {
 		}
 
 		@Override
-		public boolean isPressed() {
-			if (this.key != null) {
-				return this.key.isPressed();
+		public void register() {
+			this.key = new KeyBinding("key.wingx.smash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	},
+	ENABLE_SELECT_OVERLAY {
+
+		@Override
+		public void execute() {
+			LivingEntitySelectOverlay overlay = LivingEntitySelectOverlay.getInstance();
+			if (overlay == null || !overlay.isActive()) {
+				LOG.debug("Enabling overlay");
+				new LivingEntitySelectOverlay(20.0d, true, (LivingEntity entity) -> true).activate();
+				if (LivingEntitySelectOverlay.getInstance().isActive()) {
+					LOG.debug("Overlay enabled");
+				}
 			} else {
-				return super.isPressed();
+				LOG.debug("Disabling overlay");
+				LivingEntitySelectOverlay.getInstance().deactivate();
 			}
 		}
 
 		@Override
 		public void register() {
-			this.key = new KeyBinding("key.wingx.smash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+			this.key = new KeyBinding("key.wingx.tmp", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	},
+	PUNCH {
+		private PunchPlayerTrick trick = null;
+
+		@SuppressWarnings("resource")
+		@Override
+		public void execute() {
+			if (this.trick == null) {
+				this.trick = new PunchPlayerTrick(Minecraft.getInstance().player, 10.0d, null, 10.0d);
+				if (this.trick.getState() == PunchPlayerTrick.State.FAILED) {
+					this.trick = null;
+				}
+			} else {
+				if (this.trick.getState() == PunchPlayerTrick.State.AIMING) {
+					this.trick.aimed();
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+				}
+				this.trick = null;
+			}
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.punch", KeyConflictContext.IN_GAME, KeyModifier.NONE,
 					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
 			super.register();
 		}
@@ -148,15 +174,6 @@ enum WingxKey {
 		@Override
 		public void execute() {
 			// TODO specify execute
-		}
-
-		@Override
-		public boolean isPressed() {
-			if (this.key != null) {
-				return this.key.isPressed();
-			} else {
-				return super.isPressed();
-			}
 		}
 
 		@Override
@@ -170,18 +187,22 @@ enum WingxKey {
 	private static final Logger LOG = LogManager.getLogger();
 	private static final String SECTION_NAME = "Wingx mod";
 
-	protected KeyBinding key;
+	protected KeyBinding key = null;
 
 	public void register() {
-		if (key != null) {
-			ClientRegistry.registerKeyBinding(key);
+		if (this.key != null) {
+			ClientRegistry.registerKeyBinding(this.key);
 		} else {
-			LOG.warn("Tried to register null keybinding for {} wingx key", this.toString());
+			LOG.warn("Tried to register null keybinding for {} wingx key", toString());
 		}
 	}
 
 	public boolean isPressed() {
-		return false;
+		if (this.key != null) {
+			return this.key.isPressed();
+		} else {
+			return false;
+		}
 	}
 
 	public abstract void execute();
