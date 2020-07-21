@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.trick.AbstractTrick;
 import dzuchun.wingx.trick.DashPlayerTrick;
+import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -31,5 +32,6 @@ public class ModBusEventListener {
 	public static void registerTricks(final RegistryEvent.Register<AbstractTrick> event) {
 		event.getRegistry().register(new DashPlayerTrick());
 		event.getRegistry().register(new SmashPlayerTrick());
+		event.getRegistry().register(new PunchPlayerTrick());
 	}
 }
