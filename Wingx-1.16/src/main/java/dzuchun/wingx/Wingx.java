@@ -9,6 +9,7 @@ import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.CapabilityActiveTricks;
 import dzuchun.wingx.client.input.KeyEvents;
 import dzuchun.wingx.client.render.entity.WingsRenderer;
+import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.net.WingxPacketHandler;
 import net.minecraft.util.ResourceLocation;
@@ -70,5 +71,9 @@ public class Wingx {
 		LOG.debug("Registering key bindings");
 		KeyEvents.init();
 		LOG.debug("Registered key bindings");
+
+		LOG.debug("Initing overlays");
+		AbstractOverlay.init();
+		LOG.debug("Inited overlays");
 	}
 }
