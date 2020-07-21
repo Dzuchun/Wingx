@@ -37,15 +37,15 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 						CompoundNBT compound = new CompoundNBT();
 						Collection<IPersisableTrick> active_tricks = instance.getActiveTricks();
 						compound.putInt(AMOUNT_TAG, active_tricks.size());
-						i = 0;
+						this.i = 0;
 						active_tricks.forEach((IPersisableTrick trick) -> {
 							if (trick.getRegistryName() != null) {
 								String registryName = trick.getRegistryName().toString();
 								CompoundNBT tmp = new CompoundNBT();
 								tmp.putString(REGISTRY_NAME_TAG, registryName);
 								tmp.put(TRICK_TAG, trick.writeToNBT());
-								compound.put(i + "", tmp);
-								i++;
+								compound.put(this.i + "", tmp);
+								this.i++;
 							}
 						});
 						return compound;
@@ -65,9 +65,9 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 							return;
 						}
 						if (compound.contains(AMOUNT_TAG)) {
-							for (i = compound.getInt(AMOUNT_TAG) - 1; i >= 0; i--) {
-								if (compound.contains(i + "")) {
-									CompoundNBT tmp = compound.getCompound(i + "");
+							for (this.i = compound.getInt(AMOUNT_TAG) - 1; this.i >= 0; this.i--) {
+								if (compound.contains(this.i + "")) {
+									CompoundNBT tmp = compound.getCompound(this.i + "");
 									if (tmp.contains(REGISTRY_NAME_TAG) && tmp.contains(TRICK_TAG)) {
 										String registryName = tmp.getString(REGISTRY_NAME_TAG);
 										ResourceLocation resLoc = new ResourceLocation(registryName);
@@ -91,7 +91,7 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 								} else {
 									LOG.warn(
 											"Can't load Trick no. {}. NBT data is corrupted or lost, contact someone who understand what NBT is.",
-											i);
+											this.i);
 								}
 							}
 							instance.addActiveTricks(active_tricks);

@@ -36,7 +36,7 @@ public class ToggleWingsMessage {
 	}
 
 	public void encode(PacketBuffer buf) {
-		buf.writeBoolean(state);
+		buf.writeBoolean(this.state);
 	}
 
 	private static Entity foundEntity;

@@ -9,8 +9,6 @@ import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
 import dzuchun.wingx.trick.AbstractTrick;
 import dzuchun.wingx.trick.IPersisableTrick;
-import dzuchun.wingx.trick.IExecutableTrick;
-import dzuchun.wingx.trick.IServerTrick;
 import dzuchun.wingx.trick.ITrick;
 import dzuchun.wingx.util.NetworkHelper;
 import net.minecraft.client.Minecraft;
@@ -39,7 +37,7 @@ public class TrickPerformedMessage {
 	}
 
 	public void encode(PacketBuffer buf) {
-		NetworkHelper.writeRegisteredTrick(buf, trick);
+		NetworkHelper.writeRegisteredTrick(buf, this.trick);
 	}
 
 	public static void handle(TrickPerformedMessage msg, Supplier<NetworkEvent.Context> ctx) {
@@ -50,43 +48,36 @@ public class TrickPerformedMessage {
 					if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
 						@SuppressWarnings("resource")
 						ClientWorld world = Minecraft.getInstance().world;
-						if (trick instanceof IExecutableTrick) {
-							((IExecutableTrick) trick).execute(LogicalSide.CLIENT, world);
-							if (trick instanceof IPersisableTrick) {
-								if (((IServerTrick) trick).executedSuccesfully()) {
-									if (world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).isPresent()) {
-										world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null)
-												.ifPresent((IActiveTricksCapability active_trick_cap) -> {
-													active_trick_cap.addActiveTrick((IPersisableTrick) trick);
-												});
-									} else {
-										LOG.warn("World doesn't have a capability to store IPersistableTrick");
-									}
+						trick.execute(LogicalSide.CLIENT, world);
+						if (trick instanceof IPersisableTrick) {
+							if (trick.executedSuccesfully()) {
+								if (world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).isPresent()) {
+									world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null)
+											.ifPresent((IActiveTricksCapability active_trick_cap) -> {
+												active_trick_cap.addActiveTrick((IPersisableTrick) trick);
+											});
+								} else {
+									LOG.warn("World doesn't have a capability to store IPersistableTrick");
 								}
 							}
 						}
 					} else if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_SERVER) {
-						if (trick instanceof IServerTrick) {
-							ServerWorld world = ctx.get().getSender().getServerWorld();
-							if (trick instanceof IExecutableTrick) {
-								((IExecutableTrick) trick).execute(LogicalSide.SERVER, world);
-								if (trick instanceof IPersisableTrick) {
-									if (((IServerTrick) trick).executedSuccesfully()) {
-										if (world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).isPresent()) {
-											world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null)
-													.ifPresent((IActiveTricksCapability active_trick_cap) -> {
-														active_trick_cap.addActiveTrick((IPersisableTrick) trick);
-													});
-										} else {
-											LOG.warn("World doesn't have a capability to store IPersistableTrick");
-										}
-									}
+						ServerWorld world = ctx.get().getSender().getServerWorld();
+						trick.execute(LogicalSide.SERVER, world);
+						if (trick instanceof IPersisableTrick) {
+							if (trick.executedSuccesfully()) {
+								if (world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).isPresent()) {
+									world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null)
+											.ifPresent((IActiveTricksCapability active_trick_cap) -> {
+												active_trick_cap.addActiveTrick((IPersisableTrick) trick);
+											});
+								} else {
+									LOG.warn("World doesn't have a capability to store IPersistableTrick");
 								}
 							}
-							WingxPacketHandler.INSTANCE.send(((IServerTrick) trick).getBackPacketTarget(world), msg);
-						} else {
-							LOG.debug("Caught not IServerTrick on server, ignoring");
 						}
+						WingxPacketHandler.INSTANCE.send(trick.getBackPacketTarget(world), msg);
+
 					} else {
 						LOG.warn("Unknown direction, ignoring message");
 					}

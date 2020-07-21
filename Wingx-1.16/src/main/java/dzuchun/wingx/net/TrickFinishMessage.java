@@ -31,7 +31,7 @@ public class TrickFinishMessage {
 	}
 
 	public void encode(PacketBuffer buf) {
-		NetworkHelper.writeRegisteredTrick(buf, trick);
+		NetworkHelper.writeRegisteredTrick(buf, this.trick);
 	}
 
 	@SuppressWarnings("resource")

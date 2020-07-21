@@ -16,12 +16,12 @@ public class WingsCapability implements IWingsCapability {
 
 	@Override
 	public boolean isActive() {
-		return active;
+		return this.active;
 	}
 
 	@Override
 	public UUID getWingsUniqueId() {
-		return wingsUniqueId;
+		return this.wingsUniqueId;
 	}
 
 	@Override

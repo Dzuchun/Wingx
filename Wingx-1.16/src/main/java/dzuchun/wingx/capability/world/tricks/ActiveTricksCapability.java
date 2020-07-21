@@ -17,41 +17,41 @@ public class ActiveTricksCapability implements IActiveTricksCapability {
 
 	@Override
 	public void addActiveTrick(IPersisableTrick trick) {
-		synchronized (ACTIVE_TRICKS_LOCK) {
-			active_tricks.add(trick);
+		synchronized (this.ACTIVE_TRICKS_LOCK) {
+			this.active_tricks.add(trick);
 		}
 	}
 
 	@Override
 	public void addActiveTricks(Collection<IPersisableTrick> tricks) {
-		synchronized (ACTIVE_TRICKS_LOCK) {
-			active_tricks.addAll(tricks);
+		synchronized (this.ACTIVE_TRICKS_LOCK) {
+			this.active_tricks.addAll(tricks);
 		}
 	}
-	
+
 	@Override
 	public void onWorldTick(World worldIn) {
-		synchronized (ACTIVE_TRICKS_LOCK) {
+		synchronized (this.ACTIVE_TRICKS_LOCK) {
 			Collection<IPersisableTrick> ended_tricks = new ArrayList<IPersisableTrick>(0);
-			active_tricks.forEach((IPersisableTrick trick) -> {
+			this.active_tricks.forEach((IPersisableTrick trick) -> {
 				if (trick.keepExecuting(worldIn) && trick instanceof ITickableTrick) {
 					((ITickableTrick) trick).tick(worldIn);
 				} else {
 					ended_tricks.add(trick);
 				}
 			});
-			active_tricks.removeAll(ended_tricks);
+			this.active_tricks.removeAll(ended_tricks);
 			ended_tricks.forEach((IPersisableTrick trick) -> {
 				trick.stopExecute(LogicalSide.SERVER, worldIn);
 				WingxPacketHandler.INSTANCE.send(trick.getEndPacketTarget(worldIn), new TrickFinishMessage(trick));
 			});
-			active_tricks.trimToSize();
+			this.active_tricks.trimToSize();
 		}
 	}
 
 	@Override
 	public Collection<IPersisableTrick> getActiveTricks() {
-		return active_tricks;
+		return this.active_tricks;
 	}
 
 }

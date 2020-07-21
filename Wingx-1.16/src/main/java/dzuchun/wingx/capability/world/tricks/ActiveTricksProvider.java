@@ -22,6 +22,7 @@ public class ActiveTricksProvider implements ICapabilitySerializable<INBT> {
 	public static void init() {
 	}
 
+	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 
 	@CapabilityInject(IActiveTricksCapability.class)
@@ -33,7 +34,7 @@ public class ActiveTricksProvider implements ICapabilitySerializable<INBT> {
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
 		if (cap.equals(ACTIVE_TRICKS)) {
-			return LazyOptional.of(() -> (T) instance);
+			return LazyOptional.of(() -> (T) this.instance);
 		} else {
 			return null;
 		}
@@ -41,19 +42,18 @@ public class ActiveTricksProvider implements ICapabilitySerializable<INBT> {
 
 	@Override
 	public INBT serializeNBT() {
-		return ACTIVE_TRICKS.getStorage().writeNBT(ACTIVE_TRICKS, instance, null);
+		return ACTIVE_TRICKS.getStorage().writeNBT(ACTIVE_TRICKS, this.instance, null);
 	}
 
 	@Override
 	public void deserializeNBT(INBT nbt) {
-		ACTIVE_TRICKS.getStorage().readNBT(ACTIVE_TRICKS, instance, null, nbt);
+		ACTIVE_TRICKS.getStorage().readNBT(ACTIVE_TRICKS, this.instance, null, nbt);
 	}
 
 	private static final ResourceLocation LOCATION = new ResourceLocation(Wingx.MOD_ID, "active_tricks");
 
 	@SubscribeEvent
 	public static void attachCapability(final AttachCapabilitiesEvent<World> event) {
-		LOG.debug("Ataching caps to world.");
 		if (!event.getObject().getCapability(ACTIVE_TRICKS, null).isPresent()) {
 			event.addCapability(LOCATION, new ActiveTricksProvider());
 		}

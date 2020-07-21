@@ -5,10 +5,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-public interface IPersisableTrick extends IExecutableTrick {
+public interface IPersisableTrick extends ITrick {
 	/**
 	 * Defines if trick should be keep in memory.
-	 * 
+	 *
 	 * @param side
 	 * @param worldIn
 	 * @return If trick should be keep till next tick.
@@ -17,7 +17,7 @@ public interface IPersisableTrick extends IExecutableTrick {
 
 	/**
 	 * Called, whenever keepExecuting returned false;
-	 * 
+	 *
 	 * @param side
 	 * @param worldIn
 	 */

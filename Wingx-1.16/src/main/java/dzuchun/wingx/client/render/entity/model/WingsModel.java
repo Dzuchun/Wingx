@@ -16,15 +16,15 @@ public class WingsModel<T extends Entity> extends EntityModel<WingsEntity> {
 	private ModelRenderer a;
 
 	public WingsModel() {
-		a = new ModelRenderer(1, 1, 0, 0);
-		a.addBox(0, 0, 0, 10, 10, 10);
-		a.showModel = true;
+		this.a = new ModelRenderer(1, 1, 0, 0);
+		this.a.addBox(0, 0, 0, 10, 10, 10);
+		this.a.showModel = true;
 	}
 
 	@Override
 	public void render(MatrixStack matrixStackIn, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn,
 			float red, float green, float blue, float alpha) {
-		a.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+		this.a.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
 	}
 
 	@Override

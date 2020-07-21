@@ -30,7 +30,7 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick, IServerTrick {
+public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "smash_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
 
@@ -76,17 +76,17 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick, ISe
 	public void execute(LogicalSide side, World worldIn) {
 		if (side == LogicalSide.SERVER) {
 			if (hasCaster(worldIn)) {
-				this.endTime = worldIn.getGameTime() + duration;
-				succesfull = true;
-				damagedEntities = new ArrayList<Entity>(0);
+				this.endTime = worldIn.getGameTime() + this.duration;
+				this.succesfull = true;
+				this.damagedEntities = new ArrayList<Entity>(0);
 			} else {
-				succesfull = false;
+				this.succesfull = false;
 			}
 		}
 		if (side == LogicalSide.CLIENT) {
 			Minecraft minecraft = Minecraft.getInstance();
-			if (succesfull) {
-				this.endTime = worldIn.getGameTime() + duration;
+			if (this.succesfull) {
+				this.endTime = worldIn.getGameTime() + this.duration;
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("smash.succesfull")
 						.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.LIGHT_PURPLE)), true);
 			} else {
@@ -98,19 +98,19 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick, ISe
 
 	@Override
 	public boolean executedSuccesfully() {
-		return succesfull;
+		return this.succesfull;
 	}
 
 	@Override
 	public boolean keepExecuting(World worldIn) {
-		if (worldIn.getGameTime() >= endTime) {
+		if (worldIn.getGameTime() >= this.endTime) {
 			return false;
 		}
 		if (!hasCaster(worldIn)) {
 			return false;
 		}
 		PlayerEntity caster = getCaster(worldIn);
-		return caster.collidedHorizontally || caster.collidedVertically ? false : true;
+		return caster.collidedHorizontally || caster.collidedVertically ? false : true; // TODO repair collision checks
 	}
 
 	@Override
@@ -132,7 +132,7 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick, ISe
 				if (caster.collidedHorizontally || caster.collidedVertically) {
 					worldIn.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(3.0d),
 							(Entity entity) -> true).forEach((Entity entity) -> {
-								entity.attackEntityFrom(getDamageSource(worldIn), mainDamage);
+								entity.attackEntityFrom(getDamageSource(worldIn), this.mainDamage);
 							});
 				}
 			}
@@ -143,18 +143,18 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick, ISe
 	public void tick(World worldIn) {
 		if (!hasCaster(worldIn)) {
 			// TODO check if caster teleported to another dimension.
-			endTime++;
+			this.endTime++;
 			return;
 		}
 		PlayerEntity caster = getCaster(worldIn);
 		caster.fallDistance = 0;
 		worldIn.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(0.5d),
-				(Entity entity) -> !damagedEntities.contains(entity)).forEach((Entity entity) -> {
-					if (entity.attackEntityFrom(getDamageSource(worldIn), sideDamage)) {
-						damagedEntities.add(entity);
+				(Entity entity) -> !this.damagedEntities.contains(entity)).forEach((Entity entity) -> {
+					if (entity.attackEntityFrom(getDamageSource(worldIn), this.sideDamage)) {
+						this.damagedEntities.add(entity);
 					}
 				});
-		caster.setMotion(direction.add(0d, -1d, 0d).scale(speed / 2d));
+		caster.setMotion(this.direction.add(0d, -1d, 0d).scale(this.speed / 2d));
 		caster.velocityChanged = true;
 	}
 
@@ -183,7 +183,7 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick, ISe
 			return;
 		}
 		try {
-			direction = NBTHelper.readVector3d(compound.getCompound(DIRECTION_TAG));
+			this.direction = NBTHelper.readVector3d(compound.getCompound(DIRECTION_TAG));
 		} catch (NBTReadingException e) {
 			LOG.warn("NBT data is corrupted or lost, contact someone who understand what NBT is.");
 			return;
@@ -191,12 +191,12 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick, ISe
 		if (compound.getBoolean(HAS_CASTER_TAG)) {
 			setCaster(compound.getUniqueId(CASTER_UUID_TAG));
 		}
-		duration = compound.getInt(DURATION_TAG);
-		speed = compound.getDouble(SPEED_TAG);
-		sideDamage = compound.getFloat(SIDE_DAMAGE_TAG);
-		mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
-		succesfull = compound.getBoolean(SUCCESFULL_TAG);
-		endTime = compound.getLong(END_TIME_TAG);
+		this.duration = compound.getInt(DURATION_TAG);
+		this.speed = compound.getDouble(SPEED_TAG);
+		this.sideDamage = compound.getFloat(SIDE_DAMAGE_TAG);
+		this.mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
+		this.succesfull = compound.getBoolean(SUCCESFULL_TAG);
+		this.endTime = compound.getLong(END_TIME_TAG);
 	}
 
 	@Override
@@ -208,41 +208,41 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick, ISe
 		} else {
 			res.putBoolean(HAS_CASTER_TAG, false);
 		}
-		res.putInt(DURATION_TAG, duration);
-		res.putDouble(SPEED_TAG, speed);
-		res.putFloat(SIDE_DAMAGE_TAG, sideDamage);
-		res.putFloat(MAIN_DAMAGE_TAG, mainDamage);
-		res.putBoolean(SUCCESFULL_TAG, succesfull);
-		res.putLong(END_TIME_TAG, endTime);
-		res.put(DIRECTION_TAG, NBTHelper.writeVector3d(direction));
+		res.putInt(DURATION_TAG, this.duration);
+		res.putDouble(SPEED_TAG, this.speed);
+		res.putFloat(SIDE_DAMAGE_TAG, this.sideDamage);
+		res.putFloat(MAIN_DAMAGE_TAG, this.mainDamage);
+		res.putBoolean(SUCCESFULL_TAG, this.succesfull);
+		res.putLong(END_TIME_TAG, this.endTime);
+		res.put(DIRECTION_TAG, NBTHelper.writeVector3d(this.direction));
 
 		return res;
 	}
 
 	@Override
 	public ITrick readFromBuf(PacketBuffer buf) {
-		duration = buf.readInt();
-		speed = buf.readDouble();
-		sideDamage = buf.readFloat();
-		mainDamage = buf.readFloat();
-		direction = new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
-		succesfull = buf.readBoolean();
-		endTime = buf.readLong();
+		this.duration = buf.readInt();
+		this.speed = buf.readDouble();
+		this.sideDamage = buf.readFloat();
+		this.mainDamage = buf.readFloat();
+		this.direction = new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+		this.succesfull = buf.readBoolean();
+		this.endTime = buf.readLong();
 
 		return super.readFromBuf(buf);
 	}
 
 	@Override
 	public ITrick writeToBuf(PacketBuffer buf) {
-		buf.writeInt(duration);
-		buf.writeDouble(speed);
-		buf.writeFloat(sideDamage);
-		buf.writeFloat(mainDamage);
-		buf.writeDouble(direction.x);
-		buf.writeDouble(direction.y);
-		buf.writeDouble(direction.z);
-		buf.writeBoolean(succesfull);
-		buf.writeLong(endTime);
+		buf.writeInt(this.duration);
+		buf.writeDouble(this.speed);
+		buf.writeFloat(this.sideDamage);
+		buf.writeFloat(this.mainDamage);
+		buf.writeDouble(this.direction.x);
+		buf.writeDouble(this.direction.y);
+		buf.writeDouble(this.direction.z);
+		buf.writeBoolean(this.succesfull);
+		buf.writeLong(this.endTime);
 
 		return super.writeToBuf(buf);
 	}

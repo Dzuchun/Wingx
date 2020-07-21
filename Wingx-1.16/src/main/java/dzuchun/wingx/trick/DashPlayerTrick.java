@@ -20,7 +20,7 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-public class DashPlayerTrick extends PlayerTrick implements IExecutableTrick, IServerTrick {
+public class DashPlayerTrick extends PlayerTrick {
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "dash_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
 
@@ -54,20 +54,20 @@ public class DashPlayerTrick extends PlayerTrick implements IExecutableTrick, IS
 
 	@Override
 	public void execute(LogicalSide side, World worldIn) {
-		if (succesfull || side == LogicalSide.SERVER) {
+		if (this.succesfull || side == LogicalSide.SERVER) {
 			if (hasCaster(worldIn)) {
 				PlayerEntity caster = getCaster(worldIn);
 				caster.fallDistance = 0.0f;
-				Vector3d motionChange = caster.getForward().scale(strength);
-				motionChange = facing.transform(motionChange);
-				if (!nullifiesSpeed) {
+				Vector3d motionChange = caster.getForward().scale(this.strength);
+				motionChange = this.facing.transform(motionChange);
+				if (!this.nullifiesSpeed) {
 					motionChange = motionChange.add(caster.getMotion());
 				}
 				caster.velocityChanged = true;
 				caster.setMotion(motionChange.x, motionChange.y, motionChange.z);
 				if (side == LogicalSide.CLIENT && Minecraft.getInstance().player.equals(caster)) {
 					Minecraft minecraft = Minecraft.getInstance();
-					if (succesfull) {
+					if (this.succesfull) {
 						minecraft.player.sendStatusMessage(new TranslationTextComponent("dash.success")
 								.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.AQUA)), true);
 						worldIn.playSound(caster, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
@@ -86,27 +86,27 @@ public class DashPlayerTrick extends PlayerTrick implements IExecutableTrick, IS
 
 	@Override
 	public ITrick readFromBuf(PacketBuffer buf) {
-		facing = Facing.getByInt(buf.readInt());
-		strength = buf.readDouble();
-		nullifiesSpeed = buf.readBoolean();
-		succesfull = buf.readBoolean();
+		this.facing = Facing.getByInt(buf.readInt());
+		this.strength = buf.readDouble();
+		this.nullifiesSpeed = buf.readBoolean();
+		this.succesfull = buf.readBoolean();
 
 		return super.readFromBuf(buf);
 	}
 
 	@Override
 	public ITrick writeToBuf(PacketBuffer buf) {
-		buf.writeInt(facing.toInt());
-		buf.writeDouble(strength);
-		buf.writeBoolean(nullifiesSpeed);
-		buf.writeBoolean(succesfull);
+		buf.writeInt(this.facing.toInt());
+		buf.writeDouble(this.strength);
+		buf.writeBoolean(this.nullifiesSpeed);
+		buf.writeBoolean(this.succesfull);
 
 		return super.writeToBuf(buf);
 	}
 
 	@Override
 	public boolean executedSuccesfully() {
-		return succesfull;
+		return this.succesfull;
 	}
 
 	@Override

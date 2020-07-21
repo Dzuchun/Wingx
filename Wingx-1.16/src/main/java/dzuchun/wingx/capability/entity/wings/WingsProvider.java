@@ -35,7 +35,7 @@ public class WingsProvider implements ICapabilitySerializable<INBT> {
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
 		if (cap.equals(WINGS)) {
-			return LazyOptional.of(() -> (T) instance);
+			return LazyOptional.of(() -> (T) this.instance);
 		} else {
 			return null;
 		}
@@ -43,12 +43,12 @@ public class WingsProvider implements ICapabilitySerializable<INBT> {
 
 	@Override
 	public INBT serializeNBT() {
-		return WINGS.getStorage().writeNBT(WINGS, instance, null);
+		return WINGS.getStorage().writeNBT(WINGS, this.instance, null);
 	}
 
 	@Override
 	public void deserializeNBT(INBT nbt) {
-		WINGS.getStorage().readNBT(WINGS, instance, null, nbt);
+		WINGS.getStorage().readNBT(WINGS, this.instance, null, nbt);
 	}
 
 	private static final ResourceLocation LOCATION = new ResourceLocation(Wingx.MOD_ID, "wings");

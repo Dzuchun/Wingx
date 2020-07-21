@@ -30,6 +30,7 @@ public class WingsRenderer extends EntityRenderer<WingsEntity> {
 		super(renderManagerIn);
 	}
 
+	@Override
 	public ResourceLocation getEntityTexture(WingsEntity entity) {
 		return PIG_TEXTURES;
 	}
@@ -45,9 +46,10 @@ public class WingsRenderer extends EntityRenderer<WingsEntity> {
 //				entityIn.getRealPos(), entityIn.getMotion());
 		matrixStackIn.rotate(
 				new Quaternion(Vector3f.YN, entityIn.getRealYaw() + entityIn.getRealYawSpeed() * partialTicks, true));
-		model.setRotationAngles(entityIn, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F); // TODO describe
-		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(model.getRenderType(this.getEntityTexture(entityIn)));
-		model.render(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+		this.model.setRotationAngles(entityIn, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F); // TODO describe
+		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(this.model.getRenderType(getEntityTexture(entityIn)));
+		this.model.render(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F,
+				1.0F);
 		matrixStackIn.pop();
 		super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
 	}

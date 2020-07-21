@@ -26,17 +26,17 @@ public class OwnerDataMessage {
 
 	public OwnerDataMessage(WingsEntity entityIn) {
 		if (entityIn.hasOwner()) {
-			hasOwner = true;
+			this.hasOwner = true;
 			PlayerEntity owner = entityIn.getOwner();
-			x = owner.lastTickPosX;
-			y = owner.lastTickPosY;
-			z = owner.lastTickPosZ;
-			yaw = owner.rotationYaw;
-			ownerUniqueId = owner.getUniqueID();
+			this.x = owner.lastTickPosX;
+			this.y = owner.lastTickPosY;
+			this.z = owner.lastTickPosZ;
+			this.yaw = owner.rotationYaw;
+			this.ownerUniqueId = owner.getUniqueID();
 		} else {
-			hasOwner = false;
+			this.hasOwner = false;
 		}
-		uuid = entityIn.getUniqueID();
+		this.uuid = entityIn.getUniqueID();
 	}
 
 	private OwnerDataMessage(boolean hasOwner, UUID ownerUniqueId, double x, double y, double z, float yaw, UUID uuid) {
@@ -65,17 +65,17 @@ public class OwnerDataMessage {
 	}
 
 	public void encode(PacketBuffer buf) {
-		if (hasOwner) {
+		if (this.hasOwner) {
 			buf.writeBoolean(true);
-			buf.writeUniqueId(ownerUniqueId);
-			buf.writeDouble(x);
-			buf.writeDouble(y);
-			buf.writeDouble(z);
-			buf.writeFloat(yaw);
+			buf.writeUniqueId(this.ownerUniqueId);
+			buf.writeDouble(this.x);
+			buf.writeDouble(this.y);
+			buf.writeDouble(this.z);
+			buf.writeFloat(this.yaw);
 		} else {
 			buf.writeBoolean(false);
 		}
-		buf.writeUniqueId(uuid);
+		buf.writeUniqueId(this.uuid);
 	}
 
 	private static Entity entity;
