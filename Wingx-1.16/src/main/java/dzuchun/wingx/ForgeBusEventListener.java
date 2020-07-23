@@ -8,10 +8,12 @@ import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
 import dzuchun.wingx.entity.misc.WingsEntity;
+import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.PlayerTickEvent;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
@@ -54,15 +56,22 @@ public class ForgeBusEventListener {
 	}
 
 	@SubscribeEvent
-	public static void onWorldTick(final WorldTickEvent event) {
+	public static void onServerWorldTick(final WorldTickEvent event) {
 		World world = event.world;
+//		LOG.debug("World tick");
 		if (event.phase == Phase.END) {
-			if (world instanceof ServerWorld) {
+			if (event.side == LogicalSide.SERVER) {
 				world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null)
 						.ifPresent((IActiveTricksCapability cap) -> {
 							cap.onWorldTick(world);
 						});
+				AbstractInterruptablePlayerTrick.onWorldTick(world);
 			}
 		}
+	}
+
+	@SubscribeEvent
+	public static void onClientTick(final ClientTickEvent event) {
+		AbstractInterruptablePlayerTrick.onClientTick();
 	}
 }

@@ -99,10 +99,10 @@ public class ToggleWingsMessage {
 				Minecraft minecraft = Minecraft.getInstance();
 				if (msg.state) {
 					minecraft.player.sendStatusMessage(new TranslationTextComponent("wings.summoned")
-							.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.AQUA)), true);
+							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.AQUA)), true);
 				} else {
 					minecraft.player.sendStatusMessage(new TranslationTextComponent("wings.desummoned")
-							.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.DARK_RED)), true);
+							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
 				}
 			});
 		}

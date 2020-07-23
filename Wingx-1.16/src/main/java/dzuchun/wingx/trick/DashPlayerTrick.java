@@ -69,12 +69,12 @@ public class DashPlayerTrick extends PlayerTrick {
 					Minecraft minecraft = Minecraft.getInstance();
 					if (this.succesfull) {
 						minecraft.player.sendStatusMessage(new TranslationTextComponent("dash.success")
-								.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.AQUA)), true);
+								.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.AQUA)), true);
 						worldIn.playSound(caster, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
 								SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 1.0f, 1.0f);
 					} else {
 						minecraft.player.sendStatusMessage(new TranslationTextComponent("dash.fail")
-								.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.DARK_RED)), true);
+								.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
 						// TODO specify reason
 					}
 				}
@@ -112,6 +112,11 @@ public class DashPlayerTrick extends PlayerTrick {
 	@Override
 	public PacketTarget getBackPacketTarget(World worldIn) {
 		return hasCaster(worldIn) ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCaster(worldIn)) : null;
+	}
+
+	@Override
+	public ITrick newEmpty() {
+		return new DashPlayerTrick();
 	}
 
 }

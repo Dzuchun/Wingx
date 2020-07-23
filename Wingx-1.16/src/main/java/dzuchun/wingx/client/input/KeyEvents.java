@@ -12,6 +12,7 @@ import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.DashPlayerTrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
+import dzuchun.wingx.trick.TemplateCastPlayerTrick;
 import dzuchun.wingx.util.Facing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -75,7 +76,7 @@ enum WingxKey {
 		@Override
 		public void execute() {
 			Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wingx.meditating")
-					.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.DARK_GREEN)), true);
+					.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
 		}
 
 		@Override
@@ -165,6 +166,22 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.punch", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	},
+	CASTING_TEMPLATE {
+
+		@SuppressWarnings("resource")
+		@Override
+		public void execute() {
+			WingxPacketHandler.INSTANCE.sendToServer(
+					new TrickPerformedMessage(new TemplateCastPlayerTrick(Minecraft.getInstance().player, 40)));
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.casting.template", KeyConflictContext.IN_GAME, KeyModifier.NONE,
 					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
 			super.register();
 		}

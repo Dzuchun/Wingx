@@ -76,10 +76,10 @@ public class PunchPlayerTrick extends TargetedPlayerTrick {
 			if (amICaster()) {
 				if (this.successfull) {
 					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.punch.success")
-							.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.YELLOW)), true);
+							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.YELLOW)), true);
 				} else {
 					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.punch.fail")
-							.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.GRAY)), true);
+							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
 				}
 			}
 		}
@@ -141,5 +141,10 @@ public class PunchPlayerTrick extends TargetedPlayerTrick {
 
 	public enum State {
 		AIMING, WAIT_FOR_EXECUTION, FAILED
+	}
+
+	@Override
+	public ITrick newEmpty() {
+		return new PunchPlayerTrick();
 	}
 }

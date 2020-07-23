@@ -88,10 +88,10 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 			if (this.succesfull) {
 				this.endTime = worldIn.getGameTime() + this.duration;
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("smash.succesfull")
-						.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.LIGHT_PURPLE)), true);
+						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.LIGHT_PURPLE)), true);
 			} else {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("smash.fail")
-						.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.RED)), true);
+						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
 			}
 		}
 	}
@@ -122,7 +122,7 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 		if (side == LogicalSide.CLIENT) {
 			Minecraft minecraft = Minecraft.getInstance();
 			minecraft.player.sendStatusMessage(new TranslationTextComponent("smash.completed")
-					.func_230530_a_(Style.field_240709_b_.func_240712_a_(TextFormatting.BOLD)), true);
+					.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
 			// Make additional variable then!
 			worldIn.playSound(minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
 					minecraft.player.getPosZ(), SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0f, 1.0f);
@@ -255,6 +255,11 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 	@Override
 	public PacketTarget getEndPacketTarget(World worldIn) {
 		return hasCaster(worldIn) ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCaster(worldIn)) : null;
+	}
+
+	@Override
+	public ITrick newEmpty() {
+		return new SmashPlayerTrick();
 	}
 
 }

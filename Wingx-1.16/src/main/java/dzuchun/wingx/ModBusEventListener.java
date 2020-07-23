@@ -7,6 +7,11 @@ import dzuchun.wingx.trick.AbstractTrick;
 import dzuchun.wingx.trick.DashPlayerTrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
+import dzuchun.wingx.trick.TemplateCastPlayerTrick;
+import net.minecraft.inventory.container.PlayerContainer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -33,5 +38,22 @@ public class ModBusEventListener {
 		event.getRegistry().register(new DashPlayerTrick());
 		event.getRegistry().register(new SmashPlayerTrick());
 		event.getRegistry().register(new PunchPlayerTrick());
+		event.getRegistry().register(new TemplateCastPlayerTrick());
+	}
+
+	// Texture locations
+//	@OnlyIn(value = Dist.CLIENT)
+//	public static final ResourceLocation GUI_INGAME_COOLDOWN_HORIZONTAL_TEXTURE = new ResourceLocation(Wingx.MOD_ID,
+//			"gui/ingame/cooldown_bar_horizontal");
+
+	@OnlyIn(value = Dist.CLIENT)
+	@SubscribeEvent
+	public static void onTextureStitchPre(TextureStitchEvent.Pre event) {
+		if (event.getMap().getTextureLocation().equals(PlayerContainer.LOCATION_BLOCKS_TEXTURE)) {
+			LOG.info("Adding block textures");
+			// TODO add block textures
+//			event.addSprite(GUI_INGAME_COOLDOWN_HORIZONTAL_TEXTURE);
+			LOG.info("Added block textures");
+		}
 	}
 }

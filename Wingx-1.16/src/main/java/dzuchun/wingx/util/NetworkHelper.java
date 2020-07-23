@@ -17,7 +17,7 @@ public class NetworkHelper {
 		if (buf.readBoolean()) {
 			if (registry != null) {
 				String registryName = buf.readString(buf.readInt());
-				ITrick trick = registry.getValue(new ResourceLocation(registryName));
+				ITrick trick = registry.getValue(new ResourceLocation(registryName)).newEmpty();
 				if (trick != null) {
 					LOG.debug("While decoding found trick from {} class", trick.getClass().getName());
 					trick.readFromBuf(buf);

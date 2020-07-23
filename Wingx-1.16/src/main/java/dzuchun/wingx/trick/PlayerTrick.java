@@ -17,7 +17,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class PlayerTrick extends AbstractTrick {
 	private static final Logger LOG = LogManager.getLogger();
 
-	private UUID casterUniqueId = null;
+	private UUID casterUniqueId = null; // TODO make protected!!
 
 	public PlayerTrick() {
 		super();
@@ -36,12 +36,12 @@ public abstract class PlayerTrick extends AbstractTrick {
 	}
 
 	public boolean hasCaster(World worldIn) {
-		return worldIn.getPlayerByUuid(this.casterUniqueId) != null ? true : false;
+		return this.casterUniqueId != null && worldIn.getPlayerByUuid(this.casterUniqueId) != null ? true : false;
 	}
 
 	protected void setCaster(PlayerEntity caster) {
 		if (caster == null) {
-			LOG.warn("");
+			LOG.warn("Tried to set caster null.");
 		} else {
 			setCaster(caster.getUniqueID());
 		}
@@ -56,6 +56,7 @@ public abstract class PlayerTrick extends AbstractTrick {
 		if (buf.readBoolean()) {
 			this.casterUniqueId = buf.readUniqueId();
 		} else {
+			LOG.warn("No caster found");
 			this.casterUniqueId = null;
 		}
 		return this;

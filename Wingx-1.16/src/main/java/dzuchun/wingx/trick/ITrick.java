@@ -36,4 +36,6 @@ public interface ITrick extends IForgeRegistryEntry<AbstractTrick> {
 	boolean executedSuccesfully();
 
 	PacketTarget getBackPacketTarget(World worldIn);
+
+	ITrick newEmpty();
 }
