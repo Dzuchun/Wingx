@@ -69,4 +69,11 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick {
 		return new TemplateCastPlayerTrick();
 	}
 
+//	@Override
+//	public Consumer<RenderGameOverlayEvent> getDrawFunction() {
+//		return (RenderGameOverlayEvent event) -> {
+//			SeparateRenderers.renderColorScreen(event, FadingScreenOverlay.Color.BLACK);
+//		};
+//	}
+
 }

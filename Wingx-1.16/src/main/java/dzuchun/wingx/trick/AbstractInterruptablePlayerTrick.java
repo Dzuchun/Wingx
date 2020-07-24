@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Maps;
 
-import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.gui.SeparateRenderers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -26,11 +25,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 
-@Mod.EventBusSubscriber(bus = Bus.FORGE, modid = Wingx.MOD_ID)
 public abstract class AbstractInterruptablePlayerTrick extends PlayerTrick implements IInterruptableTrick {
 	private static final Logger LOG = LogManager.getLogger();
 	private static final Object INSTANCES_LOCK = new Object();
@@ -112,7 +107,6 @@ public abstract class AbstractInterruptablePlayerTrick extends PlayerTrick imple
 	}
 
 	@OnlyIn(value = Dist.CLIENT)
-	@SubscribeEvent
 	public static void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
 		if (event.getType() == ElementType.CROSSHAIRS) {
 			AbstractInterruptablePlayerTrick trick = getForMe();

@@ -94,7 +94,13 @@ public class PunchPlayerTrick extends TargetedPlayerTrick {
 		if (LivingEntitySelectOverlay.getInstance() == null || !LivingEntitySelectOverlay.getInstance().isActive()) {
 			LOG.warn("Can't aim: overlay is not active.");
 		}
-		LivingEntity target = LivingEntitySelectOverlay.getInstance().deactivate();
+		LivingEntitySelectOverlay overlay = LivingEntitySelectOverlay.getInstance();
+		if (overlay == null) {
+			LOG.warn("Can't aim: overlay not active");
+			return false;
+		}
+		overlay.deactivate();
+		LivingEntity target = overlay.getSelectedEnttity();
 		if (target == null) {
 			LOG.debug("No entity aimed");
 			this.state = State.FAILED;

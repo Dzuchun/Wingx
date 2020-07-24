@@ -2,18 +2,20 @@ package dzuchun.wingx.client.render.overlay;
 
 import java.util.ArrayList;
 
-import dzuchun.wingx.Wingx;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 
 @OnlyIn(value = Dist.CLIENT)
-@Mod.EventBusSubscriber(bus = Bus.FORGE, modid = Wingx.MOD_ID)
 public abstract class AbstractOverlay {
+	private static final Logger LOG = LogManager.getLogger();
+
 	public static void init() {
 	}
 
@@ -34,8 +36,9 @@ public abstract class AbstractOverlay {
 					res_1 = false;
 				}
 			});
-			if (res_1) {
-				activeOverlays.add(overlayIn);
+			if (res_1 && !activeOverlays.add(overlayIn)) {
+				res_1 = false;
+				LOG.warn("Could not add overlay {}", overlayIn.toString());
 			}
 		}
 		return res_1;
@@ -43,18 +46,22 @@ public abstract class AbstractOverlay {
 
 	protected static void deactivate(AbstractOverlay overlayIn) {
 		synchronized (ACTIVE_OVERLAYS_LOCK) {
+			LOG.debug("Removing overlay {}", overlayIn.toString());
 			activeOverlays.remove(overlayIn);
 		}
 	}
 
 	abstract boolean conflicts(AbstractOverlay other);
 
-	@SubscribeEvent
-	public static void onRenderGameOverlay(RenderGameOverlayEvent.Pre event) {
-		synchronized (ACTIVE_OVERLAYS_LOCK) {
-			activeOverlays.forEach((AbstractOverlay overlay) -> {
-				overlay.renderGameOverlay(event);
-			});
+	public static void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
+//		LOG.debug("Rendering gameOverlay part");
+		if (event.getType() == ElementType.CROSSHAIRS) {
+			synchronized (ACTIVE_OVERLAYS_LOCK) {
+				activeOverlays.forEach((AbstractOverlay overlay) -> {
+					// LOG.debug("Rendering {} overlay", overlay.toString());
+					overlay.renderGameOverlay(event);
+				});
+			}
 		}
 	}
 
@@ -72,4 +79,10 @@ public abstract class AbstractOverlay {
 
 	void renderLiving(@SuppressWarnings("rawtypes") RenderLivingEvent event) {
 	}
+
+	protected abstract boolean activate();
+
+	protected abstract void deactivate();
+
+	public abstract boolean isActive();
 }

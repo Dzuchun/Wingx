@@ -2,6 +2,7 @@ package dzuchun.wingx.client.render.gui;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -12,6 +13,7 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector4f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -32,6 +34,7 @@ public class SeparateRenderers {
 //	// Texture sprite
 //	public static TextureAtlasSprite GUI_INGAME_COOLDOWN_HORIZONTAL_SPRITE;
 
+	@SuppressWarnings("deprecation")
 	public static void defaultDrawCastingOverlay(RenderGameOverlayEvent event) {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (!Minecraft.isGuiEnabled()) {
@@ -86,5 +89,55 @@ public class SeparateRenderers {
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableAlphaTest();
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+	}
+
+	@SuppressWarnings("deprecation")
+	public static void renderColorScreen(RenderGameOverlayEvent event, Vector4f color) {
+		@SuppressWarnings("unused")
+		Minecraft minecraft = Minecraft.getInstance();
+		if (!Minecraft.isGuiEnabled()) {
+			return;
+		}
+
+//		Damn, that's so stupid, that I'm gonna leave it here.
+//		(With this uncommented entire function does not work, if no active AbstractPlayerTrick exist)
+//		(may contain deprecated or non-existent now methods)
+//		AbstractInterruptablePlayerTrick trick = AbstractInterruptablePlayerTrick.getForMe();
+//		if (trick == null) {
+//			return;
+//		}
+
+		int scaledScreenWidth = Minecraft.getInstance().getMainWindow().getScaledWidth();
+		int scaledScreenHeight = Minecraft.getInstance().getMainWindow().getScaledHeight();
+//		Matrix4f matrix = event.getMatrixStack().getLast().getMatrix();
+
+		RenderSystem.disableTexture();
+		RenderSystem.disableDepthTest();
+		RenderSystem.depthMask(false);
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.shadeModel(GL11.GL_FLAT);
+		RenderSystem.disableAlphaTest();
+		Tessellator tessellator = Tessellator.getInstance();
+		BufferBuilder bufferbuilder = tessellator.getBuffer();
+		float r = color.getX();
+		float g = color.getY();
+		float b = color.getZ();
+		float a = color.getW();
+		RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
+		bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+
+		bufferbuilder.pos(0.0f, 0.0f, 0.0f).color(r, g, b, a).endVertex();
+		bufferbuilder.pos(0.0f, scaledScreenHeight, 0.0f).color(r, g, b, a).endVertex();
+		bufferbuilder.pos(scaledScreenWidth, scaledScreenHeight, 0.0f).color(r, g, b, a).endVertex();
+		bufferbuilder.pos(scaledScreenWidth, 0.0f, 0.0f).color(r, g, b, a).endVertex();
+
+		tessellator.draw();
+
+		RenderSystem.depthMask(true);
+		RenderSystem.enableDepthTest();
+		RenderSystem.shadeModel(GL11.GL_SMOOTH);
+		RenderSystem.enableAlphaTest();
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.enableTexture();
 	}
 }

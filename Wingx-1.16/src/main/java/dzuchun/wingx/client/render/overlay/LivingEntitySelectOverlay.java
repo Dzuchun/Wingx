@@ -58,6 +58,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 		return other instanceof LivingEntitySelectOverlay ? true : false;
 	}
 
+	@Override
 	public boolean isActive() {
 		return this.isActive;
 	}
@@ -135,14 +136,20 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 		matrixStack.pop();
 	}
 
-	public LivingEntity deactivate() {
+	@Override
+	public void deactivate() {
 		deactivate(this);
 		this.isActive = false;
 		instance = null;
+	}
+
+	public LivingEntity getSelectedEnttity() {
 		return this.selectedEntity;
 	}
 
-	public void activate() {
+	@Override
+	public boolean activate() {
 		this.isActive = activate(this);
+		return this.isActive;
 	}
 }

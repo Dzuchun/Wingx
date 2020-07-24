@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import dzuchun.wingx.Wingx;
-import dzuchun.wingx.client.render.overlay.LivingEntitySelectOverlay;
+import dzuchun.wingx.client.render.overlay.FadingScreenOverlay;
 import dzuchun.wingx.net.ToggleWingsMessage;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
@@ -17,7 +17,6 @@ import dzuchun.wingx.util.Facing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -119,21 +118,11 @@ enum WingxKey {
 			super.register();
 		}
 	},
-	ENABLE_SELECT_OVERLAY {
+	TMP {
 
 		@Override
 		public void execute() {
-			LivingEntitySelectOverlay overlay = LivingEntitySelectOverlay.getInstance();
-			if (overlay == null || !overlay.isActive()) {
-				LOG.debug("Enabling overlay");
-				new LivingEntitySelectOverlay(20.0d, true, (LivingEntity entity) -> true).activate();
-				if (LivingEntitySelectOverlay.getInstance().isActive()) {
-					LOG.debug("Overlay enabled");
-				}
-			} else {
-				LOG.debug("Disabling overlay");
-				LivingEntitySelectOverlay.getInstance().deactivate();
-			}
+			new FadingScreenOverlay(FadingScreenOverlay.Color.ZERO, FadingScreenOverlay.Color.BLACK, 40).activate();
 		}
 
 		@Override

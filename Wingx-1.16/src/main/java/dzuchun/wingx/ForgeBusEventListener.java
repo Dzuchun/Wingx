@@ -7,12 +7,15 @@ import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
+import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent.Post;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.PlayerTickEvent;
@@ -22,6 +25,13 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 
+/**
+ * Used to subscribe needed methods to event bus. Will need to change that later
+ * to manual subscription.
+ *
+ * @author Dzuchun
+ *
+ */
 @Mod.EventBusSubscriber(bus = Bus.FORGE, modid = Wingx.MOD_ID)
 public class ForgeBusEventListener {
 	@SuppressWarnings("unused")
@@ -73,5 +83,13 @@ public class ForgeBusEventListener {
 	@SubscribeEvent
 	public static void onClientTick(final ClientTickEvent event) {
 		AbstractInterruptablePlayerTrick.onClientTick();
+	}
+
+	@SubscribeEvent
+	public static void onRenderGameOverlay(RenderGameOverlayEvent event) {
+		if (event instanceof RenderGameOverlayEvent.Post) {
+			AbstractInterruptablePlayerTrick.onRenderGameOverlay((Post) event);
+			AbstractOverlay.onRenderGameOverlay((Post) event);
+		}
 	}
 }
