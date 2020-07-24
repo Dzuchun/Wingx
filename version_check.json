@@ -1,0 +1,9 @@
+{
+  "homepage": "https://github.com/Dzuchun/Wingx",
+  "1.15.2": {
+    "0.0": "Dev.begin" 
+  },
+  "promos": {
+    "1.16.1-latest" : "0.0"
+  }
+}
