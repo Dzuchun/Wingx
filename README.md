@@ -11,8 +11,5 @@ Too early for writing something here.
 <h2>Summary</h2>
 This minecraft mod is about obtaining, upgrading, and using <b>wings</b> for combat and stuff.<br><br>
 
-<h2>Guide</h2>
-Too early for writing something here.
-
 <h2>Media</h2>
 (media, hurray!)
