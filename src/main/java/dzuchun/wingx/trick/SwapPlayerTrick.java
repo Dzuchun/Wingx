@@ -7,7 +7,6 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.overlay.LivingEntitySelectOverlay;
-import dzuchun.wingx.trick.PunchPlayerTrick.State;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -54,6 +53,11 @@ public class SwapPlayerTrick extends TargetedPlayerTrick {
 		if (side == LogicalSide.CLIENT) {
 			Minecraft minecraft = Minecraft.getInstance();
 			if (succesfull) {
+				Vector2f look = minecraft.player.getPitchYaw();
+				minecraft.player.prevRotationPitch = -look.x;
+				minecraft.player.rotationPitch = -look.x;
+				minecraft.player.prevRotationYaw = look.y + 180f;
+				minecraft.player.rotationYaw = look.y + 180f;
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.swap.successfull"), true);
 			} else {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.swap.fail"), true);
@@ -69,9 +73,10 @@ public class SwapPlayerTrick extends TargetedPlayerTrick {
 			Vector2f look = caster.getPitchYaw();
 			Vector3d casterPos = caster.getPositionVec();
 			Vector3d targetPos = target.getPositionVec();
-			LOG.debug("Performin swap: caster at {}, target at: {}", casterPos, targetPos);
-			caster.setPositionAndRotation(targetPos.x, targetPos.y, targetPos.z, look.y + 180f, -look.x);
-			target.setPosition(casterPos.x, casterPos.y, casterPos.z);
+			LOG.debug("Performing swap: caster at {}, target at: {}", casterPos, targetPos);
+			caster.setPositionAndUpdate(targetPos.x, targetPos.y, targetPos.z);
+//			caster.rotateTowards(look.y + 180f, -look.x); //I can't use that here at all:(
+			target.setPositionAndUpdate(casterPos.x, casterPos.y, casterPos.z);
 			succesfull = true;
 		}
 	}

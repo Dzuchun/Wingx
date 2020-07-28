@@ -170,7 +170,7 @@ enum WingxKey {
 		@Override
 		public void execute() {
 			if (this.trick == null) {
-				this.trick = new PunchPlayerTrick(Minecraft.getInstance().player, 10.0d, null, 10.0d);
+				this.trick = new PunchPlayerTrick(Minecraft.getInstance().player, 10.0d, (entity) -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()), 10.0d);
 				if (this.trick.getState() == PunchPlayerTrick.State.FAILED) {
 					this.trick = null;
 				}
@@ -197,7 +197,7 @@ enum WingxKey {
 		@Override
 		public void execute() {
 			if (this.trick == null) {
-				this.trick = new SwapPlayerTrick(Minecraft.getInstance().player, 10.0d, null);
+				this.trick = new SwapPlayerTrick(Minecraft.getInstance().player, 10.0d, (entity) -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()));
 				if (this.trick.getState() == SwapPlayerTrick.State.FAILED) {
 					this.trick = null;
 				}
