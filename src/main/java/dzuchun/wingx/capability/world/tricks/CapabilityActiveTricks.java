@@ -7,7 +7,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.trick.AbstractTrick;
-import dzuchun.wingx.trick.IPersisableTrick;
+import dzuchun.wingx.trick.IInterruptableTrick;
+import dzuchun.wingx.trick.IPersistableTrick;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.util.Direction;
@@ -35,15 +36,15 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 					public INBT writeNBT(Capability<IActiveTricksCapability> capability,
 							IActiveTricksCapability instance, Direction side) {
 						CompoundNBT compound = new CompoundNBT();
-						Collection<IPersisableTrick> active_tricks = instance.getActiveTricks();
+						Collection<IInterruptableTrick> active_tricks = instance.getActiveTricks();
 						compound.putInt(AMOUNT_TAG, active_tricks.size());
 						this.i = 0;
-						active_tricks.forEach((IPersisableTrick trick) -> {
-							if (trick.getRegistryName() != null) {
+						active_tricks.forEach((trick) -> {
+							if (trick.getRegistryName() != null && trick instanceof IPersistableTrick) {
 								String registryName = trick.getRegistryName().toString();
 								CompoundNBT tmp = new CompoundNBT();
 								tmp.putString(REGISTRY_NAME_TAG, registryName);
-								tmp.put(TRICK_TAG, trick.writeToNBT());
+								tmp.put(TRICK_TAG, ((IPersistableTrick) trick).writeToNBT());
 								compound.put(this.i + "", tmp);
 								this.i++;
 							}
@@ -55,7 +56,7 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 					public void readNBT(Capability<IActiveTricksCapability> capability,
 							IActiveTricksCapability instance, Direction side, INBT nbt) {
 						CompoundNBT compound = (CompoundNBT) nbt;
-						Collection<IPersisableTrick> active_tricks = Collections.emptyList();
+						Collection<IInterruptableTrick> active_tricks = Collections.emptyList();
 
 						IForgeRegistry<AbstractTrick> registry = RegistryManager.ACTIVE
 								.getRegistry(AbstractTrick.class); // TODO
@@ -73,9 +74,15 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 										ResourceLocation resLoc = new ResourceLocation(registryName);
 										if (registry.containsKey(resLoc)) {
 											AbstractTrick trick = registry.getValue(resLoc);
-											if (trick instanceof IPersisableTrick) {
-												((IPersisableTrick) trick).readFromNBT(tmp.get(TRICK_TAG));
-												active_tricks.add((IPersisableTrick) trick);
+											if (trick instanceof IPersistableTrick) {
+												if (trick instanceof IInterruptableTrick) {
+													((IPersistableTrick) trick.newEmpty())
+															.readFromNBT(tmp.get(TRICK_TAG));
+													active_tricks.add((IInterruptableTrick) trick);
+												} else {
+													LOG.info(
+															"Found not interruptable trick in NBT. Looks like developer's stupidity (trick will not persist)");
+												}
 											} else {
 												LOG.warn(
 														"{} registry name should be for IPersistabeTrick, but it is for {}",

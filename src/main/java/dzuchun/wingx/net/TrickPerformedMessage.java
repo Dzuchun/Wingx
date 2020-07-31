@@ -5,10 +5,9 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
-import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
 import dzuchun.wingx.trick.AbstractTrick;
-import dzuchun.wingx.trick.IPersisableTrick;
+import dzuchun.wingx.trick.ICastedTrick;
+import dzuchun.wingx.trick.ITargetedTrick;
 import dzuchun.wingx.trick.ITrick;
 import dzuchun.wingx.util.NetworkHelper;
 import net.minecraft.client.Minecraft;
@@ -25,7 +24,7 @@ public class TrickPerformedMessage {
 
 	private static final Logger LOG = LogManager.getLogger();
 
-	private ITrick trick = null;
+	public ITrick trick = null;
 
 	public TrickPerformedMessage(ITrick trick) {
 		this.trick = trick;
@@ -48,35 +47,23 @@ public class TrickPerformedMessage {
 					if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
 						@SuppressWarnings("resource")
 						ClientWorld world = Minecraft.getInstance().world;
-						trick.execute(LogicalSide.CLIENT, world);
-						if (trick instanceof IPersisableTrick) {
-							if (trick.executedSuccesfully()) {
-								if (world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).isPresent()) {
-									world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null)
-											.ifPresent((IActiveTricksCapability active_trick_cap) -> {
-												active_trick_cap.addActiveTrick((IPersisableTrick) trick);
-											});
-								} else {
-									LOG.warn("World doesn't have a capability to store IPersistableTrick");
-								}
-							}
+						if (trick instanceof ICastedTrick) {
+							((ICastedTrick) trick).setWorld(world);
 						}
+						if (trick instanceof ITargetedTrick) {
+							((ITargetedTrick) trick).setTargetWorld(world);
+						}
+						trick.execute(LogicalSide.CLIENT);
 					} else if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_SERVER) {
 						ServerWorld world = ctx.get().getSender().getServerWorld();
-						trick.execute(LogicalSide.SERVER, world);
-						if (trick instanceof IPersisableTrick) {
-							if (trick.executedSuccesfully()) {
-								if (world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).isPresent()) {
-									world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null)
-											.ifPresent((IActiveTricksCapability active_trick_cap) -> {
-												active_trick_cap.addActiveTrick((IPersisableTrick) trick);
-											});
-								} else {
-									LOG.warn("World doesn't have a capability to store IPersistableTrick");
-								}
-							}
+						if (trick instanceof ICastedTrick) {
+							((ICastedTrick) trick).setWorld(world);
 						}
-						WingxPacketHandler.INSTANCE.send(trick.getBackPacketTarget(world), msg);
+						if (trick instanceof ITargetedTrick) {
+							((ITargetedTrick) trick).setTargetWorld(world);
+						}
+						trick.execute(LogicalSide.SERVER);
+						WingxPacketHandler.INSTANCE.send(trick.getBackPacketTarget(), msg);
 
 					} else {
 						LOG.warn("Unknown direction, ignoring message");

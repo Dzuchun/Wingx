@@ -18,6 +18,7 @@ public class CapabilityWings {
 
 			private static final String IS_ACTIVE_TAG = "is_active";
 			private static final String WINGS_UUID_TAG = "wings_uuid";
+			private static final String MIN_MEDITATION_SCORE_TAG = "min_meditation_score";
 
 			@Override
 			public INBT writeNBT(Capability<IWingsCapability> capability, IWingsCapability instance, Direction side) {
@@ -26,6 +27,7 @@ public class CapabilityWings {
 				if (instance.getWingsUniqueId() != null) {
 					res.putUniqueId(WINGS_UUID_TAG, instance.getWingsUniqueId());
 				}
+				res.putDouble(MIN_MEDITATION_SCORE_TAG, instance.getMeditationScore());
 				return res;
 			}
 
@@ -40,6 +42,12 @@ public class CapabilityWings {
 					if (instance.isActive()) {
 						instance.setWingsUniqueId(cnbt.getUniqueId(WINGS_UUID_TAG));
 					}
+				}
+				if (cnbt.hasUniqueId(MIN_MEDITATION_SCORE_TAG)) {
+					instance.setMeditationScore(cnbt.getDouble(MIN_MEDITATION_SCORE_TAG));
+				} else {
+					LOG.warn("No meditation score found in NBT, default {} will be used.",
+							instance.getMeditationScore());
 				}
 			}
 		}, WingsCapability::new);

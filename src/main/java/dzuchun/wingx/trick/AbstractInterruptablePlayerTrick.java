@@ -1,118 +1,63 @@
 package dzuchun.wingx.trick;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.Maps;
-
+import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
+import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
 import dzuchun.wingx.client.render.gui.SeparateRenderers;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.math.vector.Vector2f;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.LogicalSide;
 
-public abstract class AbstractInterruptablePlayerTrick extends PlayerTrick implements IInterruptableTrick {
+public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCastedTrick
+		implements IInterruptableTrick {
 	private static final Logger LOG = LogManager.getLogger();
-	private static final Object INSTANCES_LOCK = new Object();
-	private static Map<PlayerEntity, AbstractInterruptablePlayerTrick> instances = Maps.newConcurrentMap();
 	@OnlyIn(value = Dist.CLIENT)
 	private static final Object CLIENT_INSTANCES_LOCK = new Object();
 	@OnlyIn(value = Dist.CLIENT)
-	private static Map<PlayerEntity, AbstractInterruptablePlayerTrick> clientInstances = Maps.newConcurrentMap();
-	// TODO change that all to every n-ticks synchronization with optional messages,
-	// without client instances.
+	private static Collection<AbstractInterruptablePlayerTrick> clientInstances = new ArrayList<AbstractInterruptablePlayerTrick>(
+			0);
 
-	public static void onWorldTick(World worldIn) {
-		synchronized (INSTANCES_LOCK) {
-			Map<PlayerEntity, AbstractInterruptablePlayerTrick> toRemove = Maps.newConcurrentMap();
-			instances.forEach((PlayerEntity player, AbstractInterruptablePlayerTrick trick) -> {
-				trick.tick(player);
-				if (trick.removed) {
-					toRemove.put(player, trick);
-				}
-			});
-			// Removing after going through, because of ConcurrentModificationException
-			toRemove.forEach((PlayerEntity player, AbstractInterruptablePlayerTrick trick) -> {
-				if (instances.remove(player, trick)) {
-					LOG.debug("Removed AbstractInterruptablePlayerTrick");
-				} else {
-					LOG.warn("Failed to remove AbstractInterruptablePlayerTrick");
-				}
-			});
-		}
-	}
-
-	public static void onClientTick() {
-		@SuppressWarnings({ "unused", "resource" })
-		World world = Minecraft.getInstance().world;
-		synchronized (CLIENT_INSTANCES_LOCK) {
-			Map<PlayerEntity, AbstractInterruptablePlayerTrick> toRemove = Maps.newConcurrentMap();
-			clientInstances.forEach((PlayerEntity player, AbstractInterruptablePlayerTrick trick) -> {
-				trick.tick(player);
-				if (trick.removed) {
-					toRemove.put(player, trick);
-				}
-			});
-			// Removing after going through, because of ConcurrentModificationException
-			toRemove.forEach((PlayerEntity player, AbstractInterruptablePlayerTrick trick) -> {
-				if (clientInstances.remove(player, trick)) {
-					LOG.debug("Removed AbstractInterruptablePlayerTrick");
-				} else {
-					LOG.warn("Failed to remove AbstractInterruptablePlayerTrick");
-				}
-			});
-		}
-	}
-
-	private static int res_int;
-
-	public static synchronized int playerBusy(@Nonnull PlayerEntity playerIn) {
-		res_int = 0;
-		instances.forEach((PlayerEntity player, AbstractInterruptablePlayerTrick trick) -> {
-			if (player.equals(playerIn) && res_int < trick.timeLeft(playerIn.world)) {
-				res_int = trick.timeLeft(playerIn.world);
-			}
-		});
-		return res_int;
-	}
-
-	private static AbstractInterruptablePlayerTrick res_trick;
+	private static ArrayList<AbstractInterruptablePlayerTrick> res_tricks = new ArrayList<AbstractInterruptablePlayerTrick>(
+			0);
 
 	@SuppressWarnings("resource")
 	@OnlyIn(value = Dist.CLIENT)
 	@Nullable
-	public static synchronized AbstractInterruptablePlayerTrick getForMe() {
-		res_trick = null;
-		instances.forEach((PlayerEntity caster, AbstractInterruptablePlayerTrick trick) -> {
-			if (caster.equals(Minecraft.getInstance().player)) {
-				res_trick = trick;
+	public static synchronized ArrayList<AbstractInterruptablePlayerTrick> getForMe() {
+		res_tricks.clear();
+		clientInstances.forEach((trick) -> {
+			if (trick.getCaster().equals(Minecraft.getInstance().player)) {
+				res_tricks.add(trick);
 			}
 		});
-		return res_trick;
+		return res_tricks;
 	}
 
 	@OnlyIn(value = Dist.CLIENT)
 	public static void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
 		if (event.getType() == ElementType.CROSSHAIRS) {
-			AbstractInterruptablePlayerTrick trick = getForMe();
-			if (trick != null) {
+			clientInstances.forEach((trick) -> {
 				trick.getDrawFunction().accept(event);
-			}
+			});
 		}
 	}
 
@@ -127,7 +72,10 @@ public abstract class AbstractInterruptablePlayerTrick extends PlayerTrick imple
 			@Nullable InterruptCondition interruptCondition) {
 		super(caster);
 		this.duration = duration;
-		this.interruptCondition = interruptCondition;
+		if (interruptCondition != null) {
+			this.interruptCondition = interruptCondition;
+			interruptCondition.reset();
+		}
 	}
 
 	@Override
@@ -139,6 +87,8 @@ public abstract class AbstractInterruptablePlayerTrick extends PlayerTrick imple
 		} else {
 			this.interruptCondition = InterruptCondition.NO_CONDITION;
 		}
+		this.beginTime = buf.readLong();
+		this.endTime = buf.readLong();
 		return super.readFromBuf(buf);
 	}
 
@@ -146,106 +96,76 @@ public abstract class AbstractInterruptablePlayerTrick extends PlayerTrick imple
 	public ITrick writeToBuf(PacketBuffer buf) {
 		buf.writeInt(this.duration);
 		buf.writeInt(this.interruptCondition.toInt());
+		buf.writeLong(this.beginTime);
+		buf.writeLong(this.endTime);
 		return super.writeToBuf(buf);
 	}
 
 	@Override
-	public int timeLeft(@Nonnull World worldIn) {
-		return (int) (this.endTime - worldIn.getGameTime());
-	}
-
-	@Override
-	public int timeFull(World worldIn) {
-		return this.duration;
-	}
-
-	@Override
-	public double partLeft(World worldIn) {
-		return (this.endTime - worldIn.getGameTime()) / (double) this.duration;
-	}
-
-	@Override
-	public void tick(Entity caster) {
-		if (this.removed == true) {
-			LOG.warn("Ticking already removed trick, returning");
-			return;
-		}
-		if (caster instanceof PlayerEntity) {
-			if (caster.world.getGameTime() >= this.endTime) {
-				onCastEnd(caster);
-				LOG.debug("Ending cast: end time: {}, now: {}", this.endTime, caster.world.getGameTime());
-				return;
-			}
-
-			if (!hasCaster(caster.world) || this.interruptCondition.condition().test((PlayerEntity) caster)) {
-				interrupt(caster);
-				LOG.debug("Interrupting cast: caster no longer exist or condition failed");
+	public void tick() {
+		PlayerEntity caster = getCasterPlayer();
+		if (hasCasterPlayer()) {
+			if (this.interruptCondition.condition().test(caster)) {
+				interrupt();
+				LOG.debug("Interrupting cast: condition failed");
+				if (!hasCasterPlayer()) {
+					LOG.warn("Caster disappeared!");
+				}
 				return;
 			}
 		} else {
-			LOG.warn("Somehow not player was parsed here.");
+			interrupt();
+			LOG.warn("No player caster for trick.");
 		}
 	}
 
-	private long beginTime;
-	private long endTime;
+	protected long beginTime = 0;
+	protected long endTime = 0;
 
 	@Override
-	public void beginCast(@Nonnull Entity caster) {
-		if (!(caster instanceof PlayerEntity)) {
-			LOG.warn("Not player somehow was parsed here.");
-			return;
+	public void execute(LogicalSide side) {
+		if (!hasCasterPlayer()) {
+			throw new NoCasterException(this);
 		}
-		this.beginTime = caster.world.getGameTime();
-		this.endTime = this.beginTime + this.duration;
-		this.removed = false;
-		LOG.debug("Beginning cast of {} trick with hashcode {}. Duration: {}, end time: {}, now: {}",
-				this.getClass().getName(), hashCode(), this.duration, this.endTime, caster.world.getGameTime());
-		if (!caster.world.isRemote) {
-			synchronized (INSTANCES_LOCK) {
-				instances.put((PlayerEntity) caster, this);
+		@SuppressWarnings("unused")
+		PlayerEntity caster = getCasterPlayer();
+		if (this.succesfull) {
+			beginCast();
+			// this.interrupt();
+			if (side == LogicalSide.SERVER) {
+				this.casterWorld.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent((cap) -> {
+					cap.addActiveTrick(this);
+				});
+			} else {
+				synchronized (CLIENT_INSTANCES_LOCK) {
+					clientInstances.add(this);
+				}
 			}
 		} else {
+			LOG.warn("Trick's not succesfull, not executing");
+		}
+	}
+
+	private boolean interrupted = false;
+
+	// TODO doc
+	@Override
+	public void interrupt() {
+		this.interrupted = true;
+	}
+
+	// TODO doc
+	@Override
+	public void onCastEnd(LogicalSide side) {
+		assertHasCaster(this);
+		if (side == LogicalSide.CLIENT) {
 			synchronized (CLIENT_INSTANCES_LOCK) {
-				clientInstances.put((PlayerEntity) caster, this);
-			}
-		}
-	}
-
-	// TODO doc
-	@Override
-	public void interrupt(Entity caster) {
-		if (caster.world.isRemote) {
-			if (amICaster()) {
-				Minecraft minecraft = Minecraft.getInstance();
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.interrubtable.interrupt")
-						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
-			}
-		} else {
-			// We are on server
-		}
-		this.removed = true;
-	}
-
-	// TODO doc
-	@Override
-	public void onCastEnd(Entity caster) {
-		if (!hasCaster(caster.world)) {
-			LOG.warn("Ending trick without caster.");
-		}
-		if (caster.world.isRemote) {
-			if (amICaster()) {
-				Minecraft minecraft = Minecraft.getInstance();
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.interrubtable.complete")
-						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
+				clientInstances.remove(this);
 			}
 		} else {
 			LOG.debug("Ending cast on server");
 		}
-		this.removed = true;
 	}
-	
-	protected boolean removed = false;
 
 	/**
 	 * Returns function that should draw overlay corresponding to casting. Can be
@@ -264,6 +184,34 @@ public abstract class AbstractInterruptablePlayerTrick extends PlayerTrick imple
 			public int toInt() {
 				return 0;
 			}
+		},
+		MOVED_CONDITION {
+			private Vector3d prevPos;
+			private Vector2f prevRotation;
+
+			@Override
+			public int toInt() {
+				return 1;
+			}
+
+			@Override
+			public Predicate<PlayerEntity> condition() {
+				return (PlayerEntity player) -> {
+					if (this.prevPos == null || this.prevRotation == null) {
+						this.prevRotation = player.getPitchYaw();
+						this.prevPos = player.getPositionVec();
+						return false;
+					}
+					return (!this.prevPos.equals(player.getPositionVec()) || !this.prevRotation.equals(player.getPitchYaw()));
+				};
+			}
+
+			@Override
+			public void reset() {
+				super.reset();
+				this.prevPos = null;
+				this.prevRotation = null;
+			}
 		};
 
 		public Predicate<PlayerEntity> condition() {
@@ -272,14 +220,76 @@ public abstract class AbstractInterruptablePlayerTrick extends PlayerTrick imple
 
 		public abstract int toInt();
 
+		public void reset() {
+
+		}
+
 		@Nullable
 		public static InterruptCondition getFromInt(int i) {
 			switch (i) {
 			case 0:
 				return NO_CONDITION;
+			case 1:
+				return MOVED_CONDITION;
 			default:
 				return null;
 			}
 		}
+	}
+
+	private static int res_int_1;
+
+	public static synchronized int playerBusyFor(PlayerEntity casterPlayer) {
+		World world = casterPlayer.world;
+		if (world instanceof ClientWorld) {
+			return 0;
+		}
+		LazyOptional<IActiveTricksCapability> capOptional = world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS);
+		if (capOptional.isPresent()) {
+			res_int_1 = 0;
+			capOptional.ifPresent((cap) -> {
+				cap.getActiveTricks().forEach((trick) -> {
+					if ((trick.hasCaster() && trick.getCaster() == casterPlayer) && res_int_1 < trick.timeLeft()) {
+						res_int_1 = trick.timeLeft();
+					}
+				});
+			});
+			return res_int_1;
+		} else {
+			LOG.warn("World {} doesn't have a active tricks capability", world);
+			return 0;
+		}
+	}
+
+	@Override
+	public boolean castEndedNaturally() {
+		assertHasCasterInfo(this);
+		LOG.debug("Now {}, endTime {}, returning {}", this.casterWorld.getGameTime(), this.endTime,
+				this.casterWorld.getGameTime() >= this.endTime);
+		return this.casterWorld.getGameTime() >= this.endTime;
+	}
+
+	@Override
+	public void beginCast() throws NoCasterException {
+		assertHasCasterInfo(this);
+		this.beginTime = this.casterWorld.getGameTime();
+		this.endTime = this.casterWorld.getGameTime() + this.duration;
+		LOG.debug("Beginning cast of {} trick with hashcode {}. Duration: {}, end time: {}, now: {}",
+				this.getClass().getName(), hashCode(), this.duration, this.endTime, this.casterWorld.getGameTime());
+	}
+
+	@Override
+	public boolean keepExecuting() {
+		if (this.interrupted) {
+			return false;
+		}
+		assertHasCasterInfo(this);
+		return this.endTime >= this.casterWorld.getGameTime();
+	}
+
+	@Override
+	public int timeLeft() {
+		assertHasCasterInfo(this);
+		return (int) (this.endTime - this.casterWorld.getGameTime());
 	}
 }

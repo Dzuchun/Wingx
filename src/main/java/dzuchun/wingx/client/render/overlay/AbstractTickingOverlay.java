@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import dzuchun.wingx.Wingx;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggedOutEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 
@@ -76,7 +75,7 @@ public abstract class AbstractTickingOverlay extends AbstractOverlay {
 		deactivate(this);
 		deactivateTicking(this);
 	}
-	
+
 	public static void onDisconnect(LoggedOutEvent event) {
 		if (event != null && event instanceof LoggedOutEvent) {
 			synchronized (ACTIVE_OVERLAYS_LOCK) {

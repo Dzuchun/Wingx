@@ -8,16 +8,15 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import dzuchun.wingx.Wingx;
-import dzuchun.wingx.client.gui.MeditationScreen;
-import dzuchun.wingx.client.render.overlay.FadingScreenOverlay;
 import dzuchun.wingx.net.ToggleWingsMessage;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.DashPlayerTrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
-import dzuchun.wingx.trick.TemplateCastPlayerTrick;
 import dzuchun.wingx.trick.SwapPlayerTrick;
+import dzuchun.wingx.trick.TemplateCastPlayerTrick;
+import dzuchun.wingx.trick.meditation.MeditationPlayerTrick;
 import dzuchun.wingx.util.Facing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -83,12 +82,8 @@ enum WingxKey {
 		public void execute() {
 			Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wingx.meditating")
 					.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
-			new FadingScreenOverlay(FadingScreenOverlay.Color.ZERO, FadingScreenOverlay.Color.BLACK, 100,
-					(successfull) -> {
-						if (successfull)
-							Minecraft.getInstance().displayGuiScreen(
-									new MeditationScreen(new TranslationTextComponent("wingx.meditation.menu.name")));
-					}).activate();
+			WingxPacketHandler.INSTANCE
+					.sendToServer(new TrickPerformedMessage(new MeditationPlayerTrick(Minecraft.getInstance().player)));
 		}
 
 		@Override
@@ -146,7 +141,9 @@ enum WingxKey {
 					livingEntities.add((LivingEntity) entity);
 				}
 			});
-			LivingEntity newEntity = minecraft.world.getClosestEntity(livingEntities, new EntityPredicate().setCustomPredicate((entity) -> !entity.getUniqueID().equals(minecraft.player.getUniqueID())),
+			LivingEntity newEntity = minecraft.world.getClosestEntity(livingEntities,
+					new EntityPredicate().setCustomPredicate(
+							(entity) -> !entity.getUniqueID().equals(minecraft.player.getUniqueID())),
 					minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
 					minecraft.player.getPosZ());
 			if (newEntity != null) {
@@ -170,7 +167,8 @@ enum WingxKey {
 		@Override
 		public void execute() {
 			if (this.trick == null) {
-				this.trick = new PunchPlayerTrick(Minecraft.getInstance().player, 10.0d, (entity) -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()), 10.0d);
+				this.trick = new PunchPlayerTrick(Minecraft.getInstance().player, 10.0d,
+						(entity) -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()), 10.0d);
 				if (this.trick.getState() == PunchPlayerTrick.State.FAILED) {
 					this.trick = null;
 				}
@@ -197,7 +195,8 @@ enum WingxKey {
 		@Override
 		public void execute() {
 			if (this.trick == null) {
-				this.trick = new SwapPlayerTrick(Minecraft.getInstance().player, 10.0d, (entity) -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()));
+				this.trick = new SwapPlayerTrick(Minecraft.getInstance().player, 10.0d,
+						(entity) -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()));
 				if (this.trick.getState() == SwapPlayerTrick.State.FAILED) {
 					this.trick = null;
 				}

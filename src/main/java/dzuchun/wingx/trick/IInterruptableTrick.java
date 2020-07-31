@@ -1,32 +1,59 @@
 package dzuchun.wingx.trick;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.world.World;
+import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-public interface IInterruptableTrick extends ITrick {
-	void interrupt(Entity caster);
-
-	/**
-	 * @return Time left in ticks.
-	 */
-	int timeLeft(World worldIn);
+public interface IInterruptableTrick extends ICastedTrick {
 
 	/**
-	 * @return Full cast time in ticks.
+	 * Invoked once at cast begin, to write beginning time.
+	 *
+	 * @throws NoCasterException If method needs caster-related information, but
+	 *                           caster not set.
 	 */
-	int timeFull(World worldIn);
+	void beginCast() throws NoCasterException;
 
 	/**
-	 * @return Part left casting.
+	 * @return Time left before trick ends in ticks.
+	 * @throws NoCasterException If method needs caster-related information, but
+	 *                           caster not set.
 	 */
-	double partLeft(World worldIn);
+	int timeLeft() throws NoCasterException;
+
+	void interrupt() throws NoCasterException;
 
 	/**
 	 * Invoked every tick, used for any sort of processing.
+	 *
+	 * @throws NoCasterException If method needs caster-related information, but
+	 *                           caster not set.
 	 */
-	void tick(Entity caster);
+	void tick() throws NoCasterException;
 
-	void beginCast(Entity caster);
+	/**
+	 * Invoked once at cast end, for some post-processing. *
+	 *
+	 * @throws NoCasterException If method needs caster-related information, but
+	 *                           caster not set.
+	 */
+	void onCastEnd(LogicalSide side) throws NoCasterException;
 
-	void onCastEnd(Entity caster);
+	/**
+	 * @return If cast ended normally (actually, reached end)
+	 * @throws NoCasterException If method needs caster-related information, but
+	 *                           caster not set.
+	 */
+	boolean castEndedNaturally();
+
+	/**
+	 * @return PacketTarget to send TrickFinished message.
+	 */
+	PacketTarget getEndPacketTarget();
+
+	/**
+	 * Defines if trick should be keep in memory.
+	 *
+	 * @return If trick should be keep till next tick.
+	 */
+	boolean keepExecuting();
 }

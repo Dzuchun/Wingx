@@ -7,10 +7,10 @@ import org.apache.logging.log4j.Logger;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggedOutEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggedOutEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 @OnlyIn(value = Dist.CLIENT)

@@ -16,27 +16,23 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-public class SwapPlayerTrick extends TargetedPlayerTrick {
+public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "swap_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
 	private State state;
 
 	public SwapPlayerTrick() {
 		super();
-		setRegistryName(REGISTRY_NAME);
 	}
 
 	public SwapPlayerTrick(PlayerEntity caster, double aimRadius, Predicate<LivingEntity> otherCondition) {
 		super(null, caster);
-		setRegistryName(REGISTRY_NAME);
 		new LivingEntitySelectOverlay(aimRadius, true, otherCondition);
 		LivingEntitySelectOverlay.getInstance().activate();
 		if (!LivingEntitySelectOverlay.getInstance().isActive()) {
@@ -49,13 +45,12 @@ public class SwapPlayerTrick extends TargetedPlayerTrick {
 	}
 
 	@Override
-	public void execute(LogicalSide side, World worldIn) {
+	public void execute(LogicalSide side) {
 		if (side == LogicalSide.CLIENT) {
 			Minecraft minecraft = Minecraft.getInstance();
-			if (succesfull) {
+			if (this.succesfull && amICaster()) {
 				Vector2f look = minecraft.player.getPitchYaw();
-				minecraft.player.prevRotationPitch = -look.x;
-				minecraft.player.rotationPitch = -look.x;
+				// TODO do something with pitch
 				minecraft.player.prevRotationYaw = look.y + 180f;
 				minecraft.player.rotationYaw = look.y + 180f;
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.swap.successfull"), true);
@@ -63,27 +58,24 @@ public class SwapPlayerTrick extends TargetedPlayerTrick {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.swap.fail"), true);
 			}
 		} else {
-			ServerWorld world = (ServerWorld) worldIn;
-			if (!hasCaster(worldIn) || !hasTarget(world)) {
-				succesfull = false;
+			if (!hasCasterPlayer() || !hasTarget()) {
+				this.succesfull = false;
 				return;
 			}
-			PlayerEntity caster = getCaster(world);
-			Entity target = getTarget(world);
-			Vector2f look = caster.getPitchYaw();
+			PlayerEntity caster = getCasterPlayer();
+			Entity target = getTarget();
 			Vector3d casterPos = caster.getPositionVec();
 			Vector3d targetPos = target.getPositionVec();
 			LOG.debug("Performing swap: caster at {}, target at: {}", casterPos, targetPos);
 			caster.setPositionAndUpdate(targetPos.x, targetPos.y, targetPos.z);
-//			caster.rotateTowards(look.y + 180f, -look.x); //I can't use that here at all:(
 			target.setPositionAndUpdate(casterPos.x, casterPos.y, casterPos.z);
-			succesfull = true;
+			this.succesfull = true;
 		}
 	}
 
 	@Override
-	public PacketTarget getBackPacketTarget(World worldIn) {
-		return hasCaster(worldIn) ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCaster(worldIn)) : null;
+	public PacketTarget getBackPacketTarget() {
+		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
 	}
 
 	@Override
@@ -122,5 +114,10 @@ public class SwapPlayerTrick extends TargetedPlayerTrick {
 
 	public State getState() {
 		return this.state;
+	}
+
+	@Override
+	protected void setRegistryName() {
+		this.registryName = REGISTRY_NAME;
 	}
 }

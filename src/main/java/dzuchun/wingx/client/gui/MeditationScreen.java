@@ -3,6 +3,7 @@ package dzuchun.wingx.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import dzuchun.wingx.Wingx;
+import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.client.render.gui.SeparateRenderers;
 import dzuchun.wingx.client.render.overlay.FadingScreenOverlay;
 import net.minecraft.client.Minecraft;
@@ -27,8 +28,12 @@ public class MeditationScreen extends Screen {
 			"textures/gui/meditation/meditation_hud.png");
 	private static final Vector4f BACKGROUND_COLOR = new Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
 
-	public MeditationScreen(ITextComponent titleIn) {
+	@SuppressWarnings("unused")
+	private IWingsCapability capability;
+
+	public MeditationScreen(ITextComponent titleIn, IWingsCapability capabilityIn) {
 		super(titleIn);
+		this.capability = capabilityIn;
 		this.minecraft = Minecraft.getInstance();
 	}
 
@@ -58,7 +63,7 @@ public class MeditationScreen extends Screen {
 			net.minecraftforge.common.MinecraftForge.EVENT_BUS
 					.post(new net.minecraftforge.client.event.GuiScreenEvent.BackgroundDrawnEvent(this, matrixStackIn));
 		} else {
-			this.renderDirtBackground(p_238651_2_);
+			renderDirtBackground(p_238651_2_);
 		}
 
 	}
@@ -69,7 +74,7 @@ public class MeditationScreen extends Screen {
 	@Override
 	protected void init() {
 		super.init();
-		this.addButton(goIntoButton = new Button(this.width - 100 - 10, this.height - 20 - 2, 100, 20,
+		this.addButton(this.goIntoButton = new Button(this.width - 100 - 10, this.height - 20 - 2, 100, 20,
 				new TranslationTextComponent("wingx.gui.gointo"), (Button button) -> {
 					// TODO go into :)
 				}));

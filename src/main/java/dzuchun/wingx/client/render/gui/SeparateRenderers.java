@@ -1,5 +1,7 @@
 package dzuchun.wingx.client.render.gui;
 
+import java.util.ArrayList;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
@@ -9,6 +11,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
+import dzuchun.wingx.trick.ITimeredTrick;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
@@ -36,19 +39,26 @@ public class SeparateRenderers {
 //	// Texture sprite
 //	public static TextureAtlasSprite GUI_INGAME_COOLDOWN_HORIZONTAL_SPRITE;
 
-	@SuppressWarnings("deprecation")
 	public static void defaultDrawCastingOverlay(RenderGameOverlayEvent event) {
-		Minecraft minecraft = Minecraft.getInstance();
 		if (!Minecraft.isGuiEnabled()) {
 			return;
 		}
 
-		AbstractInterruptablePlayerTrick trick = AbstractInterruptablePlayerTrick.getForMe();
-		if (trick == null) {
+		ArrayList<AbstractInterruptablePlayerTrick> tricks = AbstractInterruptablePlayerTrick.getForMe();
+		if (tricks == null) {
 			return;
 		}
+		tricks.forEach((trick) -> {
+			if (trick instanceof ITimeredTrick) {
+				defaultDrawCastingOverlayInner(event, (ITimeredTrick) trick);
+			}
+		});
+	}
 
-		double partLeft = trick.partLeft(minecraft.world);
+	@SuppressWarnings("deprecation")
+	private static void defaultDrawCastingOverlayInner(RenderGameOverlayEvent event, ITimeredTrick trick) {
+		Minecraft minecraft = Minecraft.getInstance();
+		double partLeft = trick.partLeft();
 
 //		LOG.debug("Rendering bar, part completed - {}", partLeft);
 
@@ -96,6 +106,7 @@ public class SeparateRenderers {
 	public static void renderColorScreen(RenderGameOverlayEvent event, Vector4f color) {
 		renderColorScreen(event.getMatrixStack(), color);
 	}
+
 	@SuppressWarnings("deprecation")
 	public static void renderColorScreen(MatrixStack matrixStackIn, Vector4f color) {
 		if (!Minecraft.isGuiEnabled()) {
@@ -144,16 +155,18 @@ public class SeparateRenderers {
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.enableTexture();
 	}
-	
-	public static void myBlit(MatrixStack matrixStackIn, int xMin, int yMin, int width, int height, float uMin, float vMin, float uWidth, float vHeight, Minecraft mc, ResourceLocation texture) {
+
+	@SuppressWarnings("deprecation")
+	public static void myBlit(MatrixStack matrixStackIn, int xMin, int yMin, int width, int height, float uMin,
+			float vMin, float uWidth, float vHeight, Minecraft mc, ResourceLocation texture) {
 		RenderSystem.assertThread(RenderSystem::isOnRenderThread);
 		mc.getTextureManager().bindTexture(texture);
-		
+
 		RenderSystem.disableDepthTest();
 		RenderSystem.depthMask(false);
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.disableAlphaTest();
-		
+
 		Matrix4f matrix = matrixStackIn.getLast().getMatrix();
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder builder = tessellator.getBuffer();

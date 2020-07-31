@@ -1,5 +1,7 @@
 package dzuchun.wingx.trick;
 
+import javax.annotation.Nullable;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,12 +17,11 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-public class DashPlayerTrick extends PlayerTrick {
+public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "dash_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
 
@@ -30,7 +31,6 @@ public class DashPlayerTrick extends PlayerTrick {
 
 	public DashPlayerTrick() {
 		super();
-		setRegistryName(REGISTRY_NAME);
 	}
 
 	/**
@@ -39,9 +39,8 @@ public class DashPlayerTrick extends PlayerTrick {
 	 * @param strenth        Speed modification absolute value.
 	 * @param nullifiesSpeed Defines if speed should be nullified before dash.
 	 */
-	public DashPlayerTrick(PlayerEntity caster, Facing facing, double strength, boolean nullifiesSpeed) {
+	public DashPlayerTrick(PlayerEntity caster, @Nullable Facing facing, double strength, boolean nullifiesSpeed) {
 		super(caster);
-		setRegistryName(REGISTRY_NAME);
 		if (facing != null) {
 			this.facing = facing;
 		} else {
@@ -52,10 +51,11 @@ public class DashPlayerTrick extends PlayerTrick {
 	}
 
 	@Override
-	public void execute(LogicalSide side, World worldIn) {
-		if (this.succesfull || side == LogicalSide.SERVER) {
-			if (hasCaster(worldIn)) {
-				PlayerEntity caster = getCaster(worldIn);
+	public void execute(LogicalSide side) {
+		if (side == LogicalSide.SERVER) {
+			assertHasCaster(this);
+			if (hasCasterPlayer()) {
+				PlayerEntity caster = getCasterPlayer();
 				caster.fallDistance = 0.0f;
 				Vector3d motionChange = caster.getForward().scale(this.strength);
 				motionChange = this.facing.transform(motionChange);
@@ -64,21 +64,21 @@ public class DashPlayerTrick extends PlayerTrick {
 				}
 				caster.velocityChanged = true;
 				caster.setMotion(motionChange.x, motionChange.y, motionChange.z);
-				if (side == LogicalSide.CLIENT && Minecraft.getInstance().player.equals(caster)) {
-					Minecraft minecraft = Minecraft.getInstance();
-					if (this.succesfull) {
-						minecraft.player.sendStatusMessage(new TranslationTextComponent("dash.success")
-								.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.AQUA)), true);
-						worldIn.playSound(caster, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
-								SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 1.0f, 1.0f);
-					} else {
-						minecraft.player.sendStatusMessage(new TranslationTextComponent("dash.fail")
-								.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
-						// TODO specify reason
-					}
-				}
+				this.casterWorld.playSound(caster, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
+						SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 1.0f, 1.0f);
 			} else {
 				LOG.warn("No caster found");
+				this.succesfull = false;
+			}
+		} else if (amICaster()) {
+			Minecraft minecraft = Minecraft.getInstance();
+			if (this.succesfull) {
+				minecraft.player.sendStatusMessage(new TranslationTextComponent("dash.success")
+						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.AQUA)), true);
+			} else {
+				minecraft.player.sendStatusMessage(new TranslationTextComponent("dash.fail")
+						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
+				// TODO specify reason
 			}
 		}
 	}
@@ -88,7 +88,6 @@ public class DashPlayerTrick extends PlayerTrick {
 		this.facing = Facing.getByInt(buf.readInt());
 		this.strength = buf.readDouble();
 		this.nullifiesSpeed = buf.readBoolean();
-
 		return super.readFromBuf(buf);
 	}
 
@@ -97,18 +96,22 @@ public class DashPlayerTrick extends PlayerTrick {
 		buf.writeInt(this.facing.toInt());
 		buf.writeDouble(this.strength);
 		buf.writeBoolean(this.nullifiesSpeed);
-
 		return super.writeToBuf(buf);
 	}
-	
+
 	@Override
-	public PacketTarget getBackPacketTarget(World worldIn) {
-		return hasCaster(worldIn) ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCaster(worldIn)) : null;
+	public PacketTarget getBackPacketTarget() {
+		return hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCasterPlayer()) : null;
 	}
 
 	@Override
 	public ITrick newEmpty() {
 		return new DashPlayerTrick();
+	}
+
+	@Override
+	protected void setRegistryName() {
+		this.registryName = REGISTRY_NAME;
 	}
 
 }

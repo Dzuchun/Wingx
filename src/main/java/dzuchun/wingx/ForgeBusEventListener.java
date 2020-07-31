@@ -7,7 +7,6 @@ import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
-import dzuchun.wingx.client.gui.MeditationScreen;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.client.render.overlay.AbstractTickingOverlay;
 import dzuchun.wingx.entity.misc.WingsEntity;
@@ -47,14 +46,12 @@ public class ForgeBusEventListener {
 	@SuppressWarnings("resource")
 	@SubscribeEvent
 	public static void onPlayerTick(final PlayerTickEvent event) {
-		// LOG.debug("Player tick event end");
 		if (Minecraft.getInstance().world == null) {
 			return;
 		}
 		event.player.getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wings) -> {
 			if (wings.isActive()) {
 				if (event.side == LogicalSide.CLIENT) {
-//					LOG.info("Wings active on client");
 					((ClientWorld) event.player.world).getAllEntities().forEach((Entity entity) -> {
 						if (entity instanceof WingsEntity
 								&& ((WingsEntity) entity).getUniqueID().equals(wings.getWingsUniqueId())) {
@@ -76,14 +73,12 @@ public class ForgeBusEventListener {
 	@SubscribeEvent
 	public static void onServerWorldTick(final WorldTickEvent event) {
 		World world = event.world;
-//		LOG.debug("World tick");
 		if (event.phase == Phase.END) {
 			if (event.side == LogicalSide.SERVER) {
 				world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null)
 						.ifPresent((IActiveTricksCapability cap) -> {
 							cap.onWorldTick(world);
 						});
-				AbstractInterruptablePlayerTrick.onWorldTick(world);
 			}
 		}
 	}
@@ -94,7 +89,6 @@ public class ForgeBusEventListener {
 		if (Minecraft.getInstance().world == null) {
 			return;
 		}
-		AbstractInterruptablePlayerTrick.onClientTick();
 		AbstractTickingOverlay.onClientTick(event);
 	}
 
@@ -104,24 +98,26 @@ public class ForgeBusEventListener {
 			try {
 				AbstractInterruptablePlayerTrick.onRenderGameOverlay((Post) event);
 				AbstractOverlay.onRenderGameOverlay((Post) event);
-			} catch(NullPointerException e) {
+			} catch (NullPointerException e) {
 				LOG.info("Got some null pointer exception, nevermind: {}", e.getMessage());
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	@SubscribeEvent
 	public static void onLogOut(LoggedOutEvent event) {
 		AbstractTickingOverlay.onDisconnect(event);
 		AbstractOverlay.onDisconnect(event);
 	}
-	
+
+	@SuppressWarnings("resource")
 	@SubscribeEvent
 	public static void onRenderGameOverlayText(RenderGameOverlayEvent.Text event) {
-		if (Minecraft.getInstance().gameSettings.showDebugInfo) { //Otherwise string is displayed all the time
+		if (Minecraft.getInstance().gameSettings.showDebugInfo) { // Otherwise string is displayed all the time
 			event.getLeft().add("");
-			event.getLeft().add(String.format("Meditation points available: %s", MeditationUtil.getMeditationScore(Minecraft.getInstance().player)));
+			event.getLeft().add(String.format("Meditation points available: %s",
+					MeditationUtil.getMeditationScore(Minecraft.getInstance().player)));
 		}
 	}
 }

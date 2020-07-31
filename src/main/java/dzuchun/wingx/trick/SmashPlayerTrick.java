@@ -25,18 +25,16 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
+public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implements IPersistableTrick {
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "smash_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
 
 	public SmashPlayerTrick() {
 		super();
-		setRegistryName(REGISTRY_NAME);
 	}
 
 	// Parameters:
@@ -46,20 +44,21 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 	private float mainDamage;
 	private Vector3d direction;
 	/**
-	 * Set on server. Defines trick end time.
-	 */
-	private long endTime = 0L;
-
-	// Server-only fields:
-	/**
 	 * Set on server. Stores damaged entities.
 	 */
 	private Collection<Entity> damagedEntities;
 
+	public Collection<Entity> getDamaged() {
+		return this.damagedEntities;
+	}
+
+	public boolean wasDamaged(Entity entityIn) {
+		return this.damagedEntities.contains(entityIn);
+	}
+
 	public SmashPlayerTrick(PlayerEntity caster, int duration, double speed, float sideDamage, float mainDamage,
 			Vector3d direction) {
-		super(caster);
-		setRegistryName(REGISTRY_NAME);
+		super(caster, duration, InterruptCondition.NO_CONDITION);
 		this.duration = duration;
 		this.speed = speed;
 		this.sideDamage = sideDamage;
@@ -68,10 +67,10 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 	}
 
 	@Override
-	public void execute(LogicalSide side, World worldIn) {
+	public void execute(LogicalSide side) {
+		super.execute(side);
 		if (side == LogicalSide.SERVER) {
-			if (hasCaster(worldIn)) {
-				this.endTime = worldIn.getGameTime() + this.duration;
+			if (hasCasterPlayer()) {
 				this.succesfull = true;
 				this.damagedEntities = new ArrayList<Entity>(0);
 			} else {
@@ -81,7 +80,6 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 		if (side == LogicalSide.CLIENT) {
 			Minecraft minecraft = Minecraft.getInstance();
 			if (this.succesfull) {
-				this.endTime = worldIn.getGameTime() + this.duration;
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("smash.succesfull")
 						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.LIGHT_PURPLE)), true);
 			} else {
@@ -92,20 +90,22 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 	}
 
 	@Override
-	public boolean keepExecuting(World worldIn) {
-		if (worldIn.getGameTime() >= this.endTime) {
+	public boolean keepExecuting() {
+		AbstractPlayerCastedTrick.assertHasCasterInfo(this);
+
+		if (this.casterWorld.getGameTime() >= this.endTime || !hasCasterPlayer()) {
+			LOG.info("End term expired or no caster exists. Stopping execute.");
 			return false;
 		}
-		if (!hasCaster(worldIn)) {
-			return false;
-		}
-		PlayerEntity caster = getCaster(worldIn);
+		PlayerEntity caster = getCasterPlayer();
 		return caster.collidedHorizontally || caster.collidedVertically ? false : true; // TODO repair collision checks
 	}
 
 	@Override
-	public void stopExecute(LogicalSide side, World worldIn) {
-		if (!hasCaster(worldIn)) {
+	public void onCastEnd(LogicalSide side) {
+		super.onCastEnd(side);
+		AbstractPlayerCastedTrick.assertHasCasterInfo(this);
+		if (!hasCasterPlayer()) {
 			LOG.warn("No caster found");
 			return;
 		}
@@ -114,42 +114,45 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 			minecraft.player.sendStatusMessage(new TranslationTextComponent("smash.completed")
 					.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
 			// Make additional variable then!
-			worldIn.playSound(minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
+			this.casterWorld.playSound(minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
 					minecraft.player.getPosZ(), SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0f, 1.0f);
 		} else {
-			if (hasCaster(worldIn)) {
-				PlayerEntity caster = getCaster(worldIn);
-				if (caster.collidedHorizontally || caster.collidedVertically) {
-					worldIn.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(3.0d),
+			if (hasCasterPlayer()) {
+				PlayerEntity caster = getCasterPlayer();
+				if (!castEndedNaturally()) {
+					this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(3.0d),
 							(Entity entity) -> true).forEach((Entity entity) -> {
-								entity.attackEntityFrom(getDamageSource(worldIn), this.mainDamage);
+								entity.attackEntityFrom(getDamageSource(), this.mainDamage);
 							});
 				}
+			} else {
+				LOG.warn("No caster found, can't perform onCastEnd");
 			}
 		}
 	}
 
 	@Override
-	public void tick(World worldIn) {
-		if (!hasCaster(worldIn)) {
+	public void tick() {
+		super.tick();
+		AbstractPlayerCastedTrick.assertHasCasterInfo(this);
+		if (!hasCasterPlayer()) {
 			// TODO check if caster teleported to another dimension.
-			this.endTime++;
 			return;
 		}
-		PlayerEntity caster = getCaster(worldIn);
+		PlayerEntity caster = getCasterPlayer();
 		caster.fallDistance = 0;
-		worldIn.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(0.5d),
+		this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(0.5d),
 				(Entity entity) -> !this.damagedEntities.contains(entity)).forEach((Entity entity) -> {
-					if (entity.attackEntityFrom(getDamageSource(worldIn), this.sideDamage)) {
+					if (entity.attackEntityFrom(getDamageSource(), this.sideDamage)) {
 						this.damagedEntities.add(entity);
 					}
 				});
-		caster.setMotion(this.direction.add(0d, -1d, 0d).scale(this.speed / 2d));
+		caster.setMotion(this.direction.scale(this.speed));
 		caster.velocityChanged = true;
 	}
 
-	protected DamageSource getDamageSource(World worldIn) {
-		return hasCaster(worldIn) ? new EntityDamageSource("smash", getCaster(worldIn)) : null;
+	protected DamageSource getDamageSource() {
+		return hasCasterPlayer() ? new EntityDamageSource("smash", getCaster()) : null;
 	}
 
 	private static final String HAS_CASTER_TAG = "has_owner";
@@ -179,7 +182,7 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 			return;
 		}
 		if (compound.getBoolean(HAS_CASTER_TAG)) {
-			setCaster(compound.getUniqueId(CASTER_UUID_TAG));
+			this.casterUniqueId = compound.getUniqueId(CASTER_UUID_TAG);
 		}
 		this.duration = compound.getInt(DURATION_TAG);
 		this.speed = compound.getDouble(SPEED_TAG);
@@ -192,9 +195,9 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 	@Override
 	public INBT writeToNBT() {
 		CompoundNBT res = new CompoundNBT();
-		if (getCasterUniUuid() != null) {
+		if (hasCasterPlayer()) {
 			res.putBoolean(HAS_CASTER_TAG, true);
-			res.putUniqueId(CASTER_UUID_TAG, getCasterUniUuid());
+			res.putUniqueId(CASTER_UUID_TAG, this.casterUniqueId);
 		} else {
 			res.putBoolean(HAS_CASTER_TAG, false);
 		}
@@ -236,18 +239,30 @@ public class SmashPlayerTrick extends PlayerTrick implements ITickableTrick {
 	}
 
 	@Override
-	public PacketTarget getBackPacketTarget(World worldIn) {
-		return hasCaster(worldIn) ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCaster(worldIn)) : null;
+	public PacketTarget getBackPacketTarget() {
+		return hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCasterPlayer()) : null;
 	}
 
 	@Override
-	public PacketTarget getEndPacketTarget(World worldIn) {
-		return hasCaster(worldIn) ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCaster(worldIn)) : null;
+	public PacketTarget getEndPacketTarget() {
+		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
 	}
 
 	@Override
 	public ITrick newEmpty() {
 		return new SmashPlayerTrick();
+	}
+
+	@Override
+	protected void setRegistryName() {
+		this.registryName = REGISTRY_NAME;
+	}
+
+	@Override
+	public boolean castEndedNaturally() {
+		assertHasCaster(this);
+		PlayerEntity caster = getCasterPlayer();
+		return !caster.collidedHorizontally && !caster.collidedVertically;
 	}
 
 }

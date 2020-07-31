@@ -3,54 +3,83 @@ package dzuchun.wingx.capability.world.tricks;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import dzuchun.wingx.net.TrickFinishMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
-import dzuchun.wingx.trick.IPersisableTrick;
-import dzuchun.wingx.trick.ITickableTrick;
+import dzuchun.wingx.trick.IInterruptableTrick;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.LogicalSide;
 
 public class ActiveTricksCapability implements IActiveTricksCapability {
+	private static final Logger LOG = LogManager.getLogger();
 
-	ArrayList<IPersisableTrick> active_tricks = new ArrayList<IPersisableTrick>(0);
+	ArrayList<IInterruptableTrick> active_tricks = new ArrayList<IInterruptableTrick>(0);
 	private final Object ACTIVE_TRICKS_LOCK = new Object();
 
 	@Override
-	public void addActiveTrick(IPersisableTrick trick) {
+	public void addActiveTrick(IInterruptableTrick trick) {
 		synchronized (this.ACTIVE_TRICKS_LOCK) {
+			LOG.info("Adding {} to active tricks", trick);
 			this.active_tricks.add(trick);
 		}
 	}
 
 	@Override
-	public void addActiveTricks(Collection<IPersisableTrick> tricks) {
+	public void addActiveTricks(Collection<IInterruptableTrick> tricks) {
+		if (tricks.isEmpty()) {
+			return;
+		}
 		synchronized (this.ACTIVE_TRICKS_LOCK) {
+			LOG.info("Adding {} to active tricks", tricks);
 			this.active_tricks.addAll(tricks);
+		}
+	}
+
+	@Override
+	public boolean removeActiveTrick(IInterruptableTrick trick) {
+		synchronized (this.ACTIVE_TRICKS_LOCK) {
+			WingxPacketHandler.INSTANCE.send(trick.getEndPacketTarget(), new TrickFinishMessage(trick));
+			LOG.info("Removing {} from active tricks", trick);
+			return this.active_tricks.remove(trick);
+		}
+	}
+
+	@Override
+	public boolean removeActiveTricks(Collection<IInterruptableTrick> tricks) {
+		if (tricks.isEmpty()) {
+			return true;
+		}
+		synchronized (this.ACTIVE_TRICKS_LOCK) {
+			tricks.forEach((trick) -> {
+				trick.onCastEnd(LogicalSide.SERVER);
+				WingxPacketHandler.INSTANCE.send(trick.getEndPacketTarget(), new TrickFinishMessage(trick));
+			});
+			LOG.info("Removing {} from active tricks", tricks);
+			return this.active_tricks.removeAll(tricks);
 		}
 	}
 
 	@Override
 	public void onWorldTick(World worldIn) {
 		synchronized (this.ACTIVE_TRICKS_LOCK) {
-			Collection<IPersisableTrick> ended_tricks = new ArrayList<IPersisableTrick>(0);
-			this.active_tricks.forEach((IPersisableTrick trick) -> {
-				if (trick.keepExecuting(worldIn) && trick instanceof ITickableTrick) {
-					((ITickableTrick) trick).tick(worldIn);
-				} else {
+			Collection<IInterruptableTrick> ended_tricks = new ArrayList<IInterruptableTrick>(0);
+			this.active_tricks.forEach((trick) -> {
+				trick.tick();
+				if (!trick.keepExecuting()) {
 					ended_tricks.add(trick);
 				}
 			});
-			this.active_tricks.removeAll(ended_tricks);
-			ended_tricks.forEach((IPersisableTrick trick) -> {
-				trick.stopExecute(LogicalSide.SERVER, worldIn);
-				WingxPacketHandler.INSTANCE.send(trick.getEndPacketTarget(worldIn), new TrickFinishMessage(trick));
-			});
-			this.active_tricks.trimToSize();
+			if (!ended_tricks.isEmpty()) {
+				removeActiveTricks(ended_tricks);
+				this.active_tricks.trimToSize();
+			}
 		}
 	}
 
 	@Override
-	public Collection<IPersisableTrick> getActiveTricks() {
+	public Collection<IInterruptableTrick> getActiveTricks() {
 		return this.active_tricks;
 	}
 

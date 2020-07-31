@@ -9,6 +9,7 @@ import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
 import dzuchun.wingx.trick.SwapPlayerTrick;
 import dzuchun.wingx.trick.TemplateCastPlayerTrick;
+import dzuchun.wingx.trick.meditation.MeditationPlayerTrick;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -36,11 +37,8 @@ public class ModBusEventListener {
 
 	@SubscribeEvent
 	public static void registerTricks(final RegistryEvent.Register<AbstractTrick> event) {
-		event.getRegistry().register(new DashPlayerTrick());
-		event.getRegistry().register(new SmashPlayerTrick());
-		event.getRegistry().register(new PunchPlayerTrick());
-		event.getRegistry().register(new TemplateCastPlayerTrick());
-		event.getRegistry().register(new SwapPlayerTrick());
+		event.getRegistry().registerAll(new DashPlayerTrick(), new SmashPlayerTrick(), new PunchPlayerTrick(),
+				new TemplateCastPlayerTrick(), new SwapPlayerTrick(), new MeditationPlayerTrick());
 	}
 
 	// Texture locations

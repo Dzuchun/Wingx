@@ -7,45 +7,43 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public abstract class TargetedPlayerTrick extends PlayerTrick {
-	public TargetedPlayerTrick() {
+public abstract class AbstractTargetedPlayerTrick extends AbstractPlayerCastedTrick implements ITargetedTrick {
+	public AbstractTargetedPlayerTrick() {
 		super();
 	}
 
-	public TargetedPlayerTrick(Entity target, PlayerEntity caster) {
+	public AbstractTargetedPlayerTrick(Entity target, PlayerEntity caster) {
 		super(caster);
 		if (target != null) {
 			this.targetUniqueId = target.getUniqueID();
 		}
 	}
 
+	protected World targetWorld = null;
 	protected UUID targetUniqueId = null;
 
-	public boolean hasTarget(ServerWorld worldIn) {
-		return this.targetUniqueId != null
-				&& WorldHelper.getEntityFromWorldByUniqueId(worldIn, this.targetUniqueId) != null;
+	@Override
+	public boolean hasTarget() {
+		return this.targetUniqueId != null && this.targetWorld != null
+				&& WorldHelper.getEntityFromWorldByUniqueId(this.targetWorld, this.targetUniqueId) != null;
 	}
 
-	public Entity getTarget(ServerWorld worldIn) {
-		return WorldHelper.getEntityFromWorldByUniqueId(worldIn, this.targetUniqueId);
+	@Override
+	public Entity getTarget() {
+		return this.targetWorld == null || this.targetUniqueId == null ? null
+				: WorldHelper.getEntityFromWorldByUniqueId(this.targetWorld, this.targetUniqueId);
 	}
 
-	protected void setTarget(UUID targetUniqueId) {
-		this.targetUniqueId = targetUniqueId;
-	}
-
-	protected void setTarget(Entity entity) {
-		if (entity != null) {
-			setTarget(entity.getUniqueID());
+	@Override
+	public void setTarget(Entity entityIn) {
+		if (entityIn != null) {
+			this.targetUniqueId = entityIn.getUniqueID();
+			this.targetWorld = entityIn.world;
 		}
-	}
-
-	public UUID getTargetUniqueId() {
-		return this.targetUniqueId;
 	}
 
 	@Override
@@ -72,5 +70,10 @@ public abstract class TargetedPlayerTrick extends PlayerTrick {
 	@OnlyIn(Dist.CLIENT)
 	public boolean amITarget() {
 		return this.targetUniqueId != null && this.targetUniqueId.equals(Minecraft.getInstance().player.getUniqueID());
+	}
+
+	@Override
+	public void setTargetWorld(World worldIn) {
+		this.targetWorld = worldIn;
 	}
 }

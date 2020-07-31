@@ -34,17 +34,19 @@ public class MeditationUtil {
 	public static final float MEDITATION_MAX_YAW_DEGREES = 15f;
 	public static final float MEDITATION_MAX_YAW = (float) (MEDITATION_MAX_YAW_DEGREES / 180.0d * Math.PI);
 	public static final int MEDITATION_YAW_ITERATIONS = 3;
-	public static final float MEDITATION_YAW_STEP = MEDITATION_MAX_YAW / (float) MEDITATION_YAW_ITERATIONS;
-	public static final float MEDITATION_YAW_STEP_DEGREES = MEDITATION_MAX_YAW_DEGREES / (float)(MEDITATION_YAW_ITERATIONS);
+	public static final float MEDITATION_YAW_STEP = MEDITATION_MAX_YAW / MEDITATION_YAW_ITERATIONS;
+	public static final float MEDITATION_YAW_STEP_DEGREES = MEDITATION_MAX_YAW_DEGREES / (MEDITATION_YAW_ITERATIONS);
 
 	public static final float MEDITATION_MAX_PITCH_DEGREES = 15f;
 	public static final float MEDITATION_MAX_PITCH = (float) (MEDITATION_MAX_YAW_DEGREES / 180.0d * Math.PI);
 	public static final int MEDITATION_PITCH_ITERATIONS = 3;
-	public static final float MEDITATION_PITCH_STEP = MEDITATION_MAX_YAW / (float) MEDITATION_PITCH_ITERATIONS;
-	public static final float MEDITATION_PITCH_STEP_DEGREES = MEDITATION_MAX_PITCH_DEGREES / (float)(MEDITATION_PITCH_ITERATIONS);
+	public static final float MEDITATION_PITCH_STEP = MEDITATION_MAX_YAW / MEDITATION_PITCH_ITERATIONS;
+	public static final float MEDITATION_PITCH_STEP_DEGREES = MEDITATION_MAX_PITCH_DEGREES
+			/ (MEDITATION_PITCH_ITERATIONS);
 
 	private static final Map<UUID, Pair<Long, Double>> meditationLastCalculations = new LinkedHashMap<UUID, Pair<Long, Double>>(
 			0);
+	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 
 	public static double getMeditationScore(Entity entity) {
@@ -91,7 +93,6 @@ public class MeditationUtil {
 		Vector3d begin = entity.getEyePosition(0);
 		Vector3d end = begin.add(Vector3d.fromPitchYaw(pitch, yaw).scale(MEDITATION_MAX_DISTANCE));
 		World world = entity.world;
-//		LOG.info("Raytracing from {} to {}", begin, end);
 		RayTraceResult result = world
 				.rayTraceBlocks(new RayTraceContext(begin, end, BlockMode.OUTLINE, FluidMode.NONE, entity));
 		// TODO implement fluids

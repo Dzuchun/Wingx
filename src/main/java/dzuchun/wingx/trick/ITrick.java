@@ -1,7 +1,6 @@
 package dzuchun.wingx.trick;
 
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 import net.minecraftforge.registries.IForgeRegistryEntry;
@@ -31,11 +30,12 @@ public interface ITrick extends IForgeRegistryEntry<AbstractTrick> {
 	 * @param side    Side should executed on.
 	 * @param worldIn World should be executed in.
 	 */
-	void execute(LogicalSide side, World worldIn);
+	// TODO REDEFINE! THIS MAKES NO SENCE!
+	void execute(LogicalSide side);
 
 	boolean executedSuccesfully();
 
-	PacketTarget getBackPacketTarget(World worldIn);
+	PacketTarget getBackPacketTarget();
 
 	ITrick newEmpty();
 }

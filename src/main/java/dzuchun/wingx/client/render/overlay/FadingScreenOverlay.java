@@ -1,7 +1,6 @@
 package dzuchun.wingx.client.render.overlay;
 
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +15,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 
 public class FadingScreenOverlay extends AbstractTickingOverlay {
+	public static FadingScreenOverlay instance;
 	private static final Logger LOG = LogManager.getLogger();
 
 	public static class Color {
@@ -32,7 +32,7 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 
 	public static Consumer<Boolean> DO_NOTHING = (successfull) -> {
 	};
-	
+
 	private boolean isActive = false;
 	private Vector4f beginColor;
 	private Vector4f endColor;
@@ -53,7 +53,8 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 		this.fadeFunction = fadeFunction;
 	}
 
-	public FadingScreenOverlay(Vector4f beginColor, Vector4f endColor, double ticksDuration, Consumer<Boolean> onClose) {
+	public FadingScreenOverlay(Vector4f beginColor, Vector4f endColor, double ticksDuration,
+			Consumer<Boolean> onClose) {
 		this(beginColor, endColor, ticksDuration, onClose, FadeFunction.LINEAR);
 	}
 
@@ -88,9 +89,9 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 			return;
 		}
 		double partColorPassed = this.fadeFunction.apply(partPassed);
-		Vector4f currentColor = MathHelper.lerpVector4f(this.beginColor, this.endColor, partColorPassed);
+		this.lastColor = MathHelper.lerpVector4f(this.beginColor, this.endColor, partColorPassed);
 //		LOG.debug("Rendering screen with color {}", currentColor.toString());
-		SeparateRenderers.renderColorScreen(event, currentColor);
+		SeparateRenderers.renderColorScreen(event, this.lastColor);
 	}
 
 	@SuppressWarnings("resource")
@@ -102,6 +103,7 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 			return false;
 		}
 		this.isActive = true;
+		instance = this;
 		this.beginTime = Minecraft.getInstance().world.getGameTime();
 		this.endTime = this.beginTime + this.ticksDuration;
 		return true;
@@ -111,10 +113,11 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 	@Override
 	public void deactivate() {
 		LOG.debug("Deactivating overlay {}", toString());
-		if (onClose != null) {
-			onClose.accept(Minecraft.getInstance().world.getGameTime() >= this.endTime);
+		if (this.onClose != null) {
+			this.onClose.accept(Minecraft.getInstance().world.getGameTime() >= this.endTime);
 		}
 		this.isActive = false;
+		instance = null;
 		super.deactivate();
 	}
 

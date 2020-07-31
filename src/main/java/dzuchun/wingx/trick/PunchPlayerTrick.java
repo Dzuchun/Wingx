@@ -17,15 +17,13 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-public class PunchPlayerTrick extends TargetedPlayerTrick {
+public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "punch_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
 	private State state;
@@ -39,29 +37,27 @@ public class PunchPlayerTrick extends TargetedPlayerTrick {
 
 	public PunchPlayerTrick() {
 		super();
-		setRegistryName(REGISTRY_NAME);
 	}
 
 	public PunchPlayerTrick(PlayerEntity caster, double aimRadius, Predicate<LivingEntity> otherCondition,
 			double force) {
 		super(null, caster);
-		setRegistryName(REGISTRY_NAME);
 		this.force = force;
 		new LivingEntitySelectOverlay(aimRadius, true, otherCondition);
 		LivingEntitySelectOverlay.getInstance().activate();
 		if (!LivingEntitySelectOverlay.getInstance().isActive()) {
 			LOG.warn("Can't create overlay now, trick is failed now.");
 			this.state = State.FAILED;
-			LivingEntitySelectOverlay.getInstance().deactivate();
+			LivingEntitySelectOverlay.getInstance().deactivate(); // TODO optimize
 		} else {
 			this.state = State.AIMING;
 		}
 	}
 
 	@Override
-	public void execute(LogicalSide side, World worldIn) {
+	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
-			Entity target = getTarget((ServerWorld) worldIn);
+			Entity target = getTarget();
 			if (target == null) {
 				LOG.warn("No target found");
 				this.succesfull = false;
@@ -106,7 +102,7 @@ public class PunchPlayerTrick extends TargetedPlayerTrick {
 			return false;
 		}
 		setTarget(target);
-		if (getCasterUniUuid() == null) {
+		if (this.casterUniqueId == null) {
 			LOG.warn("No caster found, so punch will be empty");
 		} else {
 			this.direction = Minecraft.getInstance().player.getForward().normalize();
@@ -116,8 +112,8 @@ public class PunchPlayerTrick extends TargetedPlayerTrick {
 	}
 
 	@Override
-	public PacketTarget getBackPacketTarget(World worldIn) {
-		return hasCaster(worldIn) ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCaster(worldIn)) : null;
+	public PacketTarget getBackPacketTarget() {
+		return hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCasterPlayer()) : null;
 	}
 
 	@Override
@@ -133,7 +129,6 @@ public class PunchPlayerTrick extends TargetedPlayerTrick {
 		buf.writeDouble(this.direction.x);
 		buf.writeDouble(this.direction.y);
 		buf.writeDouble(this.direction.z);
-		LOG.debug("Writing to buffer {}", this.succesfull);
 		return super.writeToBuf(buf);
 	}
 
@@ -144,5 +139,10 @@ public class PunchPlayerTrick extends TargetedPlayerTrick {
 	@Override
 	public ITrick newEmpty() {
 		return new PunchPlayerTrick();
+	}
+
+	@Override
+	protected void setRegistryName() {
+		this.registryName = REGISTRY_NAME;
 	}
 }

@@ -26,7 +26,7 @@ logoFile="wingx.png" #optional
 # A text field displayed in the mod UI
 credits="Thank s all Minecraft Forge community, you're awesome!" #optional
 # A text field displayed in the mod UI
-authors="NullPointerTeam" #optional
+#authors="NullPointerTeam" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''
 Need think of thet later...

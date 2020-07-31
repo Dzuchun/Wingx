@@ -11,7 +11,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
@@ -22,7 +21,7 @@ import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
  * @author Dzuchun
  *
  */
-public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick {
+public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick implements ITimeredTrick {
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID,
 			"template_cast_player_trick");
 	@SuppressWarnings("unused")
@@ -30,38 +29,34 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick {
 
 	public TemplateCastPlayerTrick() {
 		super();
-		setRegistryName(REGISTRY_NAME);
 	}
 
 	public TemplateCastPlayerTrick(PlayerEntity caster, int duration) {
 		super(caster, duration, InterruptCondition.NO_CONDITION);
-		setRegistryName(REGISTRY_NAME);
 	}
 
 	@Override
-	public void execute(LogicalSide side, World worldIn) {
+	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
-			if (hasCaster(worldIn) && AbstractInterruptablePlayerTrick.playerBusy(getCaster(worldIn)) == 0) {
-				beginCast(getCaster(worldIn));
+			if (hasCasterPlayer() && AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) == 0) {
 				this.succesfull = true;
 			} else {
 				this.succesfull = false;
 			}
 		} else {
-			if (this.succesfull && hasCaster(worldIn)) {
-				beginCast(getCaster(worldIn));
-			} else {
+			if (!this.succesfull) {
 				Minecraft minecraft = Minecraft.getInstance();
 				minecraft.player
 						.sendStatusMessage(new TranslationTextComponent("wingx.trick.interrubtable.template.fail")
 								.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
 			}
 		}
+		super.execute(side);
 	}
 
 	@Override
-	public PacketTarget getBackPacketTarget(World worldIn) {
-		return hasCaster(worldIn) ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCaster(worldIn)) : null;
+	public PacketTarget getBackPacketTarget() {
+		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
 	}
 
 	@Override
@@ -69,11 +64,25 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick {
 		return new TemplateCastPlayerTrick();
 	}
 
-//	@Override
-//	public Consumer<RenderGameOverlayEvent> getDrawFunction() {
-//		return (RenderGameOverlayEvent event) -> {
-//			SeparateRenderers.renderColorScreen(event, FadingScreenOverlay.Color.BLACK);
-//		};
-//	}
+	@Override
+	protected void setRegistryName() {
+		this.registryName = REGISTRY_NAME;
+	}
+
+	@Override
+	public PacketTarget getEndPacketTarget() {
+		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+	}
+
+	@Override
+	public int timeFull() throws NoCasterException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double partLeft() throws NoCasterException {
+		return (double) timeLeft() / (double) this.duration;
+	}
 
 }
