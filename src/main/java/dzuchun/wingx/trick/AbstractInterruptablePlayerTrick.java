@@ -202,7 +202,8 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 						this.prevPos = player.getPositionVec();
 						return false;
 					}
-					return (!this.prevPos.equals(player.getPositionVec()) || !this.prevRotation.equals(player.getPitchYaw()));
+					return (!this.prevPos.equals(player.getPositionVec())
+							|| !this.prevRotation.equals(player.getPitchYaw()));
 				};
 			}
 

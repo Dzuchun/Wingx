@@ -50,6 +50,7 @@ public class WingsCapability implements IWingsCapability {
 			this.wingsUniqueId = buf.readUniqueId();
 		}
 		this.meditationScoreRequired = buf.readDouble();
+		this.needsEnd = buf.readBoolean();
 	}
 
 	@Override
@@ -62,6 +63,19 @@ public class WingsCapability implements IWingsCapability {
 			buf.writeBoolean(false);
 		}
 		buf.writeDouble(this.meditationScoreRequired);
+		buf.writeBoolean(this.needsEnd);
+	}
+
+	private boolean needsEnd = true;
+
+	@Override
+	public void setNeedsEndToMeditate(boolean needsEndIn) {
+		this.needsEnd = needsEndIn;
+	}
+
+	@Override
+	public boolean needsEndForMeditation() {
+		return this.needsEnd;
 	}
 
 }

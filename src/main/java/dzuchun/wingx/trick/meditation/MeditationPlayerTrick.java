@@ -6,10 +6,12 @@ import org.apache.logging.log4j.Logger;
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.client.render.overlay.FadingScreenOverlay;
 import dzuchun.wingx.net.MeditationGuiMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
+import dzuchun.wingx.trick.ICastedTrick;
 import dzuchun.wingx.trick.ITrick;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
@@ -18,6 +20,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -59,6 +62,8 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 		this.registryName = REGISTRY_NAME;
 	}
 
+	private boolean tmp_boolean_1;
+
 	@Override
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
@@ -67,11 +72,33 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				LazyOptional<IWingsCapability> optionalCap = caster.getCapability(WingsProvider.WINGS, null);
 				if (optionalCap.isPresent()) {
 					optionalCap.ifPresent((cap) -> {
-						if (MeditationUtil.getMeditationScore(caster) >= cap.getMeditationScore()) {
-							this.succesfull = true;
-						} else {
+						if (cap.needsEndForMeditation() && (caster.world.func_234923_W_() != World.field_234920_i_)) {
+							LOG.debug("Player requires end to meditate, but is not in end now.");
 							this.succesfull = false;
+							return;
 						}
+
+						if (MeditationUtil.getMeditationScore(caster) <= cap.getMeditationScore()) {
+							this.succesfull = false;
+							LOG.debug("Player has not enough meditation points to perform meditation.");
+							return;
+						}
+						this.tmp_boolean_1 = true;
+						caster.world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent((worldCap) -> {
+							worldCap.getActiveTricks().forEach((trick) -> {
+								if (trick instanceof ICastedTrick) {
+									if (trick instanceof MeditationPlayerTrick
+											&& trick.getCaster().getUniqueID().equals(caster.getUniqueID())) {
+										this.tmp_boolean_1 = false;
+									}
+								}
+							});
+						});
+						if (!this.tmp_boolean_1) {
+							this.succesfull = false;
+							return;
+						}
+						this.succesfull = true;
 					});
 				} else {
 					LOG.warn("Caster doesn't have wings capability. Meditation won't be performed.");
@@ -83,6 +110,9 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 			}
 		} else {
 			if (this.succesfull) {
+				if (FadingScreenOverlay.instance != null) {
+					FadingScreenOverlay.instance.deactivate();
+				}
 				boolean b = new FadingScreenOverlay(FadingScreenOverlay.Color.ZERO, FadingScreenOverlay.Color.BLACK,
 						MEDITATION_DURATION + 2).activate();
 				if (!b) {

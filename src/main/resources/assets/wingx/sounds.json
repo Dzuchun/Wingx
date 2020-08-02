@@ -1,0 +1,8 @@
+{
+  "ambient.wingx.end": {
+    "sounds": [
+      "wingx:ambient/end/ambient1"
+    ],
+    "subtitle": "subtitles.wingx.end.ambient"
+  }
+}

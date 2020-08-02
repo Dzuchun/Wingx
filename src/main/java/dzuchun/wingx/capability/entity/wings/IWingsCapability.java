@@ -57,4 +57,8 @@ public interface IWingsCapability {
 	 * @param buf
 	 */
 	void writeToBuffer(PacketBuffer buf);
+
+	void setNeedsEndToMeditate(boolean needsEndIn);
+
+	boolean needsEndForMeditation();
 }

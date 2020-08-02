@@ -11,6 +11,8 @@ import dzuchun.wingx.trick.SwapPlayerTrick;
 import dzuchun.wingx.trick.TemplateCastPlayerTrick;
 import dzuchun.wingx.trick.meditation.MeditationPlayerTrick;
 import net.minecraft.inventory.container.PlayerContainer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -45,6 +47,14 @@ public class ModBusEventListener {
 //	@OnlyIn(value = Dist.CLIENT)
 //	public static final ResourceLocation GUI_INGAME_COOLDOWN_HORIZONTAL_TEXTURE = new ResourceLocation(Wingx.MOD_ID,
 //			"gui/ingame/cooldown_bar_horizontal");
+
+	private static final ResourceLocation AMBIENT_END_LOCATION = new ResourceLocation(Wingx.MOD_ID,
+			"ambient.wingx.end");
+
+	@SubscribeEvent
+	public static void registerSounds(final RegistryEvent.Register<SoundEvent> event) {
+		event.getRegistry().registerAll(new SoundEvent(AMBIENT_END_LOCATION).setRegistryName(AMBIENT_END_LOCATION));
+	}
 
 	@OnlyIn(value = Dist.CLIENT)
 	@SubscribeEvent
