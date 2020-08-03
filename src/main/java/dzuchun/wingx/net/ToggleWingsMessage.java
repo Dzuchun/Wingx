@@ -41,7 +41,7 @@ public class ToggleWingsMessage {
 
 	private static Entity foundEntity;
 
-	public static void handle(ToggleWingsMessage msg, Supplier<NetworkEvent.Context> ctx) {
+	public static synchronized void handle(ToggleWingsMessage msg, Supplier<NetworkEvent.Context> ctx) {
 		NetworkEvent.Context context = ctx.get();
 		if (context.getDirection().equals(NetworkDirection.PLAY_TO_SERVER)) {
 			context.enqueueWork(() -> {
@@ -57,6 +57,7 @@ public class ToggleWingsMessage {
 							wingsCap.setActive(false);
 							return;
 						}
+						foundEntity = null;
 						world.getEntities().forEach((Entity entity) -> {
 							if (entity.getUniqueID().equals(targetUniqueId)) {
 								foundEntity = entity;
@@ -90,7 +91,6 @@ public class ToggleWingsMessage {
 						WingxPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> sender),
 								new ToggleWingsMessage(true));
 					}
-					foundEntity = null;
 				});
 			});
 		} else if (context.getDirection().equals(NetworkDirection.PLAY_TO_CLIENT)) {

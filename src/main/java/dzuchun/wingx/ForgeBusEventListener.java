@@ -9,6 +9,7 @@ import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.client.render.overlay.AbstractTickingOverlay;
+import dzuchun.wingx.command.impl.WingxComand;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
 import dzuchun.wingx.trick.meditation.MeditationUtil;
@@ -28,6 +29,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 /**
  * Used to subscribe needed methods to event bus. Will need to change that later
@@ -119,5 +121,12 @@ public class ForgeBusEventListener {
 			event.getLeft().add(String.format("Meditation points available: %s",
 					MeditationUtil.getMeditationScore(Minecraft.getInstance().player)));
 		}
+	}
+
+	@SubscribeEvent
+	public static void onServerStart(final FMLServerStartingEvent event) {
+		LOG.debug("Registering wingx command");
+		WingxComand.register(event.getServer().getCommandManager().getDispatcher());
+		LOG.debug("Registered wingx command");
 	}
 }
