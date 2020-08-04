@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.entity.misc.WingsEntity;
+import dzuchun.wingx.entity.projectile.FireballEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
@@ -19,20 +20,31 @@ public class EntityTypes {
 	private static final Logger LOG = LogManager.getLogger();
 
 	public static final String WINGS_NAME = "wings";
+	public static final String FIREBALL_NAME = "fireball";
 
 	public static RegistryObject<EntityType<WingsEntity>> wings_entity_type;
+	public static RegistryObject<EntityType<FireballEntity>> fireball_entity_type;
 
 	public static void registerEntityTypes(IEventBus bus) {
 
 		final DeferredRegister<EntityType<? extends Entity>> register = DeferredRegister
 				.create(ForgeRegistries.ENTITIES, Wingx.MOD_ID);
-		wings_entity_type = register.register("wings", () -> EntityType.Builder
+		wings_entity_type = register.register(WINGS_NAME, () -> EntityType.Builder
 				.<WingsEntity>create((EntityType<WingsEntity> entityType, World worldIn) -> new WingsEntity(worldIn),
 						EntityClassification.MISC)
 				.setCustomClientFactory((spawnEntity, world) -> new WingsEntity(world)).setUpdateInterval(3)
 				.immuneToFire().setShouldReceiveVelocityUpdates(false)
 				.build(new ResourceLocation(Wingx.MOD_ID, WINGS_NAME).toString()));
-		LOG.debug("Registered wings entity type in deferred register");
+		fireball_entity_type = register
+				.register(FIREBALL_NAME,
+						() -> EntityType.Builder
+								.<FireballEntity>create(
+										(EntityType<FireballEntity> entityType,
+												World worldIn) -> new FireballEntity(worldIn),
+										EntityClassification.MISC)
+								.size(6f / 16f, 6f / 16f).immuneToFire()
+								.build(new ResourceLocation(Wingx.MOD_ID, FIREBALL_NAME).toString()));
+		LOG.debug("Registered entity types in deferred register");
 		register.register(bus);
 	}
 }

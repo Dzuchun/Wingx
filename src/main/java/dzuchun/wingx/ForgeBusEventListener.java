@@ -92,6 +92,9 @@ public class ForgeBusEventListener {
 			return;
 		}
 		AbstractTickingOverlay.onClientTick(event);
+//		if (Minecraft.getInstance().objectMouseOver != null) {
+//			LOG.debug("Looking at {}", Minecraft.getInstance().objectMouseOver.getType().toString());
+//		}
 	}
 
 	@SubscribeEvent

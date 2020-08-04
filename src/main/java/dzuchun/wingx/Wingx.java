@@ -8,6 +8,7 @@ import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.CapabilityActiveTricks;
 import dzuchun.wingx.client.input.KeyEvents;
+import dzuchun.wingx.client.render.entity.FireballRenderer;
 import dzuchun.wingx.client.render.entity.WingsRenderer;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.init.EntityTypes;
@@ -66,6 +67,7 @@ public class Wingx {
 
 		LOG.debug("Binding renderers");
 		RenderingRegistry.registerEntityRenderingHandler(EntityTypes.wings_entity_type.get(), WingsRenderer::new);
+		RenderingRegistry.registerEntityRenderingHandler(EntityTypes.fireball_entity_type.get(), FireballRenderer::new);
 		LOG.debug("Binded renderers");
 
 		LOG.debug("Registering key bindings");
