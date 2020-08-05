@@ -20,7 +20,6 @@ import net.minecraft.network.IPacket;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 public class FireballEntity extends Entity {
@@ -40,10 +39,11 @@ public class FireballEntity extends Entity {
 		this.isDebug = false;
 		IWingsCapability cap = caster.getCapability(WingsProvider.WINGS, null)
 				.orElseThrow(() -> new NoWingsException(caster));
-		ownerUniqueId = caster.getUniqueID();
-		initialSpeed = cap.fireballInitialSpeed();
-		packedColor = cap.fireballColor();
-		setMotion(caster.getMotion().add(Vector3d.fromPitchYaw(caster.getPitchYaw()).normalize().scale(initialSpeed)));
+		this.ownerUniqueId = caster.getUniqueID();
+		this.initialSpeed = cap.fireballInitialSpeed();
+		this.packedColor = cap.fireballColor();
+		setMotion(caster.getMotion()
+				.add(Vector3d.fromPitchYaw(caster.getPitchYaw()).normalize().scale(this.initialSpeed)));
 		setPositionAndRotation(caster.getPosX(), caster.getPosY() + caster.getEyeHeight() - 0.2d, caster.getPosZ(),
 				caster.rotationYawHead, caster.rotationPitch);
 		recalculateSize();
@@ -64,7 +64,6 @@ public class FireballEntity extends Entity {
 
 	private static final String OWNER_TAG = "wingx_fireball_owner";
 	private static final String INITIAL_SPEED_TAG = "wingx_initial_speed";
-	private static final String IS_DEBUG_TAG = "wingx_fireball_debug";
 
 	@Override
 	protected void readAdditional(CompoundNBT compound) {
@@ -78,12 +77,7 @@ public class FireballEntity extends Entity {
 		} else {
 			LOG.debug("{} tag not found for {}", INITIAL_SPEED_TAG, this);
 		}
-//		if (compound.hasUniqueId(IS_DEBUG_TAG)) {
-//			this.isDebug = compound.getBoolean(IS_DEBUG_TAG);
-//		} else {
-//			LOG.debug("{} tag not found for {}", IS_DEBUG_TAG, this);
-//		}
-		isDebug = ownerUniqueId == null;
+		this.isDebug = this.ownerUniqueId == null;
 	}
 
 	@Override
@@ -92,7 +86,6 @@ public class FireballEntity extends Entity {
 			compound.putUniqueId(OWNER_TAG, this.ownerUniqueId);
 		}
 		compound.putDouble(INITIAL_SPEED_TAG, this.initialSpeed);
-//		compound.putBoolean(IS_DEBUG_TAG, this.isDebug);
 	}
 
 	@Override
@@ -142,7 +135,7 @@ public class FireballEntity extends Entity {
 
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float amount) {
-		if (isDebug) {
+		if (this.isDebug) {
 			if (source.getTrueSource() instanceof PlayerEntity) {
 				addMotion(Vector3d.fromPitchYaw(source.getTrueSource().getPitchYaw()).scale(0.5f));
 			}

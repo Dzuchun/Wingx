@@ -68,8 +68,8 @@ public interface IWingsCapability {
 	int fireballColor();
 
 	float fireballDamage();
-	
+
 	InterruptCondition fireballInterruptCondition();
-	
+
 	double fireballInitialSpeed();
 }

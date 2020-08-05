@@ -65,7 +65,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 			}
 		}
 	}
-	
+
 	public AbstractInterruptablePlayerTrick() {
 		super();
 	}
@@ -273,7 +273,8 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 			res_int_1 = 0;
 			capOptional.ifPresent((cap) -> {
 				cap.getActiveTricks().forEach((trick) -> {
-					if ((trick.hasCaster() && trick.getCaster().getUniqueID().equals(casterPlayer.getUniqueID())) && res_int_1 < trick.timeLeft()) {
+					if ((trick.hasCaster() && trick.getCaster().getUniqueID().equals(casterPlayer.getUniqueID()))
+							&& res_int_1 < trick.timeLeft()) {
 						res_int_1 = trick.timeLeft();
 					}
 				});
@@ -320,6 +321,6 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	@Override
 	public String toString() {
 		return String.format("AbstractInterruptablePlayerTrick[type = %s, end time = %s, caster uuid = %s]",
-				this.getClass().getName(), endTime, casterUniqueId);
+				this.getClass().getName(), this.endTime, this.casterUniqueId);
 	}
 }

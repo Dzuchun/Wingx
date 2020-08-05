@@ -49,7 +49,7 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 
 	@Override
 	protected void setRegistryName() {
-		registryName = REGISTRY_NAME;
+		this.registryName = REGISTRY_NAME;
 	}
 
 	@Override
@@ -59,20 +59,21 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 					&& AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) == 0) {
 				IWingsCapability cap = getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
 				// Cap is nonnul
-				duration = cap.fireballCastDuration();
-				interruptCondition = cap.fireballInterruptCondition();
-				interruptCondition.reset();
-				succesfull = true;
+				this.duration = cap.fireballCastDuration();
+				this.interruptCondition = cap.fireballInterruptCondition();
+				this.interruptCondition.reset();
+				this.succesfull = true;
 			} else {
-				succesfull = false;
+				this.succesfull = false;
 				LOG.warn("Caster does not exist, has no capability or caster is busy");
 			}
 		} else {
 			if (amICaster()) {
 				Minecraft minecraft = Minecraft.getInstance();
-				minecraft.player
-						.sendStatusMessage(succesfull ? new TranslationTextComponent("wingx.fireball.starting_execute")
-								: new TranslationTextComponent("wingx.fireball.failt_execute"), true);
+				minecraft.player.sendStatusMessage(
+						this.succesfull ? new TranslationTextComponent("wingx.fireball.starting_execute")
+								: new TranslationTextComponent("wingx.fireball.failt_execute"),
+						true);
 			}
 		}
 		super.execute(side);
@@ -84,14 +85,14 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 		super.onCastEnd(side);
 		if (side == LogicalSide.SERVER) {
 			if (castEndedNaturally()) {
-				((ServerWorld) casterWorld).summonEntity(new FireballEntity(getCasterPlayer()));
+				((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(getCasterPlayer()));
 			}
 		} else {
 			if (amICaster()) {
 				ClientPlayerEntity player = Minecraft.getInstance().player;
-				player.sendStatusMessage(succesfull ? new TranslationTextComponent("wingx.fireball.executed")
+				player.sendStatusMessage(this.succesfull ? new TranslationTextComponent("wingx.fireball.executed")
 						: new TranslationTextComponent("wingx.fireball.fail"), true);
-				if (succesfull) {
+				if (this.succesfull) {
 					player.resetCooldown();
 					player.swingArm(Hand.MAIN_HAND);
 					// TODO play sound
@@ -102,13 +103,13 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 
 	@Override
 	public int timeFull() throws NoCasterException {
-		return duration;
+		return this.duration;
 	}
 
 	@Override
 	public double partLeft() throws NoCasterException {
-		long current = casterWorld.getGameTime();
-		return (endTime - current) / (float) duration;
+		long current = this.casterWorld.getGameTime();
+		return (this.endTime - current) / (float) this.duration;
 	}
 
 }

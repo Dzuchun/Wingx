@@ -41,7 +41,8 @@ public class ModBusEventListener {
 	@SubscribeEvent
 	public static void registerTricks(final RegistryEvent.Register<AbstractTrick> event) {
 		event.getRegistry().registerAll(new DashPlayerTrick(), new SmashPlayerTrick(), new PunchPlayerTrick(),
-				new TemplateCastPlayerTrick(), new SwapPlayerTrick(), new MeditationPlayerTrick(), new FireballCastPlayerTrick());
+				new TemplateCastPlayerTrick(), new SwapPlayerTrick(), new MeditationPlayerTrick(),
+				new FireballCastPlayerTrick());
 	}
 
 	// Texture locations
