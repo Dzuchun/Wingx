@@ -56,7 +56,6 @@ public class SeparateRenderers {
 		});
 	}
 
-	@SuppressWarnings("deprecation")
 	private static void defaultDrawCastingOverlayInner(RenderGameOverlayEvent event, ITimeredTrick trick) {
 		Minecraft minecraft = Minecraft.getInstance();
 		double partLeft = trick.partLeft();
@@ -108,7 +107,6 @@ public class SeparateRenderers {
 		renderColorScreen(event.getMatrixStack(), color);
 	}
 
-	@SuppressWarnings("deprecation")
 	public static void renderColorScreen(MatrixStack matrixStackIn, Vector4f color) {
 		if (!Minecraft.isGuiEnabled()) {
 			return;
@@ -157,7 +155,6 @@ public class SeparateRenderers {
 		RenderSystem.enableTexture();
 	}
 
-	@SuppressWarnings("deprecation")
 	public static void myBlit(MatrixStack matrixStackIn, int xMin, int yMin, int width, int height, float uMin,
 			float vMin, float uWidth, float vHeight, Minecraft mc, ResourceLocation texture) {
 		RenderSystem.assertThread(RenderSystem::isOnRenderThread);
