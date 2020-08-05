@@ -76,7 +76,6 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 
 	@Override
 	public int timeFull() throws NoCasterException {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

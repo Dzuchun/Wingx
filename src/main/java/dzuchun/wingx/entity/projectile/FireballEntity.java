@@ -5,7 +5,10 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dzuchun.wingx.capability.entity.wings.IWingsCapability;
+import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.init.EntityTypes;
+import dzuchun.wingx.trick.NoWingsException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntitySize;
 import net.minecraft.entity.EntityType;
@@ -17,6 +20,7 @@ import net.minecraft.network.IPacket;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 public class FireballEntity extends Entity {
@@ -26,18 +30,31 @@ public class FireballEntity extends Entity {
 	private UUID ownerUniqueId;
 	private double initialSpeed;
 	public boolean isDebug = true;
+	public int packedColor;
 
 	/**
-	 * Used to create fireball that was casted
+	 * Used to create fireball that was casted, on server
 	 */
-	public FireballEntity(Entity caster) {
+	public FireballEntity(PlayerEntity caster) throws NoWingsException {
 		this(caster.world);
 		this.isDebug = false;
+		IWingsCapability cap = caster.getCapability(WingsProvider.WINGS, null)
+				.orElseThrow(() -> new NoWingsException(caster));
+		ownerUniqueId = caster.getUniqueID();
+		initialSpeed = cap.fireballInitialSpeed();
+		packedColor = cap.fireballColor();
+		setMotion(caster.getMotion().add(Vector3d.fromPitchYaw(caster.getPitchYaw()).normalize().scale(initialSpeed)));
+		setPositionAndRotation(caster.getPosX(), caster.getPosY() + caster.getEyeHeight() - 0.2d, caster.getPosZ(),
+				caster.rotationYawHead, caster.rotationPitch);
+		recalculateSize();
 	}
 
 	public FireballEntity(World worldIn) {
-		super(TYPE, worldIn);
-		recalculateSize();
+		this(TYPE, worldIn);
+	}
+
+	public FireballEntity(EntityType<? extends FireballEntity> type, World worldIn) {
+		super(type, worldIn);
 		LOG.debug("Creating new fireball");
 	}
 
@@ -53,13 +70,20 @@ public class FireballEntity extends Entity {
 	protected void readAdditional(CompoundNBT compound) {
 		if (compound.contains(OWNER_TAG)) {
 			this.ownerUniqueId = compound.getUniqueId(OWNER_TAG);
+		} else {
+			LOG.debug("{} tag not found for {}", OWNER_TAG, this);
 		}
-		if (compound.hasUniqueId(OWNER_TAG)) {
+		if (compound.hasUniqueId(INITIAL_SPEED_TAG)) {
 			this.initialSpeed = compound.getDouble(INITIAL_SPEED_TAG);
+		} else {
+			LOG.debug("{} tag not found for {}", INITIAL_SPEED_TAG, this);
 		}
-		if (compound.hasUniqueId(IS_DEBUG_TAG)) {
-			this.isDebug = compound.getBoolean(IS_DEBUG_TAG);
-		}
+//		if (compound.hasUniqueId(IS_DEBUG_TAG)) {
+//			this.isDebug = compound.getBoolean(IS_DEBUG_TAG);
+//		} else {
+//			LOG.debug("{} tag not found for {}", IS_DEBUG_TAG, this);
+//		}
+		isDebug = ownerUniqueId == null;
 	}
 
 	@Override
@@ -68,7 +92,7 @@ public class FireballEntity extends Entity {
 			compound.putUniqueId(OWNER_TAG, this.ownerUniqueId);
 		}
 		compound.putDouble(INITIAL_SPEED_TAG, this.initialSpeed);
-		compound.putBoolean(IS_DEBUG_TAG, this.isDebug);
+//		compound.putBoolean(IS_DEBUG_TAG, this.isDebug);
 	}
 
 	@Override
@@ -81,6 +105,7 @@ public class FireballEntity extends Entity {
 		super.tick();
 		if (!this.isDebug && this.ticksExisted > 20 + 10) {
 			remove(false);
+			return;
 		}
 		if (this.ticksExisted > 10) {
 			this.setMotion(getMotion().scale(0.8));
@@ -117,11 +142,13 @@ public class FireballEntity extends Entity {
 
 	@Override
 	public boolean attackEntityFrom(DamageSource source, float amount) {
-		if (source.getTrueSource() instanceof PlayerEntity) {
-			addMotion(Vector3d.fromPitchYaw(source.getTrueSource().getPitchYaw()).scale(0.5f));
+		if (isDebug) {
+			if (source.getTrueSource() instanceof PlayerEntity) {
+				addMotion(Vector3d.fromPitchYaw(source.getTrueSource().getPitchYaw()).scale(0.5f));
+			}
+			this.ticksExisted = 0;
+			this.initialSpeed = getMotion().length();
 		}
-		this.ticksExisted = 0;
-		this.initialSpeed = getMotion().length();
 		return super.attackEntityFrom(source, amount);
 	}
 

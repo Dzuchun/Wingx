@@ -50,6 +50,7 @@ public class SeparateRenderers {
 		}
 		tricks.forEach((trick) -> {
 			if (trick instanceof ITimeredTrick) {
+//				LOG.debug("Drawing overlay for trick {}, cast ended - {}", trick, trick.castEndedNaturally());
 				defaultDrawCastingOverlayInner(event, (ITimeredTrick) trick);
 			}
 		});

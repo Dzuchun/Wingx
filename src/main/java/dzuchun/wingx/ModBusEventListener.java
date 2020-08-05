@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.trick.AbstractTrick;
 import dzuchun.wingx.trick.DashPlayerTrick;
+import dzuchun.wingx.trick.FireballCastPlayerTrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
 import dzuchun.wingx.trick.SwapPlayerTrick;
@@ -40,7 +41,7 @@ public class ModBusEventListener {
 	@SubscribeEvent
 	public static void registerTricks(final RegistryEvent.Register<AbstractTrick> event) {
 		event.getRegistry().registerAll(new DashPlayerTrick(), new SmashPlayerTrick(), new PunchPlayerTrick(),
-				new TemplateCastPlayerTrick(), new SwapPlayerTrick(), new MeditationPlayerTrick());
+				new TemplateCastPlayerTrick(), new SwapPlayerTrick(), new MeditationPlayerTrick(), new FireballCastPlayerTrick());
 	}
 
 	// Texture locations

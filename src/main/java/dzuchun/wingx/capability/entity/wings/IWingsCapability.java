@@ -2,6 +2,7 @@ package dzuchun.wingx.capability.entity.wings;
 
 import java.util.UUID;
 
+import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick.InterruptCondition;
 import net.minecraft.network.PacketBuffer;
 
 /**
@@ -61,4 +62,14 @@ public interface IWingsCapability {
 	void setNeedsEndToMeditate(boolean needsEndIn);
 
 	boolean needsEndForMeditation();
+
+	int fireballCastDuration();
+
+	int fireballColor();
+
+	float fireballDamage();
+	
+	InterruptCondition fireballInterruptCondition();
+	
+	double fireballInitialSpeed();
 }

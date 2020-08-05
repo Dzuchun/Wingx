@@ -21,4 +21,12 @@ public class MathHelper {
 				net.minecraft.util.math.MathHelper.lerp((float) partPassed, begin.getZ(), end.getZ()),
 				net.minecraft.util.math.MathHelper.lerp((float) partPassed, begin.getW(), end.getW()));
 	}
+	
+	public static Vector4f unpackColor(int packedColor) {
+		int r = packedColor >> 24;
+		int g = packedColor & 0x00FF0000 >> 16;
+		int b = packedColor & 0x0000FF00 >> 8;
+		int a = packedColor & 0x000000FF;
+		return new Vector4f(r, g, b, a);
+	}
 }

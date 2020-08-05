@@ -2,6 +2,7 @@ package dzuchun.wingx.trick;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -44,23 +45,27 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	@Nullable
 	public static synchronized ArrayList<AbstractInterruptablePlayerTrick> getForMe() {
 		res_tricks.clear();
-		clientInstances.forEach((trick) -> {
-			if (trick.getCaster().equals(Minecraft.getInstance().player)) {
-				res_tricks.add(trick);
-			}
-		});
+		synchronized (CLIENT_INSTANCES_LOCK) {
+			clientInstances.forEach((trick) -> {
+				if (trick.getCasterPlayer().equals(Minecraft.getInstance().player)) {
+					res_tricks.add(trick);
+				}
+			});
+		}
 		return res_tricks;
 	}
 
 	@OnlyIn(value = Dist.CLIENT)
 	public static void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
 		if (event.getType() == ElementType.CROSSHAIRS) {
-			clientInstances.forEach((trick) -> {
-				trick.getDrawFunction().accept(event);
-			});
+			synchronized (CLIENT_INSTANCES_LOCK) {
+				clientInstances.forEach((trick) -> {
+					trick.getDrawFunction().accept(event);
+				});
+			}
 		}
 	}
-
+	
 	public AbstractInterruptablePlayerTrick() {
 		super();
 	}
@@ -154,14 +159,32 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		this.interrupted = true;
 	}
 
+	private static List<AbstractInterruptablePlayerTrick> toRemove_1 = new ArrayList<AbstractInterruptablePlayerTrick>(
+			0);
+
+	// TODO change to ITrick method
+	// TODO add tricks a unique ID
+	public static synchronized void removeSimilar(AbstractInterruptablePlayerTrick trick) {
+		toRemove_1.clear();
+		synchronized (CLIENT_INSTANCES_LOCK) {
+			clientInstances.forEach(instance -> {
+				if (instance.casterUniqueId.equals(trick.casterUniqueId)
+						&& instance.getClass().equals(trick.getClass())) {
+					toRemove_1.add(instance);
+				} else {
+					LOG.debug("Trick {} and {} are not similar", trick, instance);
+				}
+			});
+			clientInstances.removeAll(toRemove_1);
+		}
+	}
+
 	// TODO doc
 	@Override
 	public void onCastEnd(LogicalSide side) {
 		assertHasCaster(this);
 		if (side == LogicalSide.CLIENT) {
-			synchronized (CLIENT_INSTANCES_LOCK) {
-				clientInstances.remove(this);
-			}
+			removeSimilar(this);
 		} else {
 			LOG.debug("Ending cast on server");
 		}
@@ -250,7 +273,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 			res_int_1 = 0;
 			capOptional.ifPresent((cap) -> {
 				cap.getActiveTricks().forEach((trick) -> {
-					if ((trick.hasCaster() && trick.getCaster() == casterPlayer) && res_int_1 < trick.timeLeft()) {
+					if ((trick.hasCaster() && trick.getCaster().getUniqueID().equals(casterPlayer.getUniqueID())) && res_int_1 < trick.timeLeft()) {
 						res_int_1 = trick.timeLeft();
 					}
 				});
@@ -265,8 +288,8 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	@Override
 	public boolean castEndedNaturally() {
 		assertHasCasterInfo(this);
-		LOG.debug("Now {}, endTime {}, returning {}", this.casterWorld.getGameTime(), this.endTime,
-				this.casterWorld.getGameTime() >= this.endTime);
+//		LOG.debug("Now {}, endTime {}, returning {}", this.casterWorld.getGameTime(), this.endTime,
+//				this.casterWorld.getGameTime() >= this.endTime);
 		return this.casterWorld.getGameTime() >= this.endTime;
 	}
 
@@ -292,5 +315,11 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	public int timeLeft() {
 		assertHasCasterInfo(this);
 		return (int) (this.endTime - this.casterWorld.getGameTime());
+	}
+
+	@Override
+	public String toString() {
+		return String.format("AbstractInterruptablePlayerTrick[type = %s, end time = %s, caster uuid = %s]",
+				this.getClass().getName(), endTime, casterUniqueId);
 	}
 }

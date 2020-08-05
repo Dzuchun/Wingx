@@ -12,6 +12,7 @@ import dzuchun.wingx.net.ToggleWingsMessage;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.DashPlayerTrick;
+import dzuchun.wingx.trick.FireballCastPlayerTrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
 import dzuchun.wingx.trick.SwapPlayerTrick;
@@ -228,6 +229,22 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.casting.template", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+			super.register();
+		}
+	},
+	FIREBALL {
+
+		@SuppressWarnings("resource")
+		@Override
+		public void execute() {
+			WingxPacketHandler.INSTANCE.sendToServer(
+					new TrickPerformedMessage(new FireballCastPlayerTrick(Minecraft.getInstance().player)));
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.fireball", KeyConflictContext.IN_GAME, KeyModifier.NONE,
 					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
 			super.register();
 		}
