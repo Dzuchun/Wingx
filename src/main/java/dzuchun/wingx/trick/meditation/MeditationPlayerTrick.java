@@ -6,6 +6,8 @@ import org.apache.logging.log4j.Logger;
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.BasicData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.client.render.overlay.FadingScreenOverlay;
 import dzuchun.wingx.net.MeditationGuiMessage;
@@ -72,13 +74,14 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				LazyOptional<IWingsCapability> optionalCap = caster.getCapability(WingsProvider.WINGS, null);
 				if (optionalCap.isPresent()) {
 					optionalCap.ifPresent((cap) -> {
-						if (cap.needsEndForMeditation() && (caster.world.func_234923_W_() != World.field_234920_i_)) {
+						BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+						if (data.needsEnd && (caster.world.func_234923_W_() != World.field_234920_i_)) {
 							LOG.debug("Player requires end to meditate, but is not in end now.");
 							this.succesfull = false;
 							return;
 						}
 
-						if (MeditationUtil.getMeditationScore(caster) <= cap.getMeditationScore()) {
+						if (MeditationUtil.getMeditationScore(caster) <= data.requiredMeditationScore) {
 							this.succesfull = false;
 							LOG.debug("Player has not enough meditation points to perform meditation.");
 							return;

@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.BasicData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -104,10 +106,11 @@ public class OwnerDataMessage {
 					wings.realSetPosAndUpdateNoTime(msg.x, msg.y, msg.z, msg.yaw);
 					wings.setOwner(msg.ownerUniqueId, true);
 					wings.getOwner().getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wingsCap) -> {
-						if (!wingsCap.isActive()) {
-							wingsCap.setActive(true);
+						BasicData data = wingsCap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+						if (!data.wingsActive) {
+							data.wingsActive = true;
 						}
-						wingsCap.setWingsUniqueId(wings.getUniqueID());
+						data.wingsUniqueId = wings.getUniqueID();
 					});
 				}
 			} else {

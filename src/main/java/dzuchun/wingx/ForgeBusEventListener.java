@@ -5,6 +5,8 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.BasicData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
@@ -52,18 +54,19 @@ public class ForgeBusEventListener {
 			return;
 		}
 		event.player.getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wings) -> {
-			if (wings.isActive()) {
+			BasicData data = wings.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+			if (data.wingsActive) {
 				if (event.side == LogicalSide.CLIENT) {
 					((ClientWorld) event.player.world).getAllEntities().forEach((Entity entity) -> {
 						if (entity instanceof WingsEntity
-								&& ((WingsEntity) entity).getUniqueID().equals(wings.getWingsUniqueId())) {
+								&& ((WingsEntity) entity).getUniqueID().equals(data.wingsUniqueId)) {
 							((WingsEntity) entity).realSetPosAndUpdate();
 						}
 					});
 				} else {
 					((ServerWorld) event.player.world).getEntities().forEach((Entity entity) -> {
 						if (entity instanceof WingsEntity
-								&& ((WingsEntity) entity).getUniqueID().equals(wings.getWingsUniqueId())) {
+								&& ((WingsEntity) entity).getUniqueID().equals(data.wingsUniqueId)) {
 							((WingsEntity) entity).realSetPosAndUpdate();
 						}
 					});

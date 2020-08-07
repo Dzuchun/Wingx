@@ -16,6 +16,9 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.BasicData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
+import dzuchun.wingx.capability.entity.wings.storage.WingsDataManager;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import dzuchun.wingx.net.ToggleWingsMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
@@ -56,7 +59,11 @@ public class WingxComand {
 						.then(Commands.argument("isActive", BoolArgumentType.bool()).executes(source -> {
 							return execute(source.getSource(), Arrays.asList(source.getSource().asPlayer()),
 									Action.SET_ACTIVE, true, BoolArgumentType.getBool(source, "isActive"));
-						})))));
+						}))).then(Commands.literal("needs_end")
+								.then(Commands.argument("needs", BoolArgumentType.bool()).executes(source -> {
+									return execute(source.getSource(), Arrays.asList(source.getSource().asPlayer()),
+											Action.SET_NEEDS_END, true, BoolArgumentType.getBool(source, "needs"));
+								})))));
 	}
 
 	private static int execute(CommandSource source, List<PlayerEntity> targets, Action action, boolean throwError,
@@ -103,11 +110,9 @@ public class WingxComand {
 					return Pair.of(2, target.getGameProfile().getName());
 				}
 				lazyCap.ifPresent(cap -> {
-					cap.setActive(false);
-					cap.setWingsUniqueId(null);
-					cap.setMeditationScore(1.0f);
-					cap.setNeedsEndToMeditate(true);
-					// TODO do other resetting things
+					WingsDataManager manager = cap.getDataManager();
+					manager.replace(manager.getOrAddDefault(Serializers.BASIC_SERIALIZER),
+							Serializers.BASIC_SERIALIZER.getDefault());
 				});
 				return Pair.of(0, "");
 			}
@@ -134,12 +139,13 @@ public class WingxComand {
 					ServerWorld world = (ServerWorld) target.world;
 					boolean flag = (boolean) args[0];
 //					cap.setActive((boolean) args[0]);
-					if (cap.isActive() && !flag) {
-						UUID targetUniqueId = cap.getWingsUniqueId();
+					BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+					if (data.wingsActive && !flag) {
+						UUID targetUniqueId = data.wingsUniqueId;
 						if (targetUniqueId == null) {
 							LOG.warn("Wings active for {}, but no UUID specified, deactivating",
 									target.getGameProfile().getName());
-							cap.setActive(false);
+							data.wingsActive = false;
 							return;
 						}
 						this.foundEntity = null;
@@ -158,25 +164,52 @@ public class WingxComand {
 								WingxPacketHandler.INSTANCE.send(
 										PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) target),
 										new ToggleWingsMessage(false));
-								cap.setActive(false);
+								data.wingsActive = false;
 							} else {
 								LOG.warn("Entity with UUID {} should be wings, but it is {}. Deactivating wings.",
 										targetUniqueId, this.foundEntity.getClass().getName());
-								cap.setActive(false);
+								data.wingsActive = false;
 							}
 						}
-					} else if (!cap.isActive() && flag) {
+					} else if (!data.wingsActive && flag) {
 						WingsEntity wings = new WingsEntity(world);
 						wings.setOwner(target.getUniqueID(), true);
 						wings.setPosition(target.getPosX(), target.getPosY(), target.getPosZ());
 						world.summonEntity(wings);
-						cap.setWingsUniqueId(wings.getUniqueID());
-						if (!cap.isActive()) {
-							cap.setActive(true);
+						data.wingsUniqueId = wings.getUniqueID();
+						if (!data.wingsActive) {
+							data.wingsActive = true;
 						}
 						WingxPacketHandler.INSTANCE.send(
 								PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) target),
 								new ToggleWingsMessage(true));
+					}
+				});
+				return Pair.of(0, "");
+			}
+
+			@Override
+			public ITextComponent getFeedBack(PlayerEntity target) {
+				return new TranslationTextComponent("wingx.commands.setActive", target.getGameProfile().getName());
+			}
+		},
+		SET_NEEDS_END {
+
+			@Override
+			public synchronized Pair<Integer, String> execute(CommandSource source, PlayerEntity target,
+					Object... args) {
+				LazyOptional<IWingsCapability> lazyCap = target.getCapability(WingsProvider.WINGS, null);
+				if (!lazyCap.isPresent()) {
+					return Pair.of(1, target.getGameProfile().getName());
+				}
+				if (args.length < 1) {
+					return Pair.of(3, "");
+				}
+				lazyCap.ifPresent(cap -> {
+					boolean flag = (boolean) args[0];
+					BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+					if (data.needsEnd != flag) {
+						data.needsEnd = flag;
 					}
 				});
 				return Pair.of(0, "");

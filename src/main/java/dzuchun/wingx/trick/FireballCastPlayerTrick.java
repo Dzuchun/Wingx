@@ -6,6 +6,8 @@ import org.apache.logging.log4j.Logger;
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.FireballData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.entity.projectile.FireballEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
@@ -59,8 +61,9 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 					&& AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) == 0) {
 				IWingsCapability cap = getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
 				// Cap is nonnul
-				this.duration = cap.fireballCastDuration();
-				this.interruptCondition = cap.fireballInterruptCondition();
+				FireballData data = cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER);
+				this.interruptCondition = data.interruptCondition;
+				this.duration = data.castDuration;
 				this.interruptCondition.reset();
 				this.succesfull = true;
 			} else {

@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.BasicData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -49,12 +51,13 @@ public class ToggleWingsMessage {
 				ServerPlayerEntity sender = context.getSender();
 				ServerWorld world = (ServerWorld) sender.world;
 				sender.getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wingsCap) -> {
-					if (wingsCap.isActive()) {
-						UUID targetUniqueId = wingsCap.getWingsUniqueId();
+					BasicData data = wingsCap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+					if (data.wingsActive) {
+						UUID targetUniqueId = data.wingsUniqueId;
 						if (targetUniqueId == null) {
 							LOG.warn("Wings active for {}, but no UUID specified, deactivating",
 									sender.getGameProfile().getName());
-							wingsCap.setActive(false);
+							data.wingsActive = false;
 							return;
 						}
 						foundEntity = null;
@@ -72,11 +75,11 @@ public class ToggleWingsMessage {
 								world.removeEntity(wings);
 								WingxPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> sender),
 										new ToggleWingsMessage(false));
-								wingsCap.setActive(false);
+								data.wingsActive = false;
 							} else {
 								LOG.warn("Entity with UUID {} should be wings, but it is {}. Deactivating wings.",
 										targetUniqueId, foundEntity.getClass().getName());
-								wingsCap.setActive(false);
+								data.wingsActive = false;
 							}
 						}
 					} else {
@@ -84,9 +87,9 @@ public class ToggleWingsMessage {
 						wings.setOwner(sender.getUniqueID(), true);
 						wings.setPosition(sender.getPosX(), sender.getPosY(), sender.getPosZ());
 						world.summonEntity(wings);
-						wingsCap.setWingsUniqueId(wings.getUniqueID());
-						if (!wingsCap.isActive()) {
-							wingsCap.setActive(true);
+						data.wingsUniqueId = wings.getUniqueID();
+						if (!data.wingsActive) {
+							data.wingsActive = true;
 						}
 						WingxPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> sender),
 								new ToggleWingsMessage(true));

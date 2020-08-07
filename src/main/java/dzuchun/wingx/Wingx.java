@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.capability.entity.wings.CapabilityWings;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.CapabilityActiveTricks;
 import dzuchun.wingx.client.input.KeyEvents;
@@ -58,6 +59,7 @@ public class Wingx {
 		WingsProvider.init();
 		CapabilityActiveTricks.register();
 		ActiveTricksProvider.init();
+		Serializers.init();
 		LOG.debug("Registered capabilities");
 	}
 

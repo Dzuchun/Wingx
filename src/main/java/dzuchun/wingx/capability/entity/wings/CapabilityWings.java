@@ -16,20 +16,15 @@ public class CapabilityWings {
 	public static void register() {
 		CapabilityManager.INSTANCE.register(IWingsCapability.class, new Capability.IStorage<IWingsCapability>() {
 
-			private static final String IS_ACTIVE_TAG = "is_active";
-			private static final String WINGS_UUID_TAG = "wings_uuid";
-			private static final String MIN_MEDITATION_SCORE_TAG = "min_meditation_score";
-			private static final String NEEDS_END_TAG = "needs_end";
+			private static final String DATA_TAG = "wings_data";
 
 			@Override
 			public INBT writeNBT(Capability<IWingsCapability> capability, IWingsCapability instance, Direction side) {
 				CompoundNBT res = new CompoundNBT();
-				res.putBoolean(IS_ACTIVE_TAG, instance.isActive());
-				if (instance.getWingsUniqueId() != null) {
-					res.putUniqueId(WINGS_UUID_TAG, instance.getWingsUniqueId());
-				}
-				res.putDouble(MIN_MEDITATION_SCORE_TAG, instance.getMeditationScore());
-				res.putBoolean(NEEDS_END_TAG, instance.needsEndForMeditation());
+				CompoundNBT dataTag = new CompoundNBT();
+				instance.getDataManager().write(dataTag);
+				res.put(DATA_TAG, dataTag);
+				LOG.debug("writing wings capability {} as {}", instance, res.toString());
 				return res;
 			}
 
@@ -37,22 +32,10 @@ public class CapabilityWings {
 			public void readNBT(Capability<IWingsCapability> capability, IWingsCapability instance, Direction side,
 					INBT nbt) {
 				CompoundNBT cnbt = (CompoundNBT) nbt;
-				instance.setActive(cnbt.getBoolean(IS_ACTIVE_TAG));
-				if (!cnbt.hasUniqueId(WINGS_UUID_TAG) && instance.isActive()) {
-					LOG.warn("Wings are active, but no UUID specified");
-				} else {
-					if (instance.isActive()) {
-						instance.setWingsUniqueId(cnbt.getUniqueId(WINGS_UUID_TAG));
-					}
-				}
-				if (cnbt.hasUniqueId(MIN_MEDITATION_SCORE_TAG)) {
-					instance.setMeditationScore(cnbt.getDouble(MIN_MEDITATION_SCORE_TAG));
-				} else {
-					LOG.warn("No meditation score found in NBT, default {} will be used.",
-							instance.getMeditationScore());
-				}
-				if (cnbt.hasUniqueId(NEEDS_END_TAG)) {
-					instance.setNeedsEndToMeditate(cnbt.getBoolean(NEEDS_END_TAG));
+				LOG.debug("Reading wings capability {} as {}", instance, cnbt.toString());
+				if (cnbt.contains(DATA_TAG)) {
+					CompoundNBT dataTag = cnbt.getCompound(DATA_TAG);
+					instance.getDataManager().read(dataTag);
 				}
 			}
 		}, WingsCapability::new);

@@ -7,6 +7,8 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.FireballData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.trick.NoWingsException;
 import net.minecraft.entity.Entity;
@@ -40,8 +42,9 @@ public class FireballEntity extends Entity {
 		IWingsCapability cap = caster.getCapability(WingsProvider.WINGS, null)
 				.orElseThrow(() -> new NoWingsException(caster));
 		this.ownerUniqueId = caster.getUniqueID();
-		this.initialSpeed = cap.fireballInitialSpeed();
-		this.packedColor = cap.fireballColor();
+		FireballData data = cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER);
+		this.initialSpeed = data.initialSpeed;
+		this.packedColor = data.packedColor;
 		setMotion(caster.getMotion()
 				.add(Vector3d.fromPitchYaw(caster.getPitchYaw()).normalize().scale(this.initialSpeed)));
 		setPositionAndRotation(caster.getPosX(), caster.getPosY() + caster.getEyeHeight() - 0.2d, caster.getPosZ(),
@@ -72,7 +75,7 @@ public class FireballEntity extends Entity {
 		} else {
 			LOG.debug("{} tag not found for {}", OWNER_TAG, this);
 		}
-		if (compound.hasUniqueId(INITIAL_SPEED_TAG)) {
+		if (compound.contains(INITIAL_SPEED_TAG)) {
 			this.initialSpeed = compound.getDouble(INITIAL_SPEED_TAG);
 		} else {
 			LOG.debug("{} tag not found for {}", INITIAL_SPEED_TAG, this);
