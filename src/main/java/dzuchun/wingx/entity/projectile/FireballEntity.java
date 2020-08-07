@@ -11,6 +11,11 @@ import dzuchun.wingx.capability.entity.wings.storage.FireballData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.trick.NoWingsException;
+import dzuchun.wingx.util.WorldHelper;
+import net.minecraft.block.AirBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.audio.SoundList;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntitySize;
 import net.minecraft.entity.EntityType;
@@ -19,12 +24,21 @@ import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.EntityDamageSource;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.NetworkHooks;
 
-public class FireballEntity extends Entity {
+public class FireballEntity extends Entity implements IEntityAdditionalSpawnData {
 	private static final Logger LOG = LogManager.getLogger();
 	private static final EntityType<FireballEntity> TYPE = EntityTypes.fireball_entity_type.get();
 
@@ -32,6 +46,7 @@ public class FireballEntity extends Entity {
 	private double initialSpeed;
 	public boolean isDebug = true;
 	public int packedColor;
+	public float mainDamage;
 
 	/**
 	 * Used to create fireball that was casted, on server
@@ -67,6 +82,8 @@ public class FireballEntity extends Entity {
 
 	private static final String OWNER_TAG = "wingx_fireball_owner";
 	private static final String INITIAL_SPEED_TAG = "wingx_initial_speed";
+	private static final String COLOR_TAG = "wingx_color";
+	private static final String MAIN_DAMAGE_TAG = "wingx_main_damage";
 
 	@Override
 	protected void readAdditional(CompoundNBT compound) {
@@ -75,12 +92,22 @@ public class FireballEntity extends Entity {
 		} else {
 			LOG.debug("{} tag not found for {}", OWNER_TAG, this);
 		}
+		this.isDebug = this.ownerUniqueId == null;
 		if (compound.contains(INITIAL_SPEED_TAG)) {
 			this.initialSpeed = compound.getDouble(INITIAL_SPEED_TAG);
 		} else {
 			LOG.debug("{} tag not found for {}", INITIAL_SPEED_TAG, this);
 		}
-		this.isDebug = this.ownerUniqueId == null;
+		if (compound.contains(COLOR_TAG)) {
+			packedColor = compound.getInt(COLOR_TAG);
+		} else {
+			LOG.debug("{} tag not found for {}", COLOR_TAG, this);
+		}
+		if (compound.contains(MAIN_DAMAGE_TAG)) {
+			mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
+		} else {
+			LOG.debug("{} tag not found for {}", MAIN_DAMAGE_TAG, this);
+		}
 	}
 
 	@Override
@@ -89,6 +116,8 @@ public class FireballEntity extends Entity {
 			compound.putUniqueId(OWNER_TAG, this.ownerUniqueId);
 		}
 		compound.putDouble(INITIAL_SPEED_TAG, this.initialSpeed);
+		compound.putInt(COLOR_TAG, packedColor);
+		compound.putFloat(MAIN_DAMAGE_TAG, mainDamage);
 	}
 
 	@Override
@@ -99,16 +128,53 @@ public class FireballEntity extends Entity {
 	@Override
 	public void tick() {
 		super.tick();
+		collideEntities();
 		if (!this.isDebug && this.ticksExisted > 20 + 10) {
 			remove(false);
 			return;
 		}
-		if (this.ticksExisted > 10) {
-			this.setMotion(getMotion().scale(0.8));
-		}
+//		if (this.ticksExisted > 10) {
+//			this.setMotion(getMotion().scale(0.8));
+//		}
 		applyGravity();
 		turnToMovingDirection();
 		move(MoverType.SELF, getMotion());
+	}
+
+	private void collideEntities() {
+		if (world.isRemote) {
+			return;
+		}
+		world.getEntitiesInAABBexcluding(this, getBoundingBox(), entity -> true).forEach(entity -> {
+			if (!entity.getUniqueID().equals(ownerUniqueId)) {
+				applyEntityCollision(entity);
+			}
+		});
+	}
+
+	@Override
+	public void applyEntityCollision(Entity entityIn) {
+		if (isDebug) {
+			return;
+		}
+		entityIn.attackEntityFrom(getDamageSource(), this.mainDamage);
+		onInsideBlock(Blocks.STONE.getDefaultState());
+	}
+
+	@Override
+	protected void onInsideBlock(BlockState blockStateIn) {
+		if (isDebug) {
+			return;
+		}
+		if (!blockStateIn.equals(Blocks.AIR.getDefaultState())) {
+			WorldHelper.getEntitiesWithin((ServerWorld) world, getPositionVec(), 1.0d).forEach(entity -> {
+				if (ownerUniqueId != null && !entity.getUniqueID().equals(ownerUniqueId)
+						&& !getUniqueID().equals(entity.getUniqueID())) {
+					entity.attackEntityFrom(getDamageSource(), mainDamage);
+				}
+			});
+			this.remove();
+		}
 	}
 
 	public float getAlpha() {
@@ -133,7 +199,7 @@ public class FireballEntity extends Entity {
 	}
 
 	public Vector3d getGravity() {
-		return new Vector3d(0.0d, -0.02d, 0.0d);
+		return new Vector3d(0.0d, -initialSpeed / 10f, 0.0d);
 	}
 
 	@Override
@@ -159,11 +225,33 @@ public class FireballEntity extends Entity {
 
 	@Override
 	public boolean canBeCollidedWith() {
-		return this.isDebug;
+//		return this.isDebug;
+		return true;
 	}
 
 	@Override
 	protected float getEyeHeight(Pose poseIn, EntitySize sizeIn) {
 		return sizeIn.height * 0.5f;
+	}
+
+	@Override
+	public void writeSpawnData(PacketBuffer buffer) {
+		CompoundNBT res = new CompoundNBT();
+		writeAdditional(res);
+		buffer.writeCompoundTag(res);
+	}
+
+	@Override
+	public void readSpawnData(PacketBuffer additionalData) {
+		readAdditional(additionalData.readCompoundTag());
+	}
+
+	@Override
+	public boolean isSilent() {
+		return true;
+	}
+
+	public DamageSource getDamageSource() {
+		return new EntityDamageSource("fireball", this);
 	}
 }

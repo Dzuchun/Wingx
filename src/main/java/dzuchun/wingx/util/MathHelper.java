@@ -27,6 +27,6 @@ public class MathHelper {
 		int g = packedColor & 0x00FF0000 >> 16;
 		int b = packedColor & 0x0000FF00 >> 8;
 		int a = packedColor & 0x000000FF;
-		return new Vector4f(r, g, b, a);
+		return new Vector4f(r/256f, g/256f, b/256f, a/256f);
 	}
 }

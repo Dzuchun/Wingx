@@ -1,18 +1,24 @@
 package dzuchun.wingx.client.render.entity;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.entity.model.FireballModel;
 import dzuchun.wingx.entity.projectile.FireballEntity;
+import dzuchun.wingx.util.MathHelper;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.math.vector.Vector4f;
 
 public class FireballRenderer extends EntityRenderer<FireballEntity> {
+	private static final Logger LOG = LogManager.getLogger();
 
 	private static final ResourceLocation TEXTURE = new ResourceLocation(Wingx.MOD_ID,
 			"textures/entity/projectile/fireball_texture.png");
@@ -40,8 +46,11 @@ public class FireballRenderer extends EntityRenderer<FireballEntity> {
 		matrixStackIn.push();
 		this.model.setRotationAngles(entityIn, 0.0f, 0.0f, entityIn.ticksExisted + partialTicks,
 				entityIn.getYaw(partialTicks), entityIn.getPitch(partialTicks));
+		Vector4f color = MathHelper.unpackColor(entityIn.packedColor);
+		color.setW(color.getW() * entityIn.getAlpha());
+//		LOG.debug("Color = {}, packedColor = {}", color, entityIn.packedColor);
 		this.model.render(matrixStackIn, bufferIn.getBuffer(this.model.getRenderType(TEXTURE)), packedLightIn,
-				OverlayTexture.NO_OVERLAY, 1.0f, 1.0f, 1.0f, entityIn.getAlpha());
+				OverlayTexture.NO_OVERLAY, color.getX(), color.getY(), color.getZ(), color.getW());
 		matrixStackIn.pop();
 		matrixStackIn.pop();
 		super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);

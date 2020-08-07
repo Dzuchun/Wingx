@@ -17,6 +17,8 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.BasicData;
+import dzuchun.wingx.capability.entity.wings.storage.SerializedData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializer;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.capability.entity.wings.storage.WingsDataManager;
 import dzuchun.wingx.entity.misc.WingsEntity;
@@ -111,10 +113,13 @@ public class WingxComand {
 				}
 				lazyCap.ifPresent(cap -> {
 					WingsDataManager manager = cap.getDataManager();
-					manager.replace(manager.getOrAddDefault(Serializers.BASIC_SERIALIZER),
-							Serializers.BASIC_SERIALIZER.getDefault());
+					WingsDataManager.getRegisteredSerializers().forEach(serializer -> resetFor(manager, serializer));
 				});
 				return Pair.of(0, "");
+			}
+
+			private void resetFor(WingsDataManager manager, Serializer<?> serializer) {
+				manager.replace(manager.getOrAddDefault(serializer), serializer.getDefault());
 			}
 
 			@Override

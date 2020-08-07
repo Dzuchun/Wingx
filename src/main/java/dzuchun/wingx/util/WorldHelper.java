@@ -1,6 +1,8 @@
 package dzuchun.wingx.util;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -10,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
@@ -39,5 +42,17 @@ public class WorldHelper {
 		});
 //		LOG.debug("Returning {}", res == null ? "null" : res);
 		return res;
+	}
+	
+	private static List<Entity> res_1 = new ArrayList<Entity>(0);
+	public static synchronized Iterable<Entity> getEntitiesWithin(ServerWorld world, Vector3d pos, double radius){
+		res_1.clear();
+		double radiusSq = radius * radius;
+		world.getEntities().forEach(entity -> {
+			if (entity.getDistanceSq(pos) <= radiusSq) {
+				res_1.add(entity);
+			}
+		});
+		return res_1;
 	}
 }

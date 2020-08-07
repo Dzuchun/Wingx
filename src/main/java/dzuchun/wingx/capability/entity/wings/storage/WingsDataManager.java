@@ -1,5 +1,7 @@
 package dzuchun.wingx.capability.entity.wings.storage;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -20,6 +22,10 @@ public class WingsDataManager {
 
 	public static Serializer<?> register(Serializer<?> serializer) {
 		return registry.putIfAbsent(serializer.getName(), serializer);
+	}
+
+	public static Collection<Serializer<?>> getRegisteredSerializers() {
+		return new ArrayList<Serializer<?>>(registry.values());
 	}
 
 	public void read(CompoundNBT nbt) {

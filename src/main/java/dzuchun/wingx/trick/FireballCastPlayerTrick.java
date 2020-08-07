@@ -75,7 +75,7 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 				Minecraft minecraft = Minecraft.getInstance();
 				minecraft.player.sendStatusMessage(
 						this.succesfull ? new TranslationTextComponent("wingx.fireball.starting_execute")
-								: new TranslationTextComponent("wingx.fireball.failt_execute"),
+								: new TranslationTextComponent("wingx.fireball.fail_execute"),
 						true);
 			}
 		}

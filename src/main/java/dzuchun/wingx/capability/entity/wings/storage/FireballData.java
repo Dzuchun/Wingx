@@ -12,10 +12,10 @@ public class FireballData extends SerializedData {
 
 	public FireballData() {
 		this.castDuration = 10;
-		this.packedColor = 0xFFFFFFFF;
+		this.packedColor = 0x0000FFFF;
 		this.damage = 5.0f;
 		this.interruptCondition = InterruptCondition.NO_CONDITION;
-		this.initialSpeed = 1.0d;
+		this.initialSpeed = 0.7d;
 	}
 
 	@SuppressWarnings("unchecked")
