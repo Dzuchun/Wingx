@@ -9,6 +9,9 @@ public class FireballData extends SerializedData {
 	public InterruptCondition interruptCondition;
 	public float damage;
 	public double initialSpeed;
+	
+	//TODO meditation
+	public boolean isUnlocked;
 
 	public FireballData() {
 		this.castDuration = 10;
@@ -16,6 +19,7 @@ public class FireballData extends SerializedData {
 		this.damage = 5.0f;
 		this.interruptCondition = InterruptCondition.NO_CONDITION;
 		this.initialSpeed = 0.7d;
+		this.isUnlocked = false;
 	}
 
 	@SuppressWarnings("unchecked")

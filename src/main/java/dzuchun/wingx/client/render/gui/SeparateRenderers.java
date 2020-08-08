@@ -7,11 +7,13 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
 import dzuchun.wingx.trick.ITimeredTrick;
+import dzuchun.wingx.util.MathHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
@@ -24,8 +26,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 @OnlyIn(value = Dist.CLIENT)
+@SuppressWarnings("deprecation")
 public class SeparateRenderers {
-	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 	protected static final ResourceLocation COOLDOWN_BAR_HORIZONTAL_PATH = new ResourceLocation(Wingx.MOD_ID,
 			"textures/gui/ingame/cooldown_bar_horizontal.png");
@@ -178,5 +180,37 @@ public class SeparateRenderers {
 		RenderSystem.depthMask(true);
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableAlphaTest();
+	}
+
+	public static void drawLine(MatrixStack matrixStackIn, int packedColorIn, float width, double xBegin, double yBegin,
+			double xEnd, double yEnd) {
+		drawLine(matrixStackIn, packedColorIn, width, xBegin, yBegin, 0d, xEnd, yEnd, 0d);
+	}
+
+	public static void drawLine(MatrixStack matrixStackIn, int packedColorIn, float width, double xBegin, double yBegin,
+			double zBegin, double xEnd, double yEnd, double zEnd) {
+		RenderSystem.assertThread(RenderSystem::isOnRenderThread);
+		Vector4f color = MathHelper.unpackColor(packedColorIn);
+
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.color4f(0.0F, 1.0F, 0.0F, 0.75F);
+		RenderSystem.disableTexture();
+
+		Matrix4f matrix = matrixStackIn.getLast().getMatrix();
+		Tessellator tessellator = Tessellator.getInstance();
+		BufferBuilder builder = tessellator.getBuffer();
+		builder.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+		GlStateManager.lineWidth(width);
+//		LOG.debug("Rendering line from [{}, {}, {}] to [{}, {}, {}], with color {}", xBegin, yBegin, zBegin, xEnd, yEnd,
+//				zEnd, color);
+		builder.pos(matrix, (int) (xBegin), (int) (yBegin), (int) (zBegin))
+				.color(color.getX(), color.getY(), color.getZ(), color.getW()).endVertex();
+		builder.pos(matrix, (int) (xEnd), (int) (yEnd), (int) (zEnd))
+				.color(color.getX(), color.getY(), color.getZ(), color.getW()).endVertex();
+		tessellator.draw();
+
+		RenderSystem.enableTexture();
+		RenderSystem.disableBlend();
 	}
 }

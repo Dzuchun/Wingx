@@ -12,6 +12,8 @@ public class FireballDataSerializer extends Serializer<FireballData> {
 	private static final String INTERRUPT_CONDITION_TAG = "interrupt_condition";
 	private static final String DAMAGE_TAG = "damage";
 	private static final String INITIAL_SPEED_TAG = "initial_speed";
+	
+	private static final String IS_UNLOCKED_TAG = "unlocked_tag";
 
 	@Override
 	public FireballData read(CompoundNBT nbt) {
