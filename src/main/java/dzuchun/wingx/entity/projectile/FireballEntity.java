@@ -31,6 +31,7 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.NetworkHooks;
 
+//TODO fix no damage bug
 public class FireballEntity extends Entity implements IEntityAdditionalSpawnData {
 	private static final Logger LOG = LogManager.getLogger();
 	private static final EntityType<FireballEntity> TYPE = EntityTypes.fireball_entity_type.get();

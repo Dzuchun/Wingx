@@ -74,8 +74,8 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 			if (amICaster()) {
 				Minecraft minecraft = Minecraft.getInstance();
 				minecraft.player.sendStatusMessage(
-						this.succesfull ? new TranslationTextComponent("wingx.fireball.starting_execute")
-								: new TranslationTextComponent("wingx.fireball.fail_execute"),
+						this.succesfull ? new TranslationTextComponent("wingx.trick.fireball.starting_execute")
+								: new TranslationTextComponent("wingx.trick.fireball.fail_execute"),
 						true);
 			}
 		}
@@ -93,8 +93,8 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 		} else {
 			if (amICaster()) {
 				ClientPlayerEntity player = Minecraft.getInstance().player;
-				player.sendStatusMessage(this.succesfull ? new TranslationTextComponent("wingx.fireball.executed")
-						: new TranslationTextComponent("wingx.fireball.fail"), true);
+				player.sendStatusMessage(this.succesfull ? new TranslationTextComponent("wingx.trick.fireball.executed")
+						: new TranslationTextComponent("wingx.trick.fireball.fail"), true);
 				if (this.succesfull) {
 					player.resetCooldown();
 					player.swingArm(Hand.MAIN_HAND);

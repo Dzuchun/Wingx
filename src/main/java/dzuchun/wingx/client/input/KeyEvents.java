@@ -2,6 +2,7 @@ package dzuchun.wingx.client.input;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +39,7 @@ import net.minecraftforge.fml.common.Mod;
 
 @OnlyIn(value = Dist.CLIENT)
 @Mod.EventBusSubscriber(modid = Wingx.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class KeyEvents {
+public class KeyEvents { // TODO fix pressing issues
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 
@@ -72,7 +73,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.summon_wings", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -90,7 +91,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -106,7 +107,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.dash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -123,7 +124,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.smash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -157,7 +158,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.tmp", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -185,7 +186,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.punch", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -213,7 +214,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.swap", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -229,7 +230,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.casting.template", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -245,7 +246,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.fireball", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	},
@@ -265,7 +266,8 @@ enum WingxKey {
 	};
 
 	private static final Logger LOG = LogManager.getLogger();
-	private static final String SECTION_NAME = "Wingx mod";
+	private static final Supplier<String> SECTION_NAME = () -> new TranslationTextComponent("key.wingx.section_name")
+			.getString(); // TODO divide into two sections
 
 	protected KeyBinding key = null;
 

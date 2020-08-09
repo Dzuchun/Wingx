@@ -194,7 +194,8 @@ public class WingxComand {
 
 			@Override
 			public ITextComponent getFeedBack(PlayerEntity target) {
-				return new TranslationTextComponent("wingx.commands.setActive", target.getGameProfile().getName());
+				return new TranslationTextComponent("wingx.commands.set_active", target.getGameProfile().getName());
+				// TODO make fancier
 			}
 		},
 		SET_NEEDS_END {
@@ -221,7 +222,7 @@ public class WingxComand {
 
 			@Override
 			public ITextComponent getFeedBack(PlayerEntity target) {
-				return new TranslationTextComponent("wingx.commands.setActive", target.getGameProfile().getName());
+				return new TranslationTextComponent("wingx.commands.set_needs_end", target.getGameProfile().getName());
 			}
 		};
 

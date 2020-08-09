@@ -70,10 +70,10 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 			Minecraft minecraft = Minecraft.getInstance();
 			if (amICaster()) {
 				if (this.succesfull) {
-					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.punch.success")
+					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.punch.success")
 							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.YELLOW)), true);
 				} else {
-					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.punch.fail")
+					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.punch.fail")
 							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
 				}
 			}

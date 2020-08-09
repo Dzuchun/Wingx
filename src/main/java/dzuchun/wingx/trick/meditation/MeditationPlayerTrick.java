@@ -112,6 +112,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				this.succesfull = false;
 			}
 		} else {
+			Minecraft minecraft = Minecraft.getInstance();
 			if (this.succesfull) {
 				if (FadingScreenOverlay.instance != null) {
 					FadingScreenOverlay.instance.deactivate();
@@ -121,6 +122,11 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				if (!b) {
 					LOG.warn("Could not activate overlay!!");
 				}
+				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.start")
+						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
+			} else {
+				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.fail")
+						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
 			}
 		}
 		super.execute(side);
@@ -150,7 +156,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.success")
 							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
 				} else {
-					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.fail")
+					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.interrupted")
 							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
 				}
 				if (!castEndedNaturally()) {

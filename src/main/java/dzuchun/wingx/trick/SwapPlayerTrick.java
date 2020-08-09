@@ -53,9 +53,9 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 				// TODO do something with pitch
 				minecraft.player.prevRotationYaw = look.y + 180f;
 				minecraft.player.rotationYaw = look.y + 180f;
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.swap.successfull"), true);
+				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.swap.successfull"), true);
 			} else {
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.swap.fail"), true);
+				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.swap.fail"), true);
 			}
 		} else {
 			if (!hasCasterPlayer() || !hasTarget()) {
