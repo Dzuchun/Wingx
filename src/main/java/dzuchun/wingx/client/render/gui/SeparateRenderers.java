@@ -28,6 +28,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 @OnlyIn(value = Dist.CLIENT)
 @SuppressWarnings("deprecation")
 public class SeparateRenderers {
+	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 	protected static final ResourceLocation COOLDOWN_BAR_HORIZONTAL_PATH = new ResourceLocation(Wingx.MOD_ID,
 			"textures/gui/ingame/cooldown_bar_horizontal.png");
@@ -165,7 +166,10 @@ public class SeparateRenderers {
 		RenderSystem.disableDepthTest();
 		RenderSystem.depthMask(false);
 		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableAlphaTest();
+		RenderSystem.enableBlend();
+		RenderSystem.shadeModel(GL11.GL_FLAT);
+//		RenderSystem.disableAlphaTest();
+		RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
 
 		Matrix4f matrix = matrixStackIn.getLast().getMatrix();
 		Tessellator tessellator = Tessellator.getInstance();
@@ -180,6 +184,8 @@ public class SeparateRenderers {
 		RenderSystem.depthMask(true);
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableAlphaTest();
+		RenderSystem.shadeModel(GL11.GL_SMOOTH);
+		RenderSystem.disableBlend();
 	}
 
 	public static void drawLine(MatrixStack matrixStackIn, int packedColorIn, float width, double xBegin, double yBegin,

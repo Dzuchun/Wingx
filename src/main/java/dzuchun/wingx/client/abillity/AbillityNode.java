@@ -3,39 +3,35 @@ package dzuchun.wingx.client.abillity;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
-import dzuchun.wingx.util.Util;
 import net.minecraft.client.gui.AbstractGui;
 
 public abstract class AbillityNode {
+	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
-	public static final int size = 20; // TODO add config
+	public static final int SIZE = 20; // TODO add config
 	protected boolean isRoot;
 
 	public boolean isRoot() {
-		return isRoot;
+		return this.isRoot;
 	}
 
 	protected AbillityNode parent;
 
 	protected AbillityNode(int xCenterPosIn, int yCenterPosIn, AbillityNode parentIn) {
-		xCenterPos = xCenterPosIn;
-		yCenterPos = yCenterPosIn;
+		this.xCenterPos = xCenterPosIn;
+		this.yCenterPos = yCenterPosIn;
 		if (parentIn == null) {
-			isRoot = true;
+			this.isRoot = true;
 		} else {
-			isRoot = false;
+			this.isRoot = false;
 			parentIn.children.add(this);
 		}
-//		LOG.debug("Creating node {} at [{}, {}] with parent {}, siblings - {}", this, xCenterPosIn, yCenterPosIn,
-//				parentIn, parentIn == null ? "[]" : Util.iterableToString(parentIn.children));
 	}
 
 	public abstract AbillityNode getParent();
@@ -43,28 +39,32 @@ public abstract class AbillityNode {
 	protected List<AbillityNode> children = new ArrayList<AbillityNode>(0);
 
 	public List<AbillityNode> getChildren() {
-		return new ArrayList<>(children);
+		return new ArrayList<>(this.children);
 	}
 
 	protected int xCenterPos;
 
 	public int getXCenterPos() {
-		return xCenterPos;
+		return this.xCenterPos;
 	}
 
 	protected int yCenterPos;
 
 	public int getYCenterPos() {
-		return yCenterPos;
+		return this.yCenterPos;
 	}
 
 	protected boolean isUnlocked;
 
 	public void render(MatrixStack matrixStackIn) {
-		AbstractGui.fill(matrixStackIn, xCenterPos - size / 2, yCenterPos - size / 2, xCenterPos + size / 2,
-				yCenterPos + size / 2, isUnlocked ? 0xFF00FF00 : 0xFFFF0000);
+		AbstractGui.fill(matrixStackIn, this.xCenterPos - SIZE / 2, this.yCenterPos - SIZE / 2,
+				this.xCenterPos + SIZE / 2, this.yCenterPos + SIZE / 2, this.isUnlocked ? 0xFF00FF00 : 0xFFFF0000);
 	}
 
 	public abstract void setUnlocked(IWingsCapability capabilityIn);
+
+	public boolean isUnlocked() {
+		return this.isUnlocked;
+	}
 
 }

@@ -12,10 +12,8 @@ import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.trick.NoWingsException;
 import dzuchun.wingx.util.WorldHelper;
-import net.minecraft.block.AirBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.audio.SoundList;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntitySize;
 import net.minecraft.entity.EntityType;
@@ -27,12 +25,7 @@ import net.minecraft.network.IPacket;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
@@ -99,12 +92,12 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 			LOG.debug("{} tag not found for {}", INITIAL_SPEED_TAG, this);
 		}
 		if (compound.contains(COLOR_TAG)) {
-			packedColor = compound.getInt(COLOR_TAG);
+			this.packedColor = compound.getInt(COLOR_TAG);
 		} else {
 			LOG.debug("{} tag not found for {}", COLOR_TAG, this);
 		}
 		if (compound.contains(MAIN_DAMAGE_TAG)) {
-			mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
+			this.mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
 		} else {
 			LOG.debug("{} tag not found for {}", MAIN_DAMAGE_TAG, this);
 		}
@@ -116,8 +109,8 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 			compound.putUniqueId(OWNER_TAG, this.ownerUniqueId);
 		}
 		compound.putDouble(INITIAL_SPEED_TAG, this.initialSpeed);
-		compound.putInt(COLOR_TAG, packedColor);
-		compound.putFloat(MAIN_DAMAGE_TAG, mainDamage);
+		compound.putInt(COLOR_TAG, this.packedColor);
+		compound.putFloat(MAIN_DAMAGE_TAG, this.mainDamage);
 	}
 
 	@Override
@@ -142,11 +135,11 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	}
 
 	private void collideEntities() {
-		if (world.isRemote) {
+		if (this.world.isRemote) {
 			return;
 		}
-		world.getEntitiesInAABBexcluding(this, getBoundingBox(), entity -> true).forEach(entity -> {
-			if (!entity.getUniqueID().equals(ownerUniqueId)) {
+		this.world.getEntitiesInAABBexcluding(this, getBoundingBox(), entity -> true).forEach(entity -> {
+			if (!entity.getUniqueID().equals(this.ownerUniqueId)) {
 				applyEntityCollision(entity);
 			}
 		});
@@ -154,7 +147,7 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 
 	@Override
 	public void applyEntityCollision(Entity entityIn) {
-		if (isDebug) {
+		if (this.isDebug) {
 			return;
 		}
 		entityIn.attackEntityFrom(getDamageSource(), this.mainDamage);
@@ -163,14 +156,14 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 
 	@Override
 	protected void onInsideBlock(BlockState blockStateIn) {
-		if (isDebug) {
+		if (this.isDebug) {
 			return;
 		}
 		if (!blockStateIn.equals(Blocks.AIR.getDefaultState())) {
-			WorldHelper.getEntitiesWithin((ServerWorld) world, getPositionVec(), 1.0d).forEach(entity -> {
-				if (ownerUniqueId != null && !entity.getUniqueID().equals(ownerUniqueId)
+			WorldHelper.getEntitiesWithin((ServerWorld) this.world, getPositionVec(), 1.0d).forEach(entity -> {
+				if (this.ownerUniqueId != null && !entity.getUniqueID().equals(this.ownerUniqueId)
 						&& !getUniqueID().equals(entity.getUniqueID())) {
-					entity.attackEntityFrom(getDamageSource(), mainDamage);
+					entity.attackEntityFrom(getDamageSource(), this.mainDamage);
 				}
 			});
 			this.remove();
@@ -199,7 +192,7 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	}
 
 	public Vector3d getGravity() {
-		return new Vector3d(0.0d, -initialSpeed / 10f, 0.0d);
+		return new Vector3d(0.0d, -this.initialSpeed / 10f, 0.0d);
 	}
 
 	@Override

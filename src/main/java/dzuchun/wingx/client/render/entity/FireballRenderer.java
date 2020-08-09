@@ -18,6 +18,7 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.math.vector.Vector4f;
 
 public class FireballRenderer extends EntityRenderer<FireballEntity> {
+	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 
 	private static final ResourceLocation TEXTURE = new ResourceLocation(Wingx.MOD_ID,

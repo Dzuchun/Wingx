@@ -12,7 +12,7 @@ import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.client.abillity.AbillityNode;
 import dzuchun.wingx.client.abillity.AbillityNodes;
-import dzuchun.wingx.client.abillity.InternalAbillityNode;
+import dzuchun.wingx.client.abillity.ExternalAbillityNode;
 import dzuchun.wingx.client.render.gui.SeparateRenderers;
 import dzuchun.wingx.client.render.overlay.FadingScreenOverlay;
 import dzuchun.wingx.util.Util;
@@ -40,6 +40,7 @@ public class MeditationScreen extends Screen {
 	private static final Vector4f BACKGROUND_COLOR = new Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
 	private static final int LINES_PACKED_COLOR = 0xFFFF00FF; // TODO parametrize
 	private static final float LINES_WIDTH = 1.5f; // TODO parametrize
+	private static final int SELECTION_WIDTH = 2; // TODO parametrize
 
 	private IWingsCapability capability;
 
@@ -56,20 +57,44 @@ public class MeditationScreen extends Screen {
 				(int) (this.width * 0.25d), (int) (this.height * 0.05d),
 				new TranslationTextComponent("wingx.gui.gointo"), (Button button) -> {
 					// TODO go into :)
+					if (!this.isInsideNode && this.selectedNode != null && this.selectedNode.isUnlocked()
+							&& ((ExternalAbillityNode) this.selectedNode).getInternal() != null) {
+						// Getting in
+						LOG.debug("Getting in");
+						this.isInsideNode = true;
+						this.inside = (ExternalAbillityNode) this.selectedNode;
+						this.currentRoot = this.inside.getInternal();
+						this.selectedNode = this.currentRoot;
+						button.setMessage(new TranslationTextComponent("wingx.gui.goout")); // TODO parametrize
+					} else if (this.isInsideNode) {
+						// Going out
+						LOG.debug("Getting out");
+						this.isInsideNode = false;
+						this.selectedNode = this.inside;
+						this.currentRoot = AbillityNodes.WINGX;
+						button.setMessage(new TranslationTextComponent("wingx.gui.gointo")); // TODO parametrize
+					}
+					if (this.selectedNode != null) {
+						this.xCenter = -this.selectedNode.getXCenterPos();
+						this.yCenter = -this.selectedNode.getYCenterPos();
+					} else {
+						this.xCenter = 0;
+						this.yCenter = 0;
+					}
 					updateRenderedNodes();
 				}));
-		currentRoot = AbillityNodes.WINGX;
-		inside = null;
-		isInsideNode = false;
+		this.currentRoot = AbillityNodes.WINGX;
+		this.inside = null;
+		this.isInsideNode = false;
 		updateRenderedNodes();
 		updateUnlocked();
-		xCenter = 0;
-		yCenter = 0;
+		this.xCenter = 0;
+		this.yCenter = 0;
 	}
 
 	private void updateUnlocked() {
-		for (AbillityNode node : renderedNodes) {
-			node.setUnlocked(capability);
+		for (AbillityNode node : this.renderedNodes) {
+			node.setUnlocked(this.capability);
 		}
 	}
 
@@ -77,7 +102,7 @@ public class MeditationScreen extends Screen {
 	public void render(MatrixStack matrixStackIn, int p_230430_2_, int p_230430_3_, float p_230430_4_) {
 		this.renderBackground(matrixStackIn, 0);
 		renderNodes(matrixStackIn);
-//		renderHud(matrixStackIn);
+		renderHud(matrixStackIn);
 		String nodeName = I18n.format("wingx.gui.node.name");
 		StringTextComponent nodeNameComponent = new StringTextComponent(nodeName);
 		nodeNameComponent
@@ -110,8 +135,8 @@ public class MeditationScreen extends Screen {
 	public boolean mouseDragged(double xPos, double yPos, int buttonIn, double xMove, double yMove) {
 //		LOG.debug("Dragged mouse at [{}, {}] for [{}, {}]. Button - {}", xPos, yPos, xMove, yMove, buttonIn);
 		if (canBeClicked(xPos, yPos)) {
-			xCenter += xMove;
-			yCenter += yMove;
+			this.xCenter += xMove;
+			this.yCenter += yMove;
 		}
 		return super.mouseDragged(xPos, yPos, buttonIn, xMove, yMove);
 	}
@@ -121,48 +146,65 @@ public class MeditationScreen extends Screen {
 
 	@Override
 	public boolean mouseClicked(double xPos, double yPos, int buttonIn) {
-		if (super.mouseClicked(xPos, yPos, buttonIn) && buttonIn != 0) {
-			return true;
+		if (buttonIn == 0) {
+			if (canBeClicked(xPos, yPos)) {
+				boolean flag = selectNode(xPos, yPos);
+				if (flag) {
+					// TODO update description
+				}
+			} else {
+				// TODO click
+			}
 		}
-		if (canBeClicked(xPos, yPos)) {
-			// TODO ?
-			return true;
-		} else {
-			// TODO click
-			return false;
-		}
+		return super.mouseClicked(xPos, yPos, buttonIn);
 	}
 
 	private boolean canBeClicked(double xPos, double yPos) {
-		double xReal = xPos / width;
-		double yReal = yPos / height;
+		double xReal = xPos / this.width;
+		@SuppressWarnings("unused")
+		double yReal = yPos / this.height;
 		if (xReal < 0.1d || xReal > 0.75d) {
 			return false;
 		}
 		return true;
 	}
 
+	private boolean selectNode(double xPos, double yPos) {
+		double xCoord = xPos - this.xCenter - this.width / 2;
+		double yCoord = yPos - this.yCenter - this.height / 2;
+		LOG.debug("Trying to select node at [{}, {}]", xCoord, yCoord);
+		for (AbillityNode node : this.renderedNodes) {
+			if (Math.abs(xCoord - node.getXCenterPos()) <= AbillityNode.SIZE / 2
+					&& Math.abs(yCoord - node.getYCenterPos()) <= AbillityNode.SIZE / 2) {
+				this.selectedNode = node;
+				LOG.debug("Selecting node {}", node);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@SuppressWarnings("unused")
 	private Button goIntoButton;
 
 	private boolean isInsideNode = false;
-	private InternalAbillityNode inside = null;
+	private ExternalAbillityNode inside = null;
 
 	private void updateRenderedNodes() {
-		renderedNodes.clear();
-		if (currentRoot == null) {
+		this.renderedNodes.clear();
+		if (this.currentRoot == null) {
 			return;
 		}
 		ArrayList<AbillityNode> nodesToCheck = new ArrayList<AbillityNode>();
-		nodesToCheck.add(currentRoot);
+		nodesToCheck.add(this.currentRoot);
 		while (!nodesToCheck.isEmpty()) {
 			for (AbillityNode node : new ArrayList<AbillityNode>(nodesToCheck)) {
 				nodesToCheck.addAll(node.getChildren());
 				nodesToCheck.remove(node);
-				renderedNodes.add(node);
+				this.renderedNodes.add(node);
 			}
 		}
-		LOG.debug("Updated rendered nodes to {}", Util.iterableToString(renderedNodes));
+		LOG.debug("Updated rendered nodes to {}", Util.iterableToString(this.renderedNodes));
 	}
 
 	@Override
@@ -181,17 +223,34 @@ public class MeditationScreen extends Screen {
 	private void renderNodes(MatrixStack matrixStackIn) {
 		// TODO optimize! (render only visible)
 		matrixStackIn.push();
-		matrixStackIn.translate(xCenter + this.width / 2, yCenter + this.height / 2, 0);
+		matrixStackIn.translate(this.xCenter + this.width / 2, this.yCenter + this.height / 2, 0);
 		// Rendering lines
-		for (AbillityNode node : renderedNodes) {
+		for (AbillityNode node : this.renderedNodes) {
 			for (AbillityNode child : node.getChildren()) {
 				SeparateRenderers.drawLine(matrixStackIn, LINES_PACKED_COLOR, LINES_WIDTH, node.getXCenterPos(),
 						node.getYCenterPos(), child.getXCenterPos(), child.getYCenterPos());
 			}
 		}
 		// Rendering nodes
-		for (AbillityNode node : renderedNodes) {
+		for (AbillityNode node : this.renderedNodes) {
 			node.render(matrixStackIn);
+		}
+		if (this.selectedNode != null) {
+			int x = this.selectedNode.getXCenterPos() - AbillityNode.SIZE / 2 - SELECTION_WIDTH;
+			int y = this.selectedNode.getYCenterPos() - AbillityNode.SIZE / 2 - SELECTION_WIDTH;
+			int size = AbillityNode.SIZE + SELECTION_WIDTH * 2 - 1;
+			int length = 5; // TODO parametrize
+			int color = 0xFF00FF00; // TODO parametrize
+
+			hLine(matrixStackIn, x, x + length, y, color);
+			hLine(matrixStackIn, x, x + length, y + size, color);
+			hLine(matrixStackIn, x + size - length, x + size, y, color);
+			hLine(matrixStackIn, x + size - length, x + size, y + size, color);
+
+			vLine(matrixStackIn, x, y, y + length, color);
+			vLine(matrixStackIn, x, y + size - length, y + size, color);
+			vLine(matrixStackIn, x + size, y, y + length, color);
+			vLine(matrixStackIn, x + size, y + size - length, y + size, color);
 		}
 		matrixStackIn.pop();
 	}

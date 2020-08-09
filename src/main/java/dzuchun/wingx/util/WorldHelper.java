@@ -43,9 +43,10 @@ public class WorldHelper {
 //		LOG.debug("Returning {}", res == null ? "null" : res);
 		return res;
 	}
-	
+
 	private static List<Entity> res_1 = new ArrayList<Entity>(0);
-	public static synchronized Iterable<Entity> getEntitiesWithin(ServerWorld world, Vector3d pos, double radius){
+
+	public static synchronized Iterable<Entity> getEntitiesWithin(ServerWorld world, Vector3d pos, double radius) {
 		res_1.clear();
 		double radiusSq = radius * radius;
 		world.getEntities().forEach(entity -> {

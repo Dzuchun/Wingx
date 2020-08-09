@@ -16,14 +16,15 @@ public abstract class ExternalAbillityNode extends AbillityNode {
 	public ExternalAbillityNode(int xCenterPos, int yCenterPos, @Nullable InternalAbillityNode internalIn,
 			@Nullable ExternalAbillityNode parent) {
 		super(xCenterPos, yCenterPos, parent);
+		this.internal = internalIn;
 	}
 
 	public InternalAbillityNode getInternal() {
-		return internal;
+		return this.internal;
 	}
 
 	@Override
 	public ExternalAbillityNode getParent() {
-		return (ExternalAbillityNode) parent;
+		return (ExternalAbillityNode) this.parent;
 	}
 }

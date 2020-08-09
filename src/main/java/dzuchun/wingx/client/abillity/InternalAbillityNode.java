@@ -14,7 +14,7 @@ public abstract class InternalAbillityNode extends AbillityNode {
 
 	@Override
 	public InternalAbillityNode getParent() {
-		return (InternalAbillityNode) parent;
+		return (InternalAbillityNode) this.parent;
 	}
 
 }

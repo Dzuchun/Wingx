@@ -9,8 +9,8 @@ public class FireballData extends SerializedData {
 	public InterruptCondition interruptCondition;
 	public float damage;
 	public double initialSpeed;
-	
-	//TODO meditation
+
+	// TODO meditation
 	public boolean isUnlocked;
 
 	public FireballData() {

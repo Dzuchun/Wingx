@@ -17,7 +17,6 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.BasicData;
-import dzuchun.wingx.capability.entity.wings.storage.SerializedData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializer;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.capability.entity.wings.storage.WingsDataManager;
