@@ -7,7 +7,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 
 public class BasicDataSerializer extends Serializer<BasicData> {
-	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 	private static final String NAME = "basic";
 
@@ -25,6 +24,8 @@ public class BasicDataSerializer extends Serializer<BasicData> {
 		}
 		res.requiredMeditationScore = nbt.getDouble(MIN_MEDITATION_SCORE_TAG);
 		res.needsEnd = nbt.getBoolean(NEEDS_END_TAG);
+		LOG.debug("Readed {} data: active {}, wings uuid {}, min meditation score {}, needs end {}", getName(),
+				res.wingsActive, res.wingsUniqueId, res.requiredMeditationScore, res.needsEnd);
 		return res;
 	}
 

@@ -24,6 +24,7 @@ public class WingxPacketHandler {
 	public static final int TRICK_PERFORMED_INDEX = 359;
 	public static final int TRICK_FINISHED_INDEX = 361;
 	public static final int MEDITATION_GUI_INDEX = 363;
+	public static final int ANIMATION_STATE_INDEX = 365;
 
 	public static void init() {
 
@@ -46,6 +47,11 @@ public class WingxPacketHandler {
 		// Registering trick finished message
 		INSTANCE.registerMessage(MEDITATION_GUI_INDEX, MeditationGuiMessage.class, MeditationGuiMessage::encode,
 				MeditationGuiMessage::decode, MeditationGuiMessage::handle,
+				Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+		// Registering animation state message
+		INSTANCE.registerMessage(ANIMATION_STATE_INDEX, AnimationStateMessage.class, AnimationStateMessage::encode,
+				AnimationStateMessage::decode, AnimationStateMessage::handle,
 				Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 	}
 }

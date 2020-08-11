@@ -10,6 +10,8 @@ public class Serializers {
 	public static final List<Serializer<?>> DEFAULT_SERIALIZERS = Arrays.asList(FIREBALL_SERIALIZER, BASIC_SERIALIZER);
 
 	public static void init() {
-		DEFAULT_SERIALIZERS.forEach(serializer -> WingsDataManager.register(serializer));
+		for (Serializer<?> serializer : DEFAULT_SERIALIZERS) {
+			WingsDataManager.register(serializer);
+		}
 	}
 }

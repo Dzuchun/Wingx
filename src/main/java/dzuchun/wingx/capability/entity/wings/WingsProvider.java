@@ -55,7 +55,7 @@ public class WingsProvider implements ICapabilitySerializable<INBT> {
 
 	@SubscribeEvent
 	public static void attachCapability(final AttachCapabilitiesEvent<Entity> event) {
-		if (event.getObject() instanceof PlayerEntity) {
+		if (event.getObject() instanceof PlayerEntity && !event.getObject().getCapability(WINGS, null).isPresent()) {
 			event.addCapability(LOCATION, new WingsProvider());
 		}
 	}

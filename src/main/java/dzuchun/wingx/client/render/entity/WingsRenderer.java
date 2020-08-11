@@ -6,9 +6,11 @@ import org.apache.logging.log4j.Logger;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 
+import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.entity.model.WingsModel;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.culling.ClippingHelper;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -23,7 +25,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class WingsRenderer extends EntityRenderer<WingsEntity> {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
-	private static final ResourceLocation PIG_TEXTURES = new ResourceLocation("textures/entity/pig/pig.png");
+	private static final ResourceLocation TEXTURE = new ResourceLocation(Wingx.MOD_ID,
+			"textures/entity/misc/wings_texture.png");
 	protected final WingsModel<WingsEntity> model = new WingsModel<WingsEntity>();
 
 	public WingsRenderer(EntityRendererManager renderManagerIn) {
@@ -32,7 +35,7 @@ public class WingsRenderer extends EntityRenderer<WingsEntity> {
 
 	@Override
 	public ResourceLocation getEntityTexture(WingsEntity entity) {
-		return PIG_TEXTURES;
+		return TEXTURE;
 	}
 
 	@Override
@@ -52,5 +55,11 @@ public class WingsRenderer extends EntityRenderer<WingsEntity> {
 				1.0F);
 		matrixStackIn.pop();
 		super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
+	}
+
+	@Override
+	public boolean shouldRender(WingsEntity livingEntityIn, ClippingHelper camera, double camX, double camY,
+			double camZ) {
+		return true;
 	}
 }

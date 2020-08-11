@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dzuchun.wingx.util.Util;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
@@ -20,8 +21,9 @@ public class WingsDataManager {
 	private final Object DATA_LOCK = new Object();
 	private final Set<SerializedData> data = new ConcurrentSet<SerializedData>();
 
-	public static Serializer<?> register(Serializer<?> serializer) {
-		return registry.putIfAbsent(serializer.getName(), serializer);
+	@SuppressWarnings("unchecked")
+	public static <T extends SerializedData> Serializer<T> register(Serializer<T> serializer) {
+		return (Serializer<T>) registry.putIfAbsent(serializer.getName(), serializer);
 	}
 
 	public static Collection<Serializer<?>> getRegisteredSerializers() {
@@ -96,6 +98,7 @@ public class WingsDataManager {
 
 	@SuppressWarnings("unchecked")
 	public synchronized <T extends SerializedData> T getOrAddDefault(Serializer<T> serializer) {
+//		LOG.debug("Current data {}", Util.iterableToString(data));
 		this.res = null;
 		synchronized (this.DATA_LOCK) {
 			this.data.forEach(dataInstance -> {

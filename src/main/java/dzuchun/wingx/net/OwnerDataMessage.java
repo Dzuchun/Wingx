@@ -102,7 +102,7 @@ public class OwnerDataMessage {
 				WingsEntity wings = (WingsEntity) entity;
 				if (msg.hasOwner) {
 					// TODO OPTIMIZE!!
-					LOG.info("Setting position at client");
+//					LOG.info("Setting position at client");
 					wings.realSetPosAndUpdateNoTime(msg.x, msg.y, msg.z, msg.yaw);
 					wings.setOwner(msg.ownerUniqueId, true);
 					wings.getOwner().getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wingsCap) -> {

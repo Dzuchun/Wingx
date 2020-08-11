@@ -1,10 +1,14 @@
 package dzuchun.wingx.entity.misc;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dzuchun.wingx.client.render.entity.model.util.AnimationState;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.net.OwnerDataMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
@@ -25,12 +29,15 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	private static final Logger LOG = LogManager.getLogger();
 	private PlayerEntity owner;
 	private UUID ownerUniqueId;
+	public List<AnimationState> upcomingStates;
+	public final Object upcomingStates_lock = new Object();
 
 	public WingsEntity(World worldIn) {
 		super(TYPE, worldIn);
 		LOG.info("Creating wings");
 		setInvulnerable(true);
 		setNoGravity(true);
+		upcomingStates = Arrays.asList(null, null, null);
 	}
 
 	public boolean setOwner(UUID newOwnerUUID, boolean force) {
@@ -171,7 +178,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	private float noTimeYaw;
 
 	public void realSetPosAndUpdateNoTime(double x, double y, double z, float yaw) {
-		LOG.debug("realSettingPosAndUpdating for args: x={}, y={}, z={}, yaw={}", x, y, z, yaw);
+//		LOG.debug("realSettingPosAndUpdating for args: x={}, y={}, z={}, yaw={}", x, y, z, yaw);
 		this.noTimeX = x;
 		this.noTimeY = y;
 		this.noTimeZ = z;
