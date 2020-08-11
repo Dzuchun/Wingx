@@ -43,10 +43,10 @@ public class FadeFunction {
 	 * @return [0.0, 1.0] number representing stage of animation
 	 */
 	public final float get(float d, AnimationParameter p) {
-		return MathHelper.clamp(innerGet.apply(MathHelper.clamp(d, 0.0f, 1.0f), p), 0.0f, 1.0f);
+		return MathHelper.clamp(this.innerGet.apply(MathHelper.clamp(d, 0.0f, 1.0f), p), 0.0f, 1.0f);
 	}
 
 	public ResourceLocation getName() {
-		return name;
+		return this.name;
 	}
 }

@@ -27,8 +27,8 @@ public class AnimationStateMessage {
 	public UUID ownerUniqueId;
 
 	public AnimationStateMessage(List<AnimationState> statesIn, UUID ownerUniqueIdIn) {
-		states = statesIn;
-		ownerUniqueId = ownerUniqueIdIn;
+		this.states = statesIn;
+		this.ownerUniqueId = ownerUniqueIdIn;
 	}
 
 	public static AnimationStateMessage decode(PacketBuffer buf) {
@@ -37,13 +37,13 @@ public class AnimationStateMessage {
 	}
 
 	public void encode(PacketBuffer buf) {
-		NetworkHelper.writeArray(buf, states, NetworkHelper::writeAnimationState);
-		buf.writeUniqueId(ownerUniqueId);
+		NetworkHelper.writeArray(buf, this.states, NetworkHelper::writeAnimationState);
+		buf.writeUniqueId(this.ownerUniqueId);
 	}
 
 	@Override
 	public String toString() {
-		return String.format("AnimationStateMessage[states: %s, ownweUniqueId: %s]", states, ownerUniqueId);
+		return String.format("AnimationStateMessage[states: %s, ownweUniqueId: %s]", this.states, this.ownerUniqueId);
 	}
 
 	public static void handle(AnimationStateMessage msg, Supplier<NetworkEvent.Context> ctx) {

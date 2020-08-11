@@ -1,6 +1,5 @@
 package dzuchun.wingx.entity.misc;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -37,7 +36,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 		LOG.info("Creating wings");
 		setInvulnerable(true);
 		setNoGravity(true);
-		upcomingStates = Arrays.asList(null, null, null);
+		this.upcomingStates = Arrays.asList(null, null, null);
 	}
 
 	public boolean setOwner(UUID newOwnerUUID, boolean force) {

@@ -8,7 +8,6 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.util.Util;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;

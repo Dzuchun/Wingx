@@ -36,6 +36,6 @@ public class AnimationState implements Comparable<AnimationState> {
 
 	@Override
 	public int compareTo(AnimationState o) {
-		return (int) (time - o.time);
+		return (int) (this.time - o.time);
 	}
 }

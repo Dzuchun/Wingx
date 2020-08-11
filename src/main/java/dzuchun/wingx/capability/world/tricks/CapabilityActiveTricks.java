@@ -79,7 +79,7 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 													((IPersistableTrick) trick.newEmpty())
 															.readFromNBT(tmp.get(TRICK_TAG));
 													active_tricks.add((IInterruptableTrick) trick);
-												} else { //TODO despagetify
+												} else { // TODO despagetify
 													LOG.info(
 															"Found not interruptable trick in NBT. Looks like developer's stupidity (trick will not persist)");
 												}

@@ -10,7 +10,6 @@ import dzuchun.wingx.client.render.entity.model.util.AnimationState;
 import dzuchun.wingx.client.render.entity.model.util.Animator;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.entity.Entity;
@@ -26,54 +25,55 @@ public class WingsModel<T extends Entity> extends EntityModel<WingsEntity> {
 	public WingsModel() {
 		super();
 
-		base = new ModelRenderer(this);
-		base.setRotationPoint(0.0F, 2.0F, 0.0F);
+		this.base = new ModelRenderer(this);
+		this.base.setRotationPoint(0.0F, 2.0F, 0.0F);
 
-		left = new ModelRenderer(this);
-		left.setRotationPoint(0.0F, 0.0F, 0.0F);
-		base.addChild(left);
-		left.setTextureOffset(0, 0).addBox(-12.0F, 0.0F, 0.0F, 12.0F, 22.0F, 1.0F, 0.0F, false);
+		this.left = new ModelRenderer(this);
+		this.left.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.base.addChild(this.left);
+		this.left.setTextureOffset(0, 0).addBox(-12.0F, 0.0F, 0.0F, 12.0F, 22.0F, 1.0F, 0.0F, false);
 
-		right = new ModelRenderer(this);
-		right.setRotationPoint(0.0F, 0.0F, 0.0F);
-		base.addChild(right);
-		right.setTextureOffset(0, 0).addBox(0.F, 0.0F, 0.0F, 12.0F, 22.0F, 1.0F, 0.0F, false);
-		right.mirror = true;
+		this.right = new ModelRenderer(this);
+		this.right.setRotationPoint(0.0F, 0.0F, 0.0F);
+		this.base.addChild(this.right);
+		this.right.setTextureOffset(0, 0).addBox(0.F, 0.0F, 0.0F, 12.0F, 22.0F, 1.0F, 0.0F, false);
+		this.right.mirror = true;
 	}
 
 	@Override
 	public void render(MatrixStack matrixStackIn, IVertexBuilder bufferIn, int packedLightIn, int packedOverlayIn,
 			float red, float green, float blue, float alpha) {
-		base.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
+		this.base.render(matrixStackIn, bufferIn, packedLightIn, packedOverlayIn, red, green, blue, alpha);
 	}
 
 	@Override
 	public void setRotationAngles(WingsEntity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks,
 			float netHeadYaw, float headPitch) {
+		@SuppressWarnings("unused")
 		Minecraft minecraft = Minecraft.getInstance();
-		if (baseAni == null) {
+		if (this.baseAni == null) {
 			@SuppressWarnings("resource")
 			Supplier<Long> currentTimeSupplier = Minecraft.getInstance().world::getGameTime;
 
-			baseAni = new Animator(base, currentTimeSupplier);
-			leftAni = new Animator(left, currentTimeSupplier);
-			rightAni = new Animator(right, currentTimeSupplier);
+			this.baseAni = new Animator(this.base, currentTimeSupplier);
+			this.leftAni = new Animator(this.left, currentTimeSupplier);
+			this.rightAni = new Animator(this.right, currentTimeSupplier);
 		}
 		synchronized (entityIn.upcomingStates_lock) {
 			List<AnimationState> states = entityIn.upcomingStates;
 			if (states != null) {
-				if (addStateIfPresent(baseAni, states.get(0))) {
+				if (addStateIfPresent(this.baseAni, states.get(0))) {
 					states.set(0, null);
 				}
-				baseAni.animate();
-				if (addStateIfPresent(leftAni, states.get(1))) {
+				this.baseAni.animate();
+				if (addStateIfPresent(this.leftAni, states.get(1))) {
 					states.set(1, null);
 				}
-				leftAni.animate();
-				if (addStateIfPresent(rightAni, states.get(2))) {
+				this.leftAni.animate();
+				if (addStateIfPresent(this.rightAni, states.get(2))) {
 					states.set(2, null);
 				}
-				rightAni.animate();
+				this.rightAni.animate();
 			}
 		}
 	}

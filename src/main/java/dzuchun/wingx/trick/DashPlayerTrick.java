@@ -77,7 +77,7 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.AQUA)), true);
 			} else {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.dash.fail")
-						//TODO add reason
+						// TODO add reason
 						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
 				// TODO specify reason
 			}
