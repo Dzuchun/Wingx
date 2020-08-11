@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import javax.annotation.Nullable;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -78,18 +80,20 @@ public class NetworkHelper {
 		buf.writeLong(state.time);
 		writeString(buf, state.fadeFunction.getName().toString());
 		buf.writeBoolean(state.interrupts);
-		buf.writeFloat(state.x);
-		buf.writeFloat(state.y);
-		buf.writeFloat(state.z);
-		buf.writeFloat(state.xRot);
-		buf.writeFloat(state.yRot);
-		buf.writeFloat(state.zRot);
+		writeChecked(buf, state.x, (buffer, f) -> buffer.writeFloat(f));
+		writeChecked(buf, state.y, (buffer, f) -> buffer.writeFloat(f));
+		writeChecked(buf, state.z, (buffer, f) -> buffer.writeFloat(f));
+		writeChecked(buf, state.xRot, (buffer, f) -> buffer.writeFloat(f));
+		writeChecked(buf, state.yRot, (buffer, f) -> buffer.writeFloat(f));
+		writeChecked(buf, state.zRot, (buffer, f) -> buffer.writeFloat(f));
 	}
 
 	public static AnimationState readAnimationState(PacketBuffer buf) {
 		return new AnimationState(buf.readLong(), FadeFunction.getByName(new ResourceLocation(readString(buf))),
-				buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
-				buf.readFloat());
+				buf.readBoolean(), readChecked(buf, buffer -> buffer.readFloat()),
+				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()),
+				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()),
+				readChecked(buf, buffer -> buffer.readFloat()));
 	}
 
 	public static <T> void writeArray(PacketBuffer buf, List<T> arrayIn, BiConsumer<PacketBuffer, T> writingFunction) {
@@ -107,5 +111,18 @@ public class NetworkHelper {
 			res.add(readFunction.apply(buf));
 		}
 		return res;
+	}
+
+	public static <T> void writeChecked(PacketBuffer buf, @Nullable T objectIn, BiConsumer<PacketBuffer, T> writer) {
+		if (objectIn == null) {
+			buf.writeBoolean(false);
+		} else {
+			buf.writeBoolean(true);
+			writer.accept(buf, objectIn);
+		}
+	}
+
+	public static <T> T readChecked(PacketBuffer buf, Function<PacketBuffer, T> reader) {
+		return buf.readBoolean() ? reader.apply(buf) : null;
 	}
 }

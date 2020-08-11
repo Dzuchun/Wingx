@@ -1,21 +1,27 @@
 package dzuchun.wingx.client.render.entity.model.util;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
+
+import javax.annotation.Nonnull;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.SortedArraySet;
 import net.minecraft.util.math.MathHelper;
 
 public class Animator {
+	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
-	private final SortedArraySet<AnimationState> states = SortedArraySet.newSet(0);
+	private final List<AnimationFlow> flows = Arrays.asList(new AnimationFlow(), new AnimationFlow(),
+			new AnimationFlow(), new AnimationFlow(), new AnimationFlow(), new AnimationFlow());
 	private final Object states_lock = new Object();
 	private ModelRenderer renderer;
 	private Supplier<Long> currentTimeSupplier;
-	private AnimationState lastState;
 
 	public Animator(ModelRenderer rendererIn, Supplier<Long> currentTimeSupplierIn) {
 		this.renderer = rendererIn;
@@ -24,55 +30,42 @@ public class Animator {
 
 	public void animate() {
 		synchronized (this.states_lock) {
-//			LOG.debug("Animating... current states: {}", Util.iterableToString(states));
 			long currentTime = this.currentTimeSupplier.get();
-			int executingTo = 0;
-			for (AnimationState state : this.states) {
-				if (state.time > currentTime) {
-					break;
+			for (int i = 0; i < 6; i++) {
+				AnimationFlow flow = this.flows.get(i);
+				int executingTo = 0;
+				for (AnimationValue value : flow.upcomingValues) {
+					if (value.time > currentTime) {
+						break;
+					}
+					executingTo++;
 				}
-				executingTo++;
+				for (int j = 0; j < executingTo; j++) {
+					AnimationValue value = flow.upcomingValues.getSmallest();
+					flow.upcomingValues.remove(value);
+					flow.lastValue = value;
+				}
+
+				if (!flow.upcomingValues.isEmpty()) {
+
+					if (flow.lastValue == null) {
+						flow.lastValue = getCurrentValue(i);
+					}
+
+					float stage = getTimeStage(i);
+					AnimationValue value = flow.upcomingValues.getSmallest();
+					rendererValueSetter(i).accept(MathHelper.lerp(stage, flow.lastValue.value, value.value));
+				}
 			}
-			for (int i = 0; i < executingTo; i++) {
-				AnimationState state = this.states.getSmallest();
-				this.states.remove(state);
-				LOG.debug("Removing {}", state);
-				this.lastState = state;
-			}
-			if (this.states.isEmpty()) {
-				return;
-			}
-			if (this.lastState == null) {
-				this.lastState = getCurrentState();
-			}
-//			LOG.debug("Current states: {}", Util.iterableToString(states));
-			AnimationState executingToState = this.states.getSmallest();
-			float stage = getTimeStage(currentTime);
-			this.renderer.rotationPointX = MathHelper.lerp(
-					executingToState.fadeFunction.get(stage, AnimationParameter.X_POS), this.lastState.x,
-					executingToState.x);
-			this.renderer.rotationPointY = MathHelper.lerp(
-					executingToState.fadeFunction.get(stage, AnimationParameter.Y_POS), this.lastState.y,
-					executingToState.y);
-			this.renderer.rotationPointZ = MathHelper.lerp(
-					executingToState.fadeFunction.get(stage, AnimationParameter.Z_POS), this.lastState.z,
-					executingToState.z);
-			this.renderer.rotateAngleX = MathHelper.lerp(
-					executingToState.fadeFunction.get(stage, AnimationParameter.X_ROT), this.lastState.xRot,
-					executingToState.xRot);
-			this.renderer.rotateAngleY = MathHelper.lerp(
-					executingToState.fadeFunction.get(stage, AnimationParameter.Y_ROT), this.lastState.yRot,
-					executingToState.yRot);
-			this.renderer.rotateAngleZ = MathHelper.lerp(
-					executingToState.fadeFunction.get(stage, AnimationParameter.Z_ROT), this.lastState.zRot,
-					executingToState.zRot);
 		}
 	}
 
-	private float getTimeStage(long currentTime) {
-		AnimationState state = this.states.getSmallest();
-		return state.time == this.lastState.time ? 1.0f
-				: ((float) (currentTime - this.lastState.time)) / ((float) (state.time - this.lastState.time));
+	private float getTimeStage(int type) {
+		AnimationFlow flow = this.flows.get(type);
+		AnimationValue value = flow.upcomingValues.getSmallest();
+		AnimationValue last = flow.lastValue;
+		return value.time == last.time ? 1.0f
+				: ((float) (this.currentTimeSupplier.get() - last.time)) / ((float) (value.time - last.time));
 	}
 
 	private AnimationState getCurrentState() {
@@ -81,20 +74,113 @@ public class Animator {
 
 	public void addCurrentState() {
 		synchronized (this.states_lock) {
-			this.states.add(getCurrentState());
+			addStateUnchecked(getCurrentState());
 		}
 	}
 
-	public boolean addState(AnimationState stateIn) {
-		if (stateIn == null || stateIn.time < this.currentTimeSupplier.get()) {
+	private Supplier<Float> rendererValueSupplier(int type) {
+		switch (type) {
+		case 0:
+			return () -> this.renderer.rotationPointX;
+		case 1:
+			return () -> this.renderer.rotationPointY;
+		case 2:
+			return () -> this.renderer.rotationPointZ;
+		case 3:
+			return () -> this.renderer.rotateAngleX;
+		case 4:
+			return () -> this.renderer.rotateAngleY;
+		case 5:
+			return () -> this.renderer.rotateAngleZ;
+		}
+		return () -> null;
+	}
+
+	private Consumer<Float> rendererValueSetter(int type) {
+		switch (type) {
+		case 0:
+			return (v) -> this.renderer.rotationPointX = v;
+		case 1:
+			return (v) -> this.renderer.rotationPointY = v;
+		case 2:
+			return (v) -> this.renderer.rotationPointZ = v;
+		case 3:
+			return (v) -> this.renderer.rotateAngleX = v;
+		case 4:
+			return (v) -> this.renderer.rotateAngleY = v;
+		case 5:
+			return (v) -> this.renderer.rotateAngleZ = v;
+		}
+		return (v) -> {
+		};
+	}
+
+	public AnimationValue getCurrentValue(int type) {
+		AnimationValue value = null;
+		value = new AnimationValue(this.currentTimeSupplier.get(), rendererValueSupplier(type).get(), false);
+		return value;
+	}
+
+	public AnimationState addState(AnimationState stateIn) {
+		synchronized (this.states_lock) {
+			return stateIn == null ? null : addStateUnchecked(stateIn);
+		}
+	}
+
+	private AnimationState addStateUnchecked(@Nonnull AnimationState stateIn) {
+		return new AnimationState(stateIn.time, stateIn.fadeFunction, stateIn.interrupts,
+				addValueUnchecked(0, new AnimationValue(stateIn.time, stateIn.x, stateIn.interrupts)) ? stateIn.x
+						: null,
+				addValueUnchecked(1, new AnimationValue(stateIn.time, stateIn.y, stateIn.interrupts)) ? stateIn.y
+						: null,
+				addValueUnchecked(2, new AnimationValue(stateIn.time, stateIn.z, stateIn.interrupts)) ? stateIn.z
+						: null,
+				addValueUnchecked(3, new AnimationValue(stateIn.time, stateIn.xRot, stateIn.interrupts)) ? stateIn.xRot
+						: null,
+				addValueUnchecked(4, new AnimationValue(stateIn.time, stateIn.yRot, stateIn.interrupts)) ? stateIn.yRot
+						: null,
+				addValueUnchecked(5, new AnimationValue(stateIn.time, stateIn.zRot, stateIn.interrupts)) ? stateIn.zRot
+						: null);
+	}
+
+	public boolean addValue(int typeIn, float valueIn, boolean delay, long time, boolean interruptsIn) {
+		return addValue(typeIn,
+				new AnimationValue(delay ? this.currentTimeSupplier.get() + time : time, valueIn, interruptsIn));
+	}
+
+	public boolean addValue(int typeIn, AnimationValue valueIn) {
+		if (valueIn == null) {
 			return false;
 		}
 		synchronized (this.states_lock) {
-			if (stateIn.interrupts) {
-				addCurrentState();
-				this.states.removeIf(state -> state.time < stateIn.time);
-			}
-			return this.states.add(stateIn);
+			return addValueUnchecked(typeIn, valueIn);
 		}
+	}
+
+	/**
+	 * NOT thread-safe!
+	 *
+	 * @param type
+	 * @param value
+	 * @return If value was successfully added.
+	 */
+	private boolean addValueUnchecked(int type, @Nonnull AnimationValue valueIn) {
+		AnimationFlow flow = this.flows.get(type);
+		SortedArraySet<AnimationValue> upcoming = flow.upcomingValues;
+		upcoming.add(valueIn);
+		int executingTo = 0;
+		for (AnimationValue value : upcoming) {
+			if (value.interrupts) {
+				break;
+			}
+			executingTo++;
+		}
+		if (executingTo == upcoming.size()) {
+			return true;
+		}
+		for (int i = 0; i < executingTo; i++) {
+			upcoming.remove(upcoming.getSmallest());
+		}
+		return upcoming.contains(valueIn);
 	}
 }

@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.model.ModelRenderer;
 public class AnimationState implements Comparable<AnimationState> {
 	public final long time;
 	public final FadeFunction fadeFunction;
-	public final float x, y, z, xRot, yRot, zRot;
+	public final Float x, y, z, xRot, yRot, zRot;
 	public boolean interrupts;
 
 	public AnimationState(AnimationState stateIn, long time, boolean interruptsIn) {
@@ -21,8 +21,8 @@ public class AnimationState implements Comparable<AnimationState> {
 				rednererIn.rotationPointZ, rednererIn.rotateAngleX, rednererIn.rotateAngleY, rednererIn.rotateAngleZ);
 	}
 
-	public AnimationState(long timeIn, @Nullable FadeFunction fadeFunctionIn, boolean interruptsIn, float x, float y,
-			float z, float xRot, float yRot, float zRot) {
+	public AnimationState(long timeIn, @Nullable FadeFunction fadeFunctionIn, boolean interruptsIn, @Nullable Float x,
+			@Nullable Float y, @Nullable Float z, @Nullable Float xRot, @Nullable Float yRot, @Nullable Float zRot) {
 		this.time = timeIn;
 		this.fadeFunction = fadeFunctionIn == null ? FadeFunction.LINEAR : fadeFunctionIn;
 		this.interrupts = interruptsIn;

@@ -78,11 +78,8 @@ public class WingsModel<T extends Entity> extends EntityModel<WingsEntity> {
 		}
 	}
 
-	private boolean addStateIfPresent(Animator animator, AnimationState state) {
-		if (state != null) {
-			return animator.addState(state);
-		}
-		return false;
+	private boolean addStateIfPresent(Animator animator, AnimationState stateIn) {
+		return animator.addState(stateIn) == null ? false : true;
 	}
 
 	public void setRotationAngle(ModelRenderer modelRenderer, float x, float y, float z) {
