@@ -21,13 +21,13 @@ public class AnimationHandler {
 	private static final Logger LOG = LogManager.getLogger();
 
 	private static final List<AnimationState> DEFAULT_WINGS = Arrays.asList(
-			new AnimationState(0, FadeFunction.LINEAR, 0, 0.0f, 28.0f, 0.0f, 0.0f, 0.0f, 0.0f),
-			new AnimationState(0, FadeFunction.LINEAR, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f),
-			new AnimationState(0, FadeFunction.LINEAR, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+			new AnimationState(0, FadeFunction.EASE_IN_OUT, 0, 0.0f, 28.0f, 0.0f, 0.0f, 0.0f, 0.0f),
+			new AnimationState(0, FadeFunction.EASE_IN_OUT, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f),
+			new AnimationState(0, FadeFunction.EASE_IN_OUT, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
 	private static final List<AnimationState> EXTENDED_WINGS = Arrays.asList(
-			new AnimationState(0, FadeFunction.LINEAR, 0, 0.0f, 27.0f, 0.0f, 0.0f, 0.0f, 0.0f),
-			new AnimationState(0, FadeFunction.LINEAR, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.5f),
-			new AnimationState(0, FadeFunction.LINEAR, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.5f));
+			new AnimationState(0, FadeFunction.EASE_IN_OUT, 0, 0.0f, 27.0f, 0.0f, 0.0f, 0.0f, 0.0f),
+			new AnimationState(0, FadeFunction.EASE_IN_OUT, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.5f),
+			new AnimationState(0, FadeFunction.EASE_IN_OUT, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.5f));
 
 	public static void onServerTick(final WorldTickEvent event) {
 		World world = event.world;
@@ -42,13 +42,13 @@ public class AnimationHandler {
 							.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
 									new AnimationStateMessage(
 											Util.computeNewArrayList(DEFAULT_WINGS,
-													state -> new AnimationState(state, time + 35, 0)),
+													state -> new AnimationState(state, time + 40, 0)),
 											entity.getUniqueID()));
 					WingxPacketHandler.INSTANCE
 							.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),
 									new AnimationStateMessage(
 											Util.computeNewArrayList(EXTENDED_WINGS,
-													state -> new AnimationState(state, time + 75, 0)),
+													state -> new AnimationState(state, time + 80, 0)),
 											entity.getUniqueID()));
 				}
 			}

@@ -77,6 +77,7 @@ public class NetworkHelper {
 	}
 
 	public static void writeAnimationState(PacketBuffer buf, AnimationState state) {
+//		LOG.debug("Writing {}", state);
 		buf.writeLong(state.time);
 		writeString(buf, state.fadeFunction.getName().toString());
 		buf.writeInt(state.priority);
@@ -89,11 +90,13 @@ public class NetworkHelper {
 	}
 
 	public static AnimationState readAnimationState(PacketBuffer buf) {
-		return new AnimationState(buf.readLong(), FadeFunction.getByName(new ResourceLocation(readString(buf))),
-				buf.readInt(), readChecked(buf, buffer -> buffer.readFloat()),
+		AnimationState res = new AnimationState(buf.readLong(),
+				FadeFunction.getByName(new ResourceLocation(readString(buf))), buf.readInt(),
 				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()),
 				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()),
-				readChecked(buf, buffer -> buffer.readFloat()));
+				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()));
+//		LOG.debug("Readed {}", res);
+		return res;
 	}
 
 	public static <T> void writeArray(PacketBuffer buf, List<T> arrayIn, BiConsumer<PacketBuffer, T> writingFunction) {

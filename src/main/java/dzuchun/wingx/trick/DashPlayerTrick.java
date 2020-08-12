@@ -36,7 +36,7 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 	/**
 	 * @param caster         Player that casts dash.
 	 * @param facing         Facing of cast.
-	 * @param strength        Speed modification absolute value.
+	 * @param strength       Speed modification absolute value.
 	 * @param nullifiesSpeed Defines if speed should be nullified before dash.
 	 */
 	public DashPlayerTrick(PlayerEntity caster, @Nullable Facing facing, double strength, boolean nullifiesSpeed) {

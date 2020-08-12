@@ -44,7 +44,7 @@ public class AnimationStateMessage {
 
 	@Override
 	public String toString() {
-		return String.format("AnimationStateMessage[states: %s, ownweUniqueId: %s]", Util.iterableToString(states),
+		return String.format("AnimationStateMessage[states: %s, ownweUniqueId: %s]", Util.iterableToString(this.states),
 				this.ownerUniqueId);
 	}
 

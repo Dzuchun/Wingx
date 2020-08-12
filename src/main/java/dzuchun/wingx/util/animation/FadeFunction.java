@@ -15,15 +15,24 @@ import net.minecraft.util.math.MathHelper;
  */
 public class FadeFunction {
 
-	public static final FadeFunction LINEAR = create(null, new ResourceLocation(Wingx.MOD_ID, "linear"));
-
 	private static final ConcurrentHashMap<ResourceLocation, FadeFunction> registry = new ConcurrentHashMap<ResourceLocation, FadeFunction>(
 			0);
+
+	public static final FadeFunction LINEAR = create(null, new ResourceLocation(Wingx.MOD_ID, "linear"));
+	public static final FadeFunction EASE_IN = create((f, p) -> f * f, new ResourceLocation(Wingx.MOD_ID, "ease_in"));
+	public static final FadeFunction EASE_OUT = create((f, p) -> 2f - f * f,
+			new ResourceLocation(Wingx.MOD_ID, "ease_out"));
+	public static final FadeFunction EASE_IN_OUT = create((f, p) -> f < 0.5f ? 2 * f * f : 4 * f - 2 * f * f - 1,
+			new ResourceLocation(Wingx.MOD_ID, "ease_in_out"));
+
+	public static void init() {
+	}
 
 	public static FadeFunction create(BiFunction<Float, AnimationParameter, Float> func, ResourceLocation nameIn) {
 		FadeFunction res = new FadeFunction();
 		res.innerGet = func == null ? (d, p) -> d : func;
 		res.name = nameIn;
+		registry.put(nameIn, res);
 		return res;
 	}
 
@@ -49,4 +58,5 @@ public class FadeFunction {
 	public ResourceLocation getName() {
 		return this.name;
 	}
+
 }

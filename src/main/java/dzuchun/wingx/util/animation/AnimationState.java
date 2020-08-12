@@ -41,4 +41,12 @@ public class AnimationState implements Comparable<AnimationState> {
 	public int compareTo(AnimationState o) {
 		return (int) (this.time - o.time);
 	}
+
+	@Override
+	public String toString() {
+		return String.format(
+				"AnimationState[time=%s, xPos=%f, yPos=%f, zPos=%f, xRot=%f, xRot=%f, xRot=%f, priority=%s, fade function - %s]",
+				this.time + "", this.x, this.y, this.z, this.zRot, this.yRot, this.zRot, this.priority + "",
+				this.fadeFunction.getName().toString());
+	}
 }

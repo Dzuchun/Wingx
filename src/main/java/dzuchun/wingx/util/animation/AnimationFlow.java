@@ -3,8 +3,9 @@ package dzuchun.wingx.util.animation;
 import net.minecraft.util.SortedArraySet;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
 /**
- * 
+ *
  * @author Dzuchun
  *
  */

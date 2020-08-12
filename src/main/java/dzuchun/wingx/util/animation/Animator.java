@@ -60,7 +60,9 @@ public class Animator {
 					float stage = getTimeStage(i);
 					AnimationValue value = flow.upcomingValues.getSmallest();
 //					LOG.debug("Last value {}, lerping to {}", flow.lastValue, value);
-					rendererValueSetter(i).accept(MathHelper.lerp(stage, flow.lastValue.value, value.value));
+					rendererValueSetter(i)
+							.accept(MathHelper.lerp(value.fadeFuntion.get(stage, AnimationParameter.get(i)),
+									flow.lastValue.value, value.value));
 				}
 			}
 		}
@@ -123,7 +125,8 @@ public class Animator {
 
 	public AnimationValue getCurrentValue(int type) {
 		AnimationValue value = null;
-		value = new AnimationValue(this.currentTimeSupplier.get(), rendererValueSupplier(type).get(), 0);
+		value = new AnimationValue(this.currentTimeSupplier.get(), rendererValueSupplier(type).get(), 0,
+				FadeFunction.LINEAR);
 		return value;
 	}
 
@@ -136,20 +139,33 @@ public class Animator {
 
 	private AnimationState addStateUnchecked(@Nonnull AnimationState stateIn) {
 		return new AnimationState(stateIn.time, stateIn.fadeFunction, stateIn.priority,
-				addValueUnchecked(0, new AnimationValue(stateIn.time, stateIn.x, stateIn.priority)) ? stateIn.x : null,
-				addValueUnchecked(1, new AnimationValue(stateIn.time, stateIn.y, stateIn.priority)) ? stateIn.y : null,
-				addValueUnchecked(2, new AnimationValue(stateIn.time, stateIn.z, stateIn.priority)) ? stateIn.z : null,
-				addValueUnchecked(3, new AnimationValue(stateIn.time, stateIn.xRot, stateIn.priority)) ? stateIn.xRot
-						: null,
-				addValueUnchecked(4, new AnimationValue(stateIn.time, stateIn.yRot, stateIn.priority)) ? stateIn.yRot
-						: null,
-				addValueUnchecked(5, new AnimationValue(stateIn.time, stateIn.zRot, stateIn.priority)) ? stateIn.zRot
-						: null);
+				addValueUnchecked(0,
+						new AnimationValue(stateIn.time, stateIn.x, stateIn.priority, stateIn.fadeFunction)) ? stateIn.x
+								: null,
+				addValueUnchecked(1,
+						new AnimationValue(stateIn.time, stateIn.y, stateIn.priority, stateIn.fadeFunction)) ? stateIn.y
+								: null,
+				addValueUnchecked(2,
+						new AnimationValue(stateIn.time, stateIn.z, stateIn.priority, stateIn.fadeFunction)) ? stateIn.z
+								: null,
+				addValueUnchecked(3,
+						new AnimationValue(stateIn.time, stateIn.xRot, stateIn.priority, stateIn.fadeFunction))
+								? stateIn.xRot
+								: null,
+				addValueUnchecked(4,
+						new AnimationValue(stateIn.time, stateIn.yRot, stateIn.priority, stateIn.fadeFunction))
+								? stateIn.yRot
+								: null,
+				addValueUnchecked(5,
+						new AnimationValue(stateIn.time, stateIn.zRot, stateIn.priority, stateIn.fadeFunction))
+								? stateIn.zRot
+								: null);
 	}
 
-	public boolean addValue(int typeIn, float valueIn, boolean delay, long time, int priorityIn) {
-		return addValue(typeIn,
-				new AnimationValue(delay ? this.currentTimeSupplier.get() + time : time, valueIn, priorityIn));
+	public boolean addValue(int typeIn, float valueIn, boolean delay, long time, int priorityIn,
+			FadeFunction fadeFunctionIn) {
+		return addValue(typeIn, new AnimationValue(delay ? this.currentTimeSupplier.get() + time : time, valueIn,
+				priorityIn, fadeFunctionIn));
 	}
 
 	public boolean addValue(int typeIn, AnimationValue valueIn) {

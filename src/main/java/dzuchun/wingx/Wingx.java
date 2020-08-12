@@ -14,6 +14,7 @@ import dzuchun.wingx.client.render.entity.WingsRenderer;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.net.WingxPacketHandler;
+import dzuchun.wingx.util.animation.FadeFunction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -54,13 +55,17 @@ public class Wingx {
 		WingxPacketHandler.init();
 		LOG.debug("Registered net channels");
 
-		LOG.debug("Registering capabilities");
+		LOG.debug("Initing capabilities");
 		CapabilityWings.register();
 		WingsProvider.init();
 		CapabilityActiveTricks.register();
 		ActiveTricksProvider.init();
 		Serializers.init();
-		LOG.debug("Registered capabilities");
+		LOG.debug("Inited capabilities");
+
+		LOG.debug("Initing animation stuff");
+		FadeFunction.init();
+		LOG.debug("Inited animation stuff");
 	}
 
 	@SubscribeEvent
