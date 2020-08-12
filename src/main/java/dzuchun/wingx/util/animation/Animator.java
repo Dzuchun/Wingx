@@ -1,5 +1,6 @@
-package dzuchun.wingx.client.render.entity.model.util;
+package dzuchun.wingx.util.animation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -9,11 +10,15 @@ import javax.annotation.Nonnull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dzuchun.wingx.util.Util;
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.SortedArraySet;
 import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class Animator {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
@@ -54,6 +59,7 @@ public class Animator {
 
 					float stage = getTimeStage(i);
 					AnimationValue value = flow.upcomingValues.getSmallest();
+//					LOG.debug("Last value {}, lerping to {}", flow.lastValue, value);
 					rendererValueSetter(i).accept(MathHelper.lerp(stage, flow.lastValue.value, value.value));
 				}
 			}
@@ -69,7 +75,7 @@ public class Animator {
 	}
 
 	private AnimationState getCurrentState() {
-		return new AnimationState(this.currentTimeSupplier.get(), FadeFunction.LINEAR, false, this.renderer);
+		return new AnimationState(this.currentTimeSupplier.get(), FadeFunction.LINEAR, 0, this.renderer);
 	}
 
 	public void addCurrentState() {
@@ -117,35 +123,33 @@ public class Animator {
 
 	public AnimationValue getCurrentValue(int type) {
 		AnimationValue value = null;
-		value = new AnimationValue(this.currentTimeSupplier.get(), rendererValueSupplier(type).get(), false);
+		value = new AnimationValue(this.currentTimeSupplier.get(), rendererValueSupplier(type).get(), 0);
 		return value;
 	}
 
 	public AnimationState addState(AnimationState stateIn) {
 		synchronized (this.states_lock) {
+//			LOG.debug("Adding {} to {}", stateIn, this);
 			return stateIn == null ? null : addStateUnchecked(stateIn);
 		}
 	}
 
 	private AnimationState addStateUnchecked(@Nonnull AnimationState stateIn) {
-		return new AnimationState(stateIn.time, stateIn.fadeFunction, stateIn.interrupts,
-				addValueUnchecked(0, new AnimationValue(stateIn.time, stateIn.x, stateIn.interrupts)) ? stateIn.x
+		return new AnimationState(stateIn.time, stateIn.fadeFunction, stateIn.priority,
+				addValueUnchecked(0, new AnimationValue(stateIn.time, stateIn.x, stateIn.priority)) ? stateIn.x : null,
+				addValueUnchecked(1, new AnimationValue(stateIn.time, stateIn.y, stateIn.priority)) ? stateIn.y : null,
+				addValueUnchecked(2, new AnimationValue(stateIn.time, stateIn.z, stateIn.priority)) ? stateIn.z : null,
+				addValueUnchecked(3, new AnimationValue(stateIn.time, stateIn.xRot, stateIn.priority)) ? stateIn.xRot
 						: null,
-				addValueUnchecked(1, new AnimationValue(stateIn.time, stateIn.y, stateIn.interrupts)) ? stateIn.y
+				addValueUnchecked(4, new AnimationValue(stateIn.time, stateIn.yRot, stateIn.priority)) ? stateIn.yRot
 						: null,
-				addValueUnchecked(2, new AnimationValue(stateIn.time, stateIn.z, stateIn.interrupts)) ? stateIn.z
-						: null,
-				addValueUnchecked(3, new AnimationValue(stateIn.time, stateIn.xRot, stateIn.interrupts)) ? stateIn.xRot
-						: null,
-				addValueUnchecked(4, new AnimationValue(stateIn.time, stateIn.yRot, stateIn.interrupts)) ? stateIn.yRot
-						: null,
-				addValueUnchecked(5, new AnimationValue(stateIn.time, stateIn.zRot, stateIn.interrupts)) ? stateIn.zRot
+				addValueUnchecked(5, new AnimationValue(stateIn.time, stateIn.zRot, stateIn.priority)) ? stateIn.zRot
 						: null);
 	}
 
-	public boolean addValue(int typeIn, float valueIn, boolean delay, long time, boolean interruptsIn) {
+	public boolean addValue(int typeIn, float valueIn, boolean delay, long time, int priorityIn) {
 		return addValue(typeIn,
-				new AnimationValue(delay ? this.currentTimeSupplier.get() + time : time, valueIn, interruptsIn));
+				new AnimationValue(delay ? this.currentTimeSupplier.get() + time : time, valueIn, priorityIn));
 	}
 
 	public boolean addValue(int typeIn, AnimationValue valueIn) {
@@ -167,20 +171,29 @@ public class Animator {
 	private boolean addValueUnchecked(int type, @Nonnull AnimationValue valueIn) {
 		AnimationFlow flow = this.flows.get(type);
 		SortedArraySet<AnimationValue> upcoming = flow.upcomingValues;
-		upcoming.add(valueIn);
-		int executingTo = 0;
-		for (AnimationValue value : upcoming) {
-			if (value.interrupts) {
-				break;
-			}
-			executingTo++;
-		}
-		if (executingTo == upcoming.size()) {
+		if (upcoming.isEmpty()) {
+			upcoming.add(valueIn);
+//			LOG.debug("Added value {}. Current flow: {}", valueIn, upcoming);
 			return true;
 		}
-		for (int i = 0; i < executingTo; i++) {
-			upcoming.remove(upcoming.getSmallest());
+		AnimationValue check = upcoming.getSmallest();
+		upcoming.add(valueIn);
+		int currentPriority = 0;
+		ArrayList<AnimationValue> array = Util.computeNewArrayList(upcoming, v -> v);
+		int size = upcoming.size();
+		for (int i = size - 1; i >= 0; i--) {
+			AnimationValue value = array.get(i);
+			if (value.priority < currentPriority) {
+				upcoming.remove(value);
+			}
+			if (value.priority > currentPriority) {
+				currentPriority = value.priority;
+			}
 		}
+		if (!upcoming.getSmallest().equals(check)) {
+			upcoming.add(getCurrentValue(type));
+		}
+//		LOG.debug("Added value {}. Current flow: {}", valueIn, upcoming);
 		return upcoming.contains(valueIn);
 	}
 }

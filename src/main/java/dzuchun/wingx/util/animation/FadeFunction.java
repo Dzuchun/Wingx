@@ -1,4 +1,4 @@
-package dzuchun.wingx.client.render.entity.model.util;
+package dzuchun.wingx.util.animation;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;

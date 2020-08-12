@@ -10,10 +10,10 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.client.render.entity.model.util.AnimationState;
-import dzuchun.wingx.client.render.entity.model.util.FadeFunction;
 import dzuchun.wingx.trick.AbstractTrick;
 import dzuchun.wingx.trick.ITrick;
+import dzuchun.wingx.util.animation.AnimationState;
+import dzuchun.wingx.util.animation.FadeFunction;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -79,7 +79,7 @@ public class NetworkHelper {
 	public static void writeAnimationState(PacketBuffer buf, AnimationState state) {
 		buf.writeLong(state.time);
 		writeString(buf, state.fadeFunction.getName().toString());
-		buf.writeBoolean(state.interrupts);
+		buf.writeInt(state.priority);
 		writeChecked(buf, state.x, (buffer, f) -> buffer.writeFloat(f));
 		writeChecked(buf, state.y, (buffer, f) -> buffer.writeFloat(f));
 		writeChecked(buf, state.z, (buffer, f) -> buffer.writeFloat(f));
@@ -90,7 +90,7 @@ public class NetworkHelper {
 
 	public static AnimationState readAnimationState(PacketBuffer buf) {
 		return new AnimationState(buf.readLong(), FadeFunction.getByName(new ResourceLocation(readString(buf))),
-				buf.readBoolean(), readChecked(buf, buffer -> buffer.readFloat()),
+				buf.readInt(), readChecked(buf, buffer -> buffer.readFloat()),
 				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()),
 				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()),
 				readChecked(buf, buffer -> buffer.readFloat()));

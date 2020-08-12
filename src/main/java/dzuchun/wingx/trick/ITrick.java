@@ -9,7 +9,6 @@ public interface ITrick extends IForgeRegistryEntry<AbstractTrick> {
 	/**
 	 * Reads trick data from buffer.
 	 *
-	 * @param <A> Trick class.
 	 * @param buf Buffer to read from.
 	 * @return Trick that was readed (You may just "return this").
 	 */
@@ -18,7 +17,6 @@ public interface ITrick extends IForgeRegistryEntry<AbstractTrick> {
 	/**
 	 * Writes trick data to buffer.
 	 *
-	 * @param <A> Trick class.
 	 * @param buf Buffer write to.
 	 * @return Trick that was writen (You may just "return this").
 	 */

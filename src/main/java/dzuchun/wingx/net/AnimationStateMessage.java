@@ -10,10 +10,11 @@ import org.apache.logging.log4j.Logger;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
-import dzuchun.wingx.client.render.entity.model.util.AnimationState;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import dzuchun.wingx.util.NetworkHelper;
+import dzuchun.wingx.util.Util;
 import dzuchun.wingx.util.WorldHelper;
+import dzuchun.wingx.util.animation.AnimationState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketBuffer;
@@ -43,7 +44,8 @@ public class AnimationStateMessage {
 
 	@Override
 	public String toString() {
-		return String.format("AnimationStateMessage[states: %s, ownweUniqueId: %s]", this.states, this.ownerUniqueId);
+		return String.format("AnimationStateMessage[states: %s, ownweUniqueId: %s]", Util.iterableToString(states),
+				this.ownerUniqueId);
 	}
 
 	public static void handle(AnimationStateMessage msg, Supplier<NetworkEvent.Context> ctx) {
@@ -59,7 +61,7 @@ public class AnimationStateMessage {
 				if (wings != null && wings instanceof WingsEntity) {
 					WingsEntity realWingsEntity = (WingsEntity) wings;
 					synchronized (realWingsEntity.upcomingStates_lock) {
-						realWingsEntity.upcomingStates = msg.states;
+						realWingsEntity.setUpcomingStates(msg.states);
 					}
 				}
 			}

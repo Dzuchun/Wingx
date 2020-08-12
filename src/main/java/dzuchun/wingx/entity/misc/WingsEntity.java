@@ -1,16 +1,16 @@
 package dzuchun.wingx.entity.misc;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.client.render.entity.model.util.AnimationState;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.net.OwnerDataMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
+import dzuchun.wingx.util.animation.AnimationState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,15 +28,33 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	private static final Logger LOG = LogManager.getLogger();
 	private PlayerEntity owner;
 	private UUID ownerUniqueId;
-	public List<AnimationState> upcomingStates;
+	private ArrayList<List<AnimationState>> upcomingStates = new ArrayList<List<AnimationState>>(0);
 	public final Object upcomingStates_lock = new Object();
+
+	public void setUpcomingStates(List<AnimationState> states) {
+		synchronized (this.upcomingStates_lock) {
+			this.upcomingStates.add(states);
+//			LOG.debug("Added {} to upcoming states. States now are:\n{}", Util.iterableToString(states),
+//					Util.iterableToString(upcomingStates, states_ -> Util.iterableToString(states_)));
+		}
+	}
+
+	/**
+	 * Please, use synchronization anyway!
+	 *
+	 * @return List of upcoming states to be processed.
+	 */
+	public List<List<AnimationState>> getUpcomingStates() {
+		synchronized (this.upcomingStates_lock) {
+			return this.upcomingStates;
+		}
+	}
 
 	public WingsEntity(World worldIn) {
 		super(TYPE, worldIn);
 		LOG.info("Creating wings");
 		setInvulnerable(true);
 		setNoGravity(true);
-		this.upcomingStates = Arrays.asList(null, null, null);
 	}
 
 	public boolean setOwner(UUID newOwnerUUID, boolean force) {
