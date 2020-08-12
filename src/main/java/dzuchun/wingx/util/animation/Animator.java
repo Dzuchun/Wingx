@@ -33,7 +33,7 @@ public class Animator {
 		this.currentTimeSupplier = currentTimeSupplierIn;
 	}
 
-	public void animate() {
+	public void animate(float partialTicks) {
 		synchronized (this.states_lock) {
 			long currentTime = this.currentTimeSupplier.get();
 			for (int i = 0; i < 6; i++) {
@@ -57,7 +57,7 @@ public class Animator {
 						flow.lastValue = getCurrentValue(i);
 					}
 
-					float stage = getTimeStage(i);
+					float stage = getTimeStage(i, partialTicks);
 					AnimationValue value = flow.upcomingValues.getSmallest();
 //					LOG.debug("Last value {}, lerping to {}", flow.lastValue, value);
 					rendererValueSetter(i)
@@ -68,12 +68,12 @@ public class Animator {
 		}
 	}
 
-	private float getTimeStage(int type) {
+	private float getTimeStage(int type, float partialTicks) {
 		AnimationFlow flow = this.flows.get(type);
 		AnimationValue value = flow.upcomingValues.getSmallest();
 		AnimationValue last = flow.lastValue;
 		return value.time == last.time ? 1.0f
-				: ((float) (this.currentTimeSupplier.get() - last.time)) / ((float) (value.time - last.time));
+				: ((float) this.currentTimeSupplier.get() + partialTicks - last.time) / (value.time - last.time);
 	}
 
 	private AnimationState getCurrentState() {

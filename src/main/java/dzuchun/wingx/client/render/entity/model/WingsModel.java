@@ -82,9 +82,10 @@ public class WingsModel<T extends Entity> extends EntityModel<WingsEntity> {
 			}
 			upcomingStates.clear();
 		}
-		this.baseAni.animate();
-		this.leftAni.animate();
-		this.rightAni.animate();
+		float partialTicks = net.minecraft.util.math.MathHelper.frac(ageInTicks);
+		this.baseAni.animate(partialTicks);
+		this.leftAni.animate(partialTicks);
+		this.rightAni.animate(partialTicks);
 	}
 
 	private boolean addStateIfPresent(Animator animator, AnimationState stateIn) {
