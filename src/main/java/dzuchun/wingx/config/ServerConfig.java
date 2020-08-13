@@ -25,7 +25,7 @@ public class ServerConfig {
 
 	public ServerConfig(final ForgeConfigSpec.Builder builder) {
 		builder.push("general");
-		exampleBoolean = builder.comment("An example of boolean in server config")
+		this.exampleBoolean = builder.comment("An example of boolean in server config")
 				.translation("wingx.config.server.example_boolean").define("serverExampleBolean", false);
 		builder.pop();
 	}

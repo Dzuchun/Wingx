@@ -25,7 +25,7 @@ public class ClientConfig {
 
 	public ClientConfig(final ForgeConfigSpec.Builder builder) {
 		builder.push("general");
-		exampleBoolean = builder.comment("An example of boolean in client config")
+		this.exampleBoolean = builder.comment("An example of boolean in client config")
 				.translation("wingx.config.client.example_boolean").define("clientExampleBolean", false);
 		builder.pop();
 	}
