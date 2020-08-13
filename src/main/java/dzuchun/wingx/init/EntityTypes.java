@@ -27,7 +27,7 @@ public class EntityTypes {
 
 	public static void registerEntityTypes(IEventBus bus) {
 
-		final DeferredRegister<EntityType<? extends Entity>> register = DeferredRegister
+		final DeferredRegister<EntityType<?>> register = DeferredRegister
 				.create(ForgeRegistries.ENTITIES, Wingx.MOD_ID);
 		wings_entity_type = register.register(WINGS_NAME, () -> EntityType.Builder
 				.<WingsEntity>create((EntityType<WingsEntity> entityType, World worldIn) -> new WingsEntity(worldIn),

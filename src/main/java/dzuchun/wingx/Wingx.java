@@ -1,5 +1,6 @@
 package dzuchun.wingx;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,15 +13,20 @@ import dzuchun.wingx.client.input.KeyEvents;
 import dzuchun.wingx.client.render.entity.FireballRenderer;
 import dzuchun.wingx.client.render.entity.WingsRenderer;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
+import dzuchun.wingx.config.ClientConfig;
+import dzuchun.wingx.config.ServerConfig;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.util.animation.FadeFunction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import net.minecraftforge.fml.config.ModConfig.Type;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -46,16 +52,16 @@ public class Wingx {
 	public static void commonSetup(final FMLCommonSetupEvent event) {
 		LOG.info("Performing common setup");
 
-		LOG.debug("Initing listeners");
+		LOG.info("Initing listeners");
 		ForgeBusEventListener.init();
 		ModBusEventListener.init();
 		LOG.debug("Inited listeners");
 
-		LOG.debug("Registering net channels");
+		LOG.info("Registering net channels");
 		WingxPacketHandler.init();
 		LOG.debug("Registered net channels");
 
-		LOG.debug("Initing capabilities");
+		LOG.info("Initing capabilities");
 		CapabilityWings.register();
 		WingsProvider.init();
 		CapabilityActiveTricks.register();
@@ -63,9 +69,18 @@ public class Wingx {
 		Serializers.init();
 		LOG.debug("Inited capabilities");
 
-		LOG.debug("Initing animation stuff");
+		LOG.info("Initing animation stuff");
 		FadeFunction.init();
 		LOG.debug("Inited animation stuff");
+
+		LOG.info("Registering server config");
+		Pair<ServerConfig, ForgeConfigSpec> serverConfigPair = new ForgeConfigSpec.Builder()
+				.configure(ServerConfig::new);
+		ModLoadingContext.get().registerConfig(Type.SERVER, serverConfigPair.getRight());
+		ServerConfig.set(serverConfigPair.getLeft());
+		LOG.debug("Registered server config");
+
+		LOG.debug("Finished common setup");
 	}
 
 	@SubscribeEvent
@@ -84,5 +99,14 @@ public class Wingx {
 		LOG.debug("Initing overlays");
 		AbstractOverlay.init();
 		LOG.debug("Inited overlays");
+
+		LOG.info("Registering client config");
+		Pair<ClientConfig, ForgeConfigSpec> clientConfigPair = new ForgeConfigSpec.Builder()
+				.configure(ClientConfig::new);
+		ModLoadingContext.get().registerConfig(Type.CLIENT, clientConfigPair.getRight());
+		ClientConfig.set(clientConfigPair.getLeft());
+		LOG.debug("Registered client config");
+
+		LOG.debug("Finished client setup");
 	}
 }

@@ -35,5 +35,7 @@
 	"wingx.trick.smash.fail": "Cannot smash : <reason>",
 	"wingx.trick.smash.completed": "Smash ended",
 	"wingx.trick.swap.successfull": "Swapping...",
-	"wingx.trick.swap.fail": "Cannot swap : <reason>"
+	"wingx.trick.swap.fail": "Cannot swap : <reason>",
+	"wingx.config.client.example_boolean": "Example client config boolean",
+	"wingx.config.server.example_boolean": "Example server config boolean"
 }
