@@ -37,5 +37,6 @@
 	"wingx.trick.swap.successfull": "Swapping...",
 	"wingx.trick.swap.fail": "Cannot swap : <reason>",
 	"wingx.config.client.example_boolean": "Example client config boolean",
-	"wingx.config.server.example_boolean": "Example server config boolean"
+	"wingx.config.server.example_boolean": "Example server config boolean",
+	"wingx.gui.node.name": "Node Name"
 }

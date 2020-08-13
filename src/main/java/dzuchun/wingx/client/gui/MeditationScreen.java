@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
@@ -21,6 +22,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector4f;
 import net.minecraft.util.text.Color;
 import net.minecraft.util.text.ITextComponent;
@@ -33,14 +35,32 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(value = Dist.CLIENT)
 public class MeditationScreen extends Screen {
+	// TODO fix blinking on server delay
 	private static final Logger LOG = LogManager.getLogger();
 
 	private static final ResourceLocation HUD = new ResourceLocation(Wingx.MOD_ID,
 			"textures/gui/meditation/meditation_hud.png");
+	// TODO remove left side
+	private static final ResourceLocation NODES_ATLAS = new ResourceLocation(Wingx.MOD_ID,
+			"textures/gui/meditation/abillity_node_atlas.png");
 	private static final Vector4f BACKGROUND_COLOR = new Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
-	private static final int LINES_PACKED_COLOR = 0xFFFF00FF; // TODO parametrize
+	private static final int LINES_PACKED_COLOR = 0xFFFF0000; // TODO parametrize
 	private static final float LINES_WIDTH = 1.5f; // TODO parametrize
 	private static final int SELECTION_WIDTH = 2; // TODO parametrize
+	private static final long OPEN_ANIMATION_DURATION = 10; // TODO parametrize
+	private static final double OPEN_ANIMATION_DELAY_OVER_DISTANCE = 0.05; // TODO parametrize
+	private static final float OPEN_ANIMATION_SCALE = 2.0f;
+	private static final double OPEN_ANIMATION_SCALE_OVER_TICK = (OPEN_ANIMATION_SCALE - 1.0d)
+			/ OPEN_ANIMATION_DURATION;
+
+	private static AbillityNode selectedNode = null;
+	private static AbillityNode currentRoot = null;
+
+	private static boolean isInsideNode = false;
+	private static ExternalAbillityNode inside = null;
+
+	private static long openTime = 0;
+	private static long openGuiTime = 0;
 
 	private IWingsCapability capability;
 
@@ -48,6 +68,8 @@ public class MeditationScreen extends Screen {
 		super(titleIn);
 		this.capability = capabilityIn;
 		this.minecraft = Minecraft.getInstance();
+		openTime = System.currentTimeMillis();
+		openGuiTime = System.currentTimeMillis();
 	}
 
 	@Override
@@ -55,37 +77,40 @@ public class MeditationScreen extends Screen {
 		super.init();
 		this.addButton(this.goIntoButton = new Button((int) (this.width * 0.75d), (int) (this.height * 0.95d),
 				(int) (this.width * 0.25d), (int) (this.height * 0.05d),
-				new TranslationTextComponent("wingx.gui.gointo"), (Button button) -> {
+				new TranslationTextComponent(MeditationScreen.isInsideNode ? "wingx.gui.goout" : "wingx.gui.gointo"),
+				(Button button) -> {
 					// TODO go into :)
-					if (!this.isInsideNode && this.selectedNode != null && this.selectedNode.isUnlocked()
-							&& ((ExternalAbillityNode) this.selectedNode).getInternal() != null) {
+					if (!MeditationScreen.isInsideNode && MeditationScreen.selectedNode != null
+							&& MeditationScreen.selectedNode.isUnlocked()
+							&& ((ExternalAbillityNode) MeditationScreen.selectedNode).getInternal() != null) {
 						// Getting in
 						LOG.debug("Getting in");
-						this.isInsideNode = true;
-						this.inside = (ExternalAbillityNode) this.selectedNode;
-						this.currentRoot = this.inside.getInternal();
-						this.selectedNode = this.currentRoot;
-						button.setMessage(new TranslationTextComponent("wingx.gui.goout")); // TODO parametrize
-					} else if (this.isInsideNode) {
+						MeditationScreen.isInsideNode = true;
+						MeditationScreen.inside = (ExternalAbillityNode) MeditationScreen.selectedNode;
+						MeditationScreen.currentRoot = MeditationScreen.inside.getInternal();
+						MeditationScreen.selectedNode = MeditationScreen.currentRoot;
+						button.setMessage(new TranslationTextComponent("wingx.gui.goout"));
+						openTime = System.currentTimeMillis();
+					} else if (MeditationScreen.isInsideNode) {
 						// Going out
 						LOG.debug("Getting out");
-						this.isInsideNode = false;
-						this.selectedNode = this.inside;
-						this.currentRoot = AbillityNodes.WINGX;
-						button.setMessage(new TranslationTextComponent("wingx.gui.gointo")); // TODO parametrize
+						MeditationScreen.isInsideNode = false;
+						MeditationScreen.selectedNode = MeditationScreen.inside;
+						MeditationScreen.currentRoot = AbillityNodes.WINGX;
+						button.setMessage(new TranslationTextComponent("wingx.gui.gointo"));
+						openTime = System.currentTimeMillis();
 					}
-					if (this.selectedNode != null) {
-						this.xCenter = -this.selectedNode.getXCenterPos();
-						this.yCenter = -this.selectedNode.getYCenterPos();
+					if (MeditationScreen.selectedNode != null) {
+						this.xCenter = -MeditationScreen.selectedNode.getXCenterPos();
+						this.yCenter = -MeditationScreen.selectedNode.getYCenterPos();
 					} else {
 						this.xCenter = 0;
 						this.yCenter = 0;
 					}
 					updateRenderedNodes();
 				}));
-		this.currentRoot = AbillityNodes.WINGX;
-		this.inside = null;
-		this.isInsideNode = false;
+		MeditationScreen.currentRoot = MeditationScreen.currentRoot == null ? AbillityNodes.WINGX : currentRoot;
+		// TODO reset theese on world rejoin
 		updateRenderedNodes();
 		updateUnlocked();
 		this.xCenter = 0;
@@ -102,17 +127,12 @@ public class MeditationScreen extends Screen {
 	public void render(MatrixStack matrixStackIn, int p_230430_2_, int p_230430_3_, float p_230430_4_) {
 		this.renderBackground(matrixStackIn, 0);
 		renderNodes(matrixStackIn);
-		renderHud(matrixStackIn);
-		String nodeName = I18n.format("wingx.gui.node.name");
-		StringTextComponent nodeNameComponent = new StringTextComponent(nodeName);
-		nodeNameComponent
-				.func_230530_a_(Style.EMPTY.setBold(true).setColor(Color.func_240744_a_(TextFormatting.GREEN)));
-		matrixStackIn.push();
-		float scale = 1f;
-		matrixStackIn.scale(scale, scale, scale);
-		this.font.func_238407_a_(matrixStackIn, nodeNameComponent,
-				this.width / scale - this.font.func_238414_a_(nodeNameComponent), 0.0f / scale, 0xFFFFFFFF);
-		matrixStackIn.pop();
+		int alpha = 255;
+		float ticksPassed = (System.currentTimeMillis() - openGuiTime) / 50.0f;
+		if (ticksPassed < OPEN_ANIMATION_DURATION) {
+			alpha = (int) (ticksPassed / OPEN_ANIMATION_DURATION * 255);
+		}
+		renderHud(matrixStackIn, alpha);
 		super.render(matrixStackIn, p_230430_2_, p_230430_3_, p_230430_4_);
 	}
 
@@ -141,9 +161,6 @@ public class MeditationScreen extends Screen {
 		return super.mouseDragged(xPos, yPos, buttonIn, xMove, yMove);
 	}
 
-	private AbillityNode selectedNode = null;
-	private AbillityNode currentRoot = null;
-
 	@Override
 	public boolean mouseClicked(double xPos, double yPos, int buttonIn) {
 		if (buttonIn == 0) {
@@ -163,7 +180,7 @@ public class MeditationScreen extends Screen {
 		double xReal = xPos / this.width;
 		@SuppressWarnings("unused")
 		double yReal = yPos / this.height;
-		if (xReal < 0.1d || xReal > 0.75d) {
+		if (xReal > 0.75d) {
 			return false;
 		}
 		return true;
@@ -174,9 +191,9 @@ public class MeditationScreen extends Screen {
 		double yCoord = yPos - this.yCenter - this.height / 2;
 		LOG.debug("Trying to select node at [{}, {}]", xCoord, yCoord);
 		for (AbillityNode node : this.renderedNodes) {
-			if (Math.abs(xCoord - node.getXCenterPos()) <= AbillityNode.SIZE / 2
-					&& Math.abs(yCoord - node.getYCenterPos()) <= AbillityNode.SIZE / 2) {
-				this.selectedNode = node;
+			if (Math.abs(xCoord - node.getXCenterPos()) <= AbillityNode.NODE_SIZE / 2
+					&& Math.abs(yCoord - node.getYCenterPos()) <= AbillityNode.NODE_SIZE / 2) {
+				MeditationScreen.selectedNode = node;
 				LOG.debug("Selecting node {}", node);
 				return true;
 			}
@@ -187,16 +204,13 @@ public class MeditationScreen extends Screen {
 	@SuppressWarnings("unused")
 	private Button goIntoButton;
 
-	private boolean isInsideNode = false;
-	private ExternalAbillityNode inside = null;
-
 	private void updateRenderedNodes() {
 		this.renderedNodes.clear();
-		if (this.currentRoot == null) {
+		if (MeditationScreen.currentRoot == null) {
 			return;
 		}
 		ArrayList<AbillityNode> nodesToCheck = new ArrayList<AbillityNode>();
-		nodesToCheck.add(this.currentRoot);
+		nodesToCheck.add(MeditationScreen.currentRoot);
 		while (!nodesToCheck.isEmpty()) {
 			for (AbillityNode node : new ArrayList<AbillityNode>(nodesToCheck)) {
 				nodesToCheck.addAll(node.getChildren());
@@ -220,25 +234,48 @@ public class MeditationScreen extends Screen {
 
 	private List<AbillityNode> renderedNodes = new ArrayList<AbillityNode>();
 
+	@SuppressWarnings("deprecation")
 	private void renderNodes(MatrixStack matrixStackIn) {
 		// TODO optimize! (render only visible)
 		matrixStackIn.push();
 		matrixStackIn.translate(this.xCenter + this.width / 2, this.yCenter + this.height / 2, 0);
-		// Rendering lines
+		this.minecraft.textureManager.bindTexture(NODES_ATLAS);
+		float ticksPassed = (System.currentTimeMillis() - openTime) / 50.0f;
+		// Rendering nodes and lines
 		for (AbillityNode node : this.renderedNodes) {
-			for (AbillityNode child : node.getChildren()) {
-				SeparateRenderers.drawLine(matrixStackIn, LINES_PACKED_COLOR, LINES_WIDTH, node.getXCenterPos(),
-						node.getYCenterPos(), child.getXCenterPos(), child.getYCenterPos());
+			matrixStackIn.push();
+			matrixStackIn.translate(node.getXCenterPos(), node.getYCenterPos(), 0);
+			float alpha = 1.0f;
+			float scaleFactor = 1.0f;
+			double distance = Math.sqrt(Math.pow(node.getXCenterPos() + this.xCenter, 2)
+					+ Math.pow(node.getYCenterPos() + this.yCenter, 2));
+			if (ticksPassed - OPEN_ANIMATION_DELAY_OVER_DISTANCE * distance < OPEN_ANIMATION_DURATION) {
+				// TODO optimize!
+				float semiTicksPassed = (float) (ticksPassed - OPEN_ANIMATION_DELAY_OVER_DISTANCE * distance);
+				semiTicksPassed = MathHelper.clamp(semiTicksPassed, 0.0f, OPEN_ANIMATION_DURATION);
+				alpha = semiTicksPassed / OPEN_ANIMATION_DURATION;
+				scaleFactor = (float) (OPEN_ANIMATION_SCALE - OPEN_ANIMATION_SCALE_OVER_TICK * semiTicksPassed);
 			}
+			alpha = MathHelper.clamp(alpha, 0.0f, 1.0f);
+			// Rendering lines
+			if (!node.getChildren().isEmpty()) {
+				int linesColor = LINES_PACKED_COLOR + Math.round(alpha * 255);
+				for (AbillityNode child : node.getChildren()) {
+					SeparateRenderers.drawLine(matrixStackIn, linesColor, LINES_WIDTH, node.getXCenterPos(),
+							node.getYCenterPos(), child.getXCenterPos(), child.getYCenterPos());
+				}
+			}
+			// Rendering node
+			matrixStackIn.push();
+			matrixStackIn.scale(scaleFactor, scaleFactor, 1.0f);
+			node.render(matrixStackIn, alpha);
+			matrixStackIn.pop();
+			matrixStackIn.pop();
 		}
-		// Rendering nodes
-		for (AbillityNode node : this.renderedNodes) {
-			node.render(matrixStackIn);
-		}
-		if (this.selectedNode != null) {
-			int x = this.selectedNode.getXCenterPos() - AbillityNode.SIZE / 2 - SELECTION_WIDTH;
-			int y = this.selectedNode.getYCenterPos() - AbillityNode.SIZE / 2 - SELECTION_WIDTH;
-			int size = AbillityNode.SIZE + SELECTION_WIDTH * 2 - 1;
+		if (MeditationScreen.selectedNode != null) {
+			int x = MeditationScreen.selectedNode.getXCenterPos() - AbillityNode.NODE_SIZE / 2 - SELECTION_WIDTH;
+			int y = MeditationScreen.selectedNode.getYCenterPos() - AbillityNode.NODE_SIZE / 2 - SELECTION_WIDTH;
+			int size = AbillityNode.NODE_SIZE + SELECTION_WIDTH * 2 - 1;
 			int length = 5; // TODO parametrize
 			int color = 0xFF00FF00; // TODO parametrize
 
@@ -252,12 +289,24 @@ public class MeditationScreen extends Screen {
 			vLine(matrixStackIn, x + size, y, y + length, color);
 			vLine(matrixStackIn, x + size, y + size - length, y + size, color);
 		}
+
+		RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
 		matrixStackIn.pop();
 	}
 
-	public void renderHud(MatrixStack matrixStackIn) {
+	public void renderHud(MatrixStack matrixStackIn, int alphaIn) {
 		this.minecraft.getTextureManager().bindTexture(HUD);
-		SeparateRenderers.myBlit(matrixStackIn, 0, 0, this.width, this.height, 0.0f, 0.0f, 1.0f, 1.0f, this.minecraft,
-				HUD);
+		SeparateRenderers.myBlit(matrixStackIn, 0, 0, this.width, this.height, 0.0f, 0.0f, 1.0f, 1.0f,
+				0xFFFFFF00 + alphaIn, this.minecraft, HUD);
+		String nodeName = I18n.format("wingx.gui.node.name");
+		StringTextComponent nodeNameComponent = new StringTextComponent(nodeName);
+		nodeNameComponent
+				.func_230530_a_(Style.EMPTY.setBold(true).setColor(Color.func_240744_a_(TextFormatting.GREEN)));
+		matrixStackIn.push();
+		float scale = 1f;
+		matrixStackIn.scale(scale, scale, scale);
+		this.font.func_238407_a_(matrixStackIn, nodeNameComponent,
+				this.width / scale - this.font.func_238414_a_(nodeNameComponent), 0.0f / scale, 0xFFFFFF00 + alphaIn);
+		matrixStackIn.pop();
 	}
 }

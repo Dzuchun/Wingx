@@ -1,8 +1,14 @@
 package dzuchun.wingx.util;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.minecraft.util.math.vector.Vector4f;
 
 public class MathHelper {
+	@SuppressWarnings("unused")
+	private static final Logger LOG = LogManager.getLogger();
+
 	public static float useFadeOut(float min, float max, double fadeOutRelativeCoord, double minValue, double maxValue,
 			double valueIn) {
 		double d0 = minValue + fadeOutRelativeCoord * (maxValue - minValue);
@@ -24,10 +30,12 @@ public class MathHelper {
 
 	// TODO change format!!
 	public static Vector4f unpackColor(int packedColor) {
-		int r = packedColor >> 24;
-		int g = packedColor & 0x00FF0000 >> 16;
-		int b = packedColor & 0x0000FF00 >> 8;
-		int a = packedColor & 0x000000FF;
-		return new Vector4f(r / 256f, g / 256f, b / 256f, a / 256f);
+		int r = packedColor >> 24 & 255;
+		int g = packedColor >> 16 & 255;
+		int b = packedColor >> 8 & 255;
+		int a = packedColor & 255;
+		Vector4f color = new Vector4f(r / 255f, g / 255f, b / 255f, a / 255f);
+//		LOG.debug("Unpacked {} to {}", Integer.toHexString(packedColor), color.toString());
+		return color;
 	}
 }

@@ -5,17 +5,18 @@ import javax.annotation.Nullable;
 public abstract class ExternalAbillityNode extends AbillityNode {
 	private InternalAbillityNode internal;
 
-	public ExternalAbillityNode(int xCenterPos, int yCenterPos) {
-		this(xCenterPos, yCenterPos, null);
+	public ExternalAbillityNode(int xCenterPos, int yCenterPos, int spriteNoIn) {
+		this(xCenterPos, yCenterPos, spriteNoIn, null);
 	}
 
-	public ExternalAbillityNode(int xCenterPos, int yCenterPos, @Nullable InternalAbillityNode internalIn) {
-		this(xCenterPos, yCenterPos, internalIn, null);
+	public ExternalAbillityNode(int xCenterPos, int yCenterPos, int spriteNoIn,
+			@Nullable InternalAbillityNode internalIn) {
+		this(xCenterPos, yCenterPos, spriteNoIn, internalIn, null);
 	}
 
-	public ExternalAbillityNode(int xCenterPos, int yCenterPos, @Nullable InternalAbillityNode internalIn,
-			@Nullable ExternalAbillityNode parent) {
-		super(xCenterPos, yCenterPos, parent);
+	public ExternalAbillityNode(int xCenterPos, int yCenterPos, int spriteNoIn,
+			@Nullable InternalAbillityNode internalIn, @Nullable ExternalAbillityNode parent) {
+		super(xCenterPos, yCenterPos, spriteNoIn, parent);
 		this.internal = internalIn;
 	}
 

@@ -107,6 +107,7 @@ public class ToggleWingsMessage {
 					minecraft.player.sendStatusMessage(new TranslationTextComponent("wings.desummoned")
 							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
 				}
+				// TODO update upcoming states!!
 			});
 		}
 	}

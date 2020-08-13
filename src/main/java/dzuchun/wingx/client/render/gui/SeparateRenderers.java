@@ -159,33 +159,52 @@ public class SeparateRenderers {
 	}
 
 	public static void myBlit(MatrixStack matrixStackIn, int xMin, int yMin, int width, int height, float uMin,
-			float vMin, float uWidth, float vHeight, Minecraft mc, ResourceLocation texture) {
-		RenderSystem.assertThread(RenderSystem::isOnRenderThread);
+			float vMin, float uWidth, float vHeight, int packedColorIn, Minecraft mc, ResourceLocation texture) {
 		mc.getTextureManager().bindTexture(texture);
+		myBlit(matrixStackIn, xMin, yMin, width, height, uMin, vMin, uWidth, vHeight, packedColorIn);
+	}
+
+//	public static void myBlit(MatrixStack matrixStackIn, int xMin, int yMin, int width, int height, float uMin,
+//			float vMin, float uWidth, float vHeight, int packedColorIn) {
+//		Vector4f color = MathHelper.unpackColor(packedColorIn);
+//		GL11.glColor4f(color.getX(), color.getY(), color.getZ(), color.getW());
+//		myBlit(matrixStackIn, xMin, yMin, width, height, uMin, vMin, uWidth, vHeight, packedColorIn);
+//	}
+
+	public static void myBlit(MatrixStack matrixStackIn, int xMin, int yMin, int width, int height, float uMin,
+			float vMin, float uWidth, float vHeight, int packedColorIn) {
+		RenderSystem.assertThread(RenderSystem::isOnRenderThread);
 
 		RenderSystem.disableDepthTest();
 		RenderSystem.depthMask(false);
-		RenderSystem.defaultBlendFunc();
 		RenderSystem.enableBlend();
+		RenderSystem.enableAlphaTest();
+		RenderSystem.defaultBlendFunc();
 		RenderSystem.shadeModel(GL11.GL_FLAT);
 //		RenderSystem.disableAlphaTest();
-		RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
 
 		Matrix4f matrix = matrixStackIn.getLast().getMatrix();
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder builder = tessellator.getBuffer();
-		builder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-		builder.pos(matrix, xMin, yMin + height, 0).tex(uMin, vMin + vHeight).endVertex();
-		builder.pos(matrix, xMin + width, yMin + height, 0).tex(uMin + uWidth, vMin + vHeight).endVertex();
-		builder.pos(matrix, xMin + width, yMin, 0).tex(uMin + uWidth, vMin).endVertex();
-		builder.pos(matrix, xMin, yMin, 0).tex(uMin, vMin).endVertex();
+		Vector4f color = MathHelper.unpackColor(packedColorIn);
+//		LOG.debug("Blitting with color {}", color.toString());
+		builder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX);
+		builder.pos(matrix, xMin, yMin + height, 0).color(color.getX(), color.getY(), color.getZ(), color.getW())
+				.tex(uMin, vMin + vHeight).endVertex();
+		builder.pos(matrix, xMin + width, yMin + height, 0)
+				.color(color.getX(), color.getY(), color.getZ(), color.getW()).tex(uMin + uWidth, vMin + vHeight)
+				.endVertex();
+		builder.pos(matrix, xMin + width, yMin, 0).color(color.getX(), color.getY(), color.getZ(), color.getW())
+				.tex(uMin + uWidth, vMin).endVertex();
+		builder.pos(matrix, xMin, yMin, 0).color(color.getX(), color.getY(), color.getZ(), color.getW()).tex(uMin, vMin)
+				.endVertex();
 		tessellator.draw();
 
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		RenderSystem.depthMask(true);
 		RenderSystem.enableDepthTest();
-		RenderSystem.enableAlphaTest();
 		RenderSystem.shadeModel(GL11.GL_SMOOTH);
-		RenderSystem.disableBlend();
+//		RenderSystem.disableBlend();
 	}
 
 	public static void drawLine(MatrixStack matrixStackIn, int packedColorIn, float width, double xBegin, double yBegin,
@@ -199,8 +218,10 @@ public class SeparateRenderers {
 		Vector4f color = MathHelper.unpackColor(packedColorIn);
 
 		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.color4f(0.0F, 1.0F, 0.0F, 0.75F);
+//		RenderSystem.defaultBlendFunc();
+		RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.DST_ALPHA,
+				GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+//		RenderSystem.color4f(0.0F, 1.0F, 0.0F, 0.75F);
 		RenderSystem.disableTexture();
 
 		Matrix4f matrix = matrixStackIn.getLast().getMatrix();
