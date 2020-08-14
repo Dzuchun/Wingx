@@ -26,7 +26,7 @@
 	"wingx.trick.dash.success": "Dash!",
 	"wingx.trick.dash.fail": "Could not dash : <reason>",
 	"wingx.trick.fireball.starting_execute": "Casting fireball...",
-	"wingx.trick.fireball.fail_execute": "Can not cast ffireball : <reason>",
+	"wingx.trick.fireball.fail_execute": "Can not cast fireball : <reason>",
 	"wingx.trick.fireball.executed": "Casted fireball",
 	"wingx.trick.fireball.fail": "Interrupted fireball cast",
 	"wingx.trick.punch.success": "Punch!",
@@ -38,5 +38,9 @@
 	"wingx.trick.swap.fail": "Cannot swap : <reason>",
 	"wingx.config.client.example_boolean": "Example client config boolean",
 	"wingx.config.server.example_boolean": "Example server config boolean",
-	"wingx.gui.node.name": "Node Name"
+	"wingx.gui.node.name": "Node Name",
+	"wingx.gui.node.desc.wingx": "Root node of all the three",
+	"wingx.gui.node.desc.fireball_external": "Fireball node",
+	"wingx.gui.node.desc.fireball_internal": "Upgrade your fireball. UFWEOHIUYFEVO TUYRHIOFER YOFIUNER VILTVIORH NLIUERBPTV  RTYPENO IWHTPIRH GP;IRHGTI URHP GIERHUIUH IUHGOIU HPERI; GRIESLGNIRPGERI GBLIRGB PIERUG PIER; EPROIGH ERPOGHP EROGNLRI;H",
+	"wingx.gui.node.desc.fireball_internal.distance": "Upgrade fireball distance"
 }

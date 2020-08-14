@@ -35,7 +35,21 @@ public class MathHelper {
 		int b = packedColor >> 8 & 255;
 		int a = packedColor & 255;
 		Vector4f color = new Vector4f(r / 255f, g / 255f, b / 255f, a / 255f);
-//		LOG.debug("Unpacked {} to {}", Integer.toHexString(packedColor), color.toString());
 		return color;
+	}
+
+	public static int packColor(float r, float g, float b, float a) {
+		return packColor(r * 255, g * 255, b * 255, a * 255);
+	}
+
+	public static int packColor(int r, int g, int b, int a) {
+		int res = r;
+		res = res << 8;
+		res = res | g;
+		res = res << 8;
+		res = res | b;
+		res = res << 8;
+		res = res | a;
+		return res;
 	}
 }

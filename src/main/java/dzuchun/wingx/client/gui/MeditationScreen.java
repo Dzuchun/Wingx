@@ -20,15 +20,10 @@ import dzuchun.wingx.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector4f;
-import net.minecraft.util.text.Color;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -40,7 +35,6 @@ public class MeditationScreen extends Screen {
 
 	private static final ResourceLocation HUD = new ResourceLocation(Wingx.MOD_ID,
 			"textures/gui/meditation/meditation_hud.png");
-	// TODO remove left side
 	private static final ResourceLocation NODES_ATLAS = new ResourceLocation(Wingx.MOD_ID,
 			"textures/gui/meditation/abillity_node_atlas.png");
 	private static final Vector4f BACKGROUND_COLOR = new Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
@@ -101,13 +95,14 @@ public class MeditationScreen extends Screen {
 						openTime = System.currentTimeMillis();
 					}
 					if (MeditationScreen.selectedNode != null) {
-						this.xCenter = -MeditationScreen.selectedNode.getXCenterPos();
-						this.yCenter = -MeditationScreen.selectedNode.getYCenterPos();
+						this.xCenter = -MeditationScreen.selectedNode.xCenterPos;
+						this.yCenter = -MeditationScreen.selectedNode.yCenterPos;
 					} else {
 						this.xCenter = 0;
 						this.yCenter = 0;
 					}
 					updateRenderedNodes();
+					updateRenderedDescription();
 				}));
 		MeditationScreen.currentRoot = MeditationScreen.currentRoot == null ? AbillityNodes.WINGX : currentRoot;
 		// TODO reset theese on world rejoin
@@ -153,7 +148,6 @@ public class MeditationScreen extends Screen {
 
 	@Override
 	public boolean mouseDragged(double xPos, double yPos, int buttonIn, double xMove, double yMove) {
-//		LOG.debug("Dragged mouse at [{}, {}] for [{}, {}]. Button - {}", xPos, yPos, xMove, yMove, buttonIn);
 		if (canBeClicked(xPos, yPos)) {
 			this.xCenter += xMove;
 			this.yCenter += yMove;
@@ -167,13 +161,42 @@ public class MeditationScreen extends Screen {
 			if (canBeClicked(xPos, yPos)) {
 				boolean flag = selectNode(xPos, yPos);
 				if (flag) {
-					// TODO update description
+					updateRenderedDescription();
 				}
 			} else {
 				// TODO click
 			}
 		}
 		return super.mouseClicked(xPos, yPos, buttonIn);
+	}
+
+	private void updateRenderedDescription() {
+		// TODO fix bug with getting out of bounds
+		int currentWord = 0;
+		renderedDescription.clear();
+		ITextComponent desc = selectedNode.displayDescription;
+		String descString = desc.getString();
+		String[] descWords = descString.split(" ");
+		int wordsCount = descWords.length;
+		if (descWords.length > 0) {
+			String line = descWords[currentWord];
+			currentWord++;
+			int descWidth = this.width / 4;
+			while (currentWord < wordsCount) {
+				if (this.font.getStringWidth(line) >= descWidth) {
+					if (line.split(" ").length > 1) {
+						currentWord--;
+					}
+					line = line.substring(0, Math.max(line.lastIndexOf(descWords[currentWord]) - 1, 0));
+					renderedDescription.add(line);
+					line = descWords[currentWord];
+				} else {
+					line += " " + descWords[currentWord];
+				}
+				currentWord++;
+			}
+			renderedDescription.add(line);
+		}
 	}
 
 	private boolean canBeClicked(double xPos, double yPos) {
@@ -191,8 +214,8 @@ public class MeditationScreen extends Screen {
 		double yCoord = yPos - this.yCenter - this.height / 2;
 		LOG.debug("Trying to select node at [{}, {}]", xCoord, yCoord);
 		for (AbillityNode node : this.renderedNodes) {
-			if (Math.abs(xCoord - node.getXCenterPos()) <= AbillityNode.NODE_SIZE / 2
-					&& Math.abs(yCoord - node.getYCenterPos()) <= AbillityNode.NODE_SIZE / 2) {
+			if (Math.abs(xCoord - node.xCenterPos) <= AbillityNode.NODE_SIZE / 2
+					&& Math.abs(yCoord - node.yCenterPos) <= AbillityNode.NODE_SIZE / 2) {
 				MeditationScreen.selectedNode = node;
 				LOG.debug("Selecting node {}", node);
 				return true;
@@ -244,11 +267,11 @@ public class MeditationScreen extends Screen {
 		// Rendering nodes and lines
 		for (AbillityNode node : this.renderedNodes) {
 			matrixStackIn.push();
-			matrixStackIn.translate(node.getXCenterPos(), node.getYCenterPos(), 0);
+			matrixStackIn.translate(node.xCenterPos, node.yCenterPos, 0);
 			float alpha = 1.0f;
 			float scaleFactor = 1.0f;
-			double distance = Math.sqrt(Math.pow(node.getXCenterPos() + this.xCenter, 2)
-					+ Math.pow(node.getYCenterPos() + this.yCenter, 2));
+			double distance = Math
+					.sqrt(Math.pow(node.xCenterPos + this.xCenter, 2) + Math.pow(node.yCenterPos + this.yCenter, 2));
 			if (ticksPassed - OPEN_ANIMATION_DELAY_OVER_DISTANCE * distance < OPEN_ANIMATION_DURATION) {
 				// TODO optimize!
 				float semiTicksPassed = (float) (ticksPassed - OPEN_ANIMATION_DELAY_OVER_DISTANCE * distance);
@@ -261,8 +284,8 @@ public class MeditationScreen extends Screen {
 			if (!node.getChildren().isEmpty()) {
 				int linesColor = LINES_PACKED_COLOR + Math.round(alpha * 255);
 				for (AbillityNode child : node.getChildren()) {
-					SeparateRenderers.drawLine(matrixStackIn, linesColor, LINES_WIDTH, node.getXCenterPos(),
-							node.getYCenterPos(), child.getXCenterPos(), child.getYCenterPos());
+					SeparateRenderers.drawLine(matrixStackIn, linesColor, LINES_WIDTH, node.xCenterPos, node.yCenterPos,
+							child.xCenterPos, child.yCenterPos);
 				}
 			}
 			// Rendering node
@@ -273,8 +296,8 @@ public class MeditationScreen extends Screen {
 			matrixStackIn.pop();
 		}
 		if (MeditationScreen.selectedNode != null) {
-			int x = MeditationScreen.selectedNode.getXCenterPos() - AbillityNode.NODE_SIZE / 2 - SELECTION_WIDTH;
-			int y = MeditationScreen.selectedNode.getYCenterPos() - AbillityNode.NODE_SIZE / 2 - SELECTION_WIDTH;
+			int x = MeditationScreen.selectedNode.xCenterPos - AbillityNode.NODE_SIZE / 2 - SELECTION_WIDTH;
+			int y = MeditationScreen.selectedNode.yCenterPos - AbillityNode.NODE_SIZE / 2 - SELECTION_WIDTH;
 			int size = AbillityNode.NODE_SIZE + SELECTION_WIDTH * 2 - 1;
 			int length = 5; // TODO parametrize
 			int color = 0xFF00FF00; // TODO parametrize
@@ -294,19 +317,39 @@ public class MeditationScreen extends Screen {
 		matrixStackIn.pop();
 	}
 
+	private static final ArrayList<String> renderedDescription = new ArrayList<String>(0);
+
 	public void renderHud(MatrixStack matrixStackIn, int alphaIn) {
+		// TODO add scaling
 		this.minecraft.getTextureManager().bindTexture(HUD);
-		SeparateRenderers.myBlit(matrixStackIn, 0, 0, this.width, this.height, 0.0f, 0.0f, 1.0f, 1.0f,
-				0xFFFFFF00 + alphaIn, this.minecraft, HUD);
-		String nodeName = I18n.format("wingx.gui.node.name");
-		StringTextComponent nodeNameComponent = new StringTextComponent(nodeName);
-		nodeNameComponent
-				.func_230530_a_(Style.EMPTY.setBold(true).setColor(Color.func_240744_a_(TextFormatting.GREEN)));
-		matrixStackIn.push();
-		float scale = 1f;
-		matrixStackIn.scale(scale, scale, scale);
-		this.font.func_238407_a_(matrixStackIn, nodeNameComponent,
-				this.width / scale - this.font.func_238414_a_(nodeNameComponent), 0.0f / scale, 0xFFFFFF00 + alphaIn);
-		matrixStackIn.pop();
+		int hudColor = 0xFFFFFF00 + alphaIn; // TODO parametrize (?)
+		SeparateRenderers.myBlit(matrixStackIn, 0, 0, this.width, this.height, 0.0f, 0.0f, 1.0f, 1.0f, hudColor,
+				this.minecraft, HUD);
+		if (selectedNode != null) {
+			ITextComponent name = selectedNode.displayName;
+			String nameString = name.getString();
+			int fontHeiht = this.font.FONT_HEIGHT;
+			int width = (int) (this.width * 0.25) - 3;
+			matrixStackIn.push();
+			matrixStackIn.translate(this.width - width, 0, 0);
+			matrixStackIn.push();
+			int nameHeight = (int) (this.height * 0.05);
+			int textColor = 0xFFFFFF00 + alphaIn;
+			this.font.drawString(matrixStackIn, nameString, (width - this.font.getStringWidth(nameString)) / 2.0f,
+					(nameHeight - fontHeiht) / 2.0f, textColor);
+			SeparateRenderers.drawLine(matrixStackIn, -1, 1, 0, nameHeight, width, nameHeight);
+			matrixStackIn.translate(0, nameHeight + 2, 0);
+			matrixStackIn.push();
+			// TODO check if it fits place
+			int descColor = 0x00CCCCCC + (alphaIn << 24);
+			for (String row : renderedDescription) {
+				this.font.drawString(matrixStackIn, row, width - this.font.getStringWidth(row), 0, descColor);
+				matrixStackIn.translate(0, fontHeiht + 1, 0);
+			}
+			matrixStackIn.pop();
+			matrixStackIn.pop();
+			// TODO draw composite skills
+			matrixStackIn.pop();
+		}
 	}
 }
