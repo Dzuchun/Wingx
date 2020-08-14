@@ -23,7 +23,10 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector4f;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -103,6 +106,7 @@ public class MeditationScreen extends Screen {
 					}
 					updateRenderedNodes();
 					updateRenderedDescription();
+					updateUnlocked();
 				}));
 		MeditationScreen.currentRoot = MeditationScreen.currentRoot == null ? AbillityNodes.WINGX : currentRoot;
 		// TODO reset theese on world rejoin
@@ -327,7 +331,6 @@ public class MeditationScreen extends Screen {
 				this.minecraft, HUD);
 		if (selectedNode != null) {
 			ITextComponent name = selectedNode.displayName;
-			String nameString = name.getString();
 			int fontHeiht = this.font.FONT_HEIGHT;
 			int width = (int) (this.width * 0.25) - 3;
 			matrixStackIn.push();
@@ -335,15 +338,18 @@ public class MeditationScreen extends Screen {
 			matrixStackIn.push();
 			int nameHeight = (int) (this.height * 0.05);
 			int textColor = 0xFFFFFF00 + alphaIn;
-			this.font.drawString(matrixStackIn, nameString, (width - this.font.getStringWidth(nameString)) / 2.0f,
+			this.font.func_238422_b_(matrixStackIn, name, (width - this.font.func_238414_a_(name)) / 2.0f,
 					(nameHeight - fontHeiht) / 2.0f, textColor);
 			SeparateRenderers.drawLine(matrixStackIn, -1, 1, 0, nameHeight, width, nameHeight);
 			matrixStackIn.translate(0, nameHeight + 2, 0);
 			matrixStackIn.push();
 			// TODO check if it fits place
 			int descColor = 0x00CCCCCC + (alphaIn << 24);
+			Style descStyle = selectedNode.displayDescription.getStyle();
 			for (String row : renderedDescription) {
-				this.font.drawString(matrixStackIn, row, width - this.font.getStringWidth(row), 0, descColor);
+				IFormattableTextComponent rowComponent = new StringTextComponent(row).func_230530_a_(descStyle);
+				this.font.func_238422_b_(matrixStackIn, rowComponent, width - this.font.func_238414_a_(rowComponent), 0,
+						descColor);
 				matrixStackIn.translate(0, fontHeiht + 1, 0);
 			}
 			matrixStackIn.pop();
