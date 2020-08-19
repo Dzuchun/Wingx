@@ -123,10 +123,10 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 					LOG.warn("Could not activate overlay!!");
 				}
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.start")
-						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
+						.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
 			} else {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.fail")
-						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
+						.setStyle(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
 			}
 		}
 		super.execute(side);
@@ -154,10 +154,10 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 			if (amICaster()) {
 				if (castEndedNaturally()) {
 					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.success")
-							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
+							.setStyle(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
 				} else {
 					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.interrupted")
-							.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
+							.setStyle(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
 				}
 				if (!castEndedNaturally()) {
 					FadingScreenOverlay overlay = FadingScreenOverlay.instance;

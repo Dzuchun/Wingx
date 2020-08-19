@@ -26,7 +26,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 @OnlyIn(value = Dist.CLIENT)
-@SuppressWarnings("deprecation")
 public class SeparateRenderers {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();

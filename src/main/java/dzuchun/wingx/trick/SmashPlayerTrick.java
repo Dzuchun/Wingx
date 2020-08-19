@@ -81,10 +81,10 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 			Minecraft minecraft = Minecraft.getInstance();
 			if (this.succesfull) {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.smash.succesfull")
-						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.LIGHT_PURPLE)), true);
+						.setStyle(Style.EMPTY.setFormatting(TextFormatting.LIGHT_PURPLE)), true);
 			} else {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.smash.fail")
-						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
+						.setStyle(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
 			}
 		}
 	}
@@ -112,7 +112,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		if (side == LogicalSide.CLIENT) {
 			Minecraft minecraft = Minecraft.getInstance();
 			minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.smash.completed")
-					.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
+					.setStyle(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
 			// Make additional variable then!
 			this.casterWorld.playSound(minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
 					minecraft.player.getPosZ(), SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0f, 1.0f);

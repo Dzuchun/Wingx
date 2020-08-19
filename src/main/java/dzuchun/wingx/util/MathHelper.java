@@ -39,7 +39,7 @@ public class MathHelper {
 	}
 
 	public static int packColor(float r, float g, float b, float a) {
-		return packColor(r * 255, g * 255, b * 255, a * 255);
+		return packColor((int) (r * 255f), (int) (g * 255f), (int) (b * 255f), (int) (a * 255f));
 	}
 
 	public static int packColor(int r, int g, int b, int a) {

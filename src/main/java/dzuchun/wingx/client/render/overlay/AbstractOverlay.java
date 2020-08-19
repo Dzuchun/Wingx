@@ -11,6 +11,7 @@ import net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggedOutEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 @OnlyIn(value = Dist.CLIENT)
@@ -87,6 +88,17 @@ public abstract class AbstractOverlay {
 	}
 
 	void renderLiving(@SuppressWarnings("rawtypes") RenderLivingEvent event) {
+	}
+
+	public static void onRenderWorldLast(RenderWorldLastEvent event) {
+		synchronized (ACTIVE_OVERLAYS_LOCK) {
+			activeOverlays.forEach((AbstractOverlay overlay) -> {
+				overlay.renderWorldLast(event);
+			});
+		}
+	}
+
+	void renderWorldLast(RenderWorldLastEvent event) {
 	}
 
 	protected abstract boolean activate();

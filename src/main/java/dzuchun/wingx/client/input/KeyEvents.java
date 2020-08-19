@@ -83,7 +83,7 @@ enum WingxKey {
 		@Override
 		public void execute() {
 			Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wingx.meditating")
-					.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
+					.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
 			WingxPacketHandler.INSTANCE
 					.sendToServer(new TrickPerformedMessage(new MeditationPlayerTrick(Minecraft.getInstance().player)));
 		}

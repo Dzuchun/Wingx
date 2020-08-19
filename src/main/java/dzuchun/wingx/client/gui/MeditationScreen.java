@@ -261,7 +261,6 @@ public class MeditationScreen extends Screen {
 
 	private List<AbillityNode> renderedNodes = new ArrayList<AbillityNode>();
 
-	@SuppressWarnings("deprecation")
 	private void renderNodes(MatrixStack matrixStackIn) {
 		// TODO optimize! (render only visible)
 		matrixStackIn.push();
@@ -347,7 +346,7 @@ public class MeditationScreen extends Screen {
 			int descColor = 0x00CCCCCC + (alphaIn << 24);
 			Style descStyle = selectedNode.displayDescription.getStyle();
 			for (String row : renderedDescription) {
-				IFormattableTextComponent rowComponent = new StringTextComponent(row).func_230530_a_(descStyle);
+				IFormattableTextComponent rowComponent = new StringTextComponent(row).setStyle(descStyle);
 				this.font.func_238422_b_(matrixStackIn, rowComponent, width - this.font.func_238414_a_(rowComponent), 0,
 						descColor);
 				matrixStackIn.translate(0, fontHeiht + 1, 0);

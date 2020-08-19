@@ -42,5 +42,8 @@
 	"wingx.gui.node.desc.wingx": "Root node of all the three",
 	"wingx.gui.node.desc.fireball_external": "Fireball node",
 	"wingx.gui.node.desc.fireball_internal": "Upgrade your fireball",
-	"wingx.gui.node.desc.fireball_internal.distance": "Upgrade fireball distance"
+	"wingx.gui.node.desc.fireball_internal.distance": "Upgrade fireball distance",
+	"wingx.gui.node.desc.hasty_external": "Hasty node",
+	"subtitles.wingx.end.ambient" : "Example end ambient",
+	"subtitles.wingx.random.hasty_proc" : "Hasty proced"
 }

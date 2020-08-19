@@ -74,11 +74,11 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 			Minecraft minecraft = Minecraft.getInstance();
 			if (this.succesfull) {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.dash.success")
-						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.AQUA)), true);
+						.setStyle(Style.EMPTY.setFormatting(TextFormatting.AQUA)), true);
 			} else {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.dash.fail")
 						// TODO add reason
-						.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
+						.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
 				// TODO specify reason
 			}
 		}

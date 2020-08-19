@@ -6,8 +6,10 @@ import java.util.List;
 public class Serializers {
 	public static final Serializer<FireballData> FIREBALL_SERIALIZER = new FireballDataSerializer();
 	public static final Serializer<BasicData> BASIC_SERIALIZER = new BasicDataSerializer();
+	public static final Serializer<HastyData> HASTY_SERIALIZER = new HastyDataSerializer();
 
-	public static final List<Serializer<?>> DEFAULT_SERIALIZERS = Arrays.asList(FIREBALL_SERIALIZER, BASIC_SERIALIZER);
+	public static final List<Serializer<?>> DEFAULT_SERIALIZERS = Arrays.asList(FIREBALL_SERIALIZER, BASIC_SERIALIZER,
+			HASTY_SERIALIZER);
 
 	public static void init() {
 		for (Serializer<?> serializer : DEFAULT_SERIALIZERS) {

@@ -48,7 +48,7 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 				Minecraft minecraft = Minecraft.getInstance();
 				minecraft.player
 						.sendStatusMessage(new TranslationTextComponent("wingx.trick.interrubtable.template.fail")
-								.func_230530_a_(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
+								.setStyle(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
 			}
 		}
 		super.execute(side);

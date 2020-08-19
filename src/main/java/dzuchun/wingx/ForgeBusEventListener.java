@@ -1,11 +1,14 @@
 package dzuchun.wingx;
 
+import java.util.Random;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.BasicData;
+import dzuchun.wingx.capability.entity.wings.storage.HastyData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
@@ -13,17 +16,23 @@ import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.client.render.overlay.AbstractTickingOverlay;
 import dzuchun.wingx.command.impl.WingxComand;
 import dzuchun.wingx.entity.misc.WingsEntity;
+import dzuchun.wingx.net.TrickPerformedMessage;
+import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
+import dzuchun.wingx.trick.HastyPlayerTrick;
 import dzuchun.wingx.trick.meditation.MeditationUtil;
 import dzuchun.wingx.util.animation.AnimationHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.management.PlayerInteractionManager;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggedOutEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.Post;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.PlayerTickEvent;
@@ -33,6 +42,7 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 /**
  * Used to subscribe needed methods to event bus. Will need to change that later
@@ -48,6 +58,8 @@ public class ForgeBusEventListener {
 	public static void init() {
 	}
 
+	private static Random tmp_random = new Random();
+
 	@SuppressWarnings("resource")
 	@SubscribeEvent
 	public static void onPlayerTick(final PlayerTickEvent event) {
@@ -55,22 +67,41 @@ public class ForgeBusEventListener {
 			return;
 		}
 		event.player.getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wings) -> {
-			BasicData data = wings.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
-			if (data.wingsActive) {
+			BasicData basicData = wings.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+			if (basicData.wingsActive) {
 				if (event.side == LogicalSide.CLIENT) {
 					((ClientWorld) event.player.world).getAllEntities().forEach((Entity entity) -> {
 						if (entity instanceof WingsEntity
-								&& ((WingsEntity) entity).getUniqueID().equals(data.wingsUniqueId)) {
+								&& ((WingsEntity) entity).getUniqueID().equals(basicData.wingsUniqueId)) {
 							((WingsEntity) entity).realSetPosAndUpdate();
 						}
 					});
 				} else {
 					((ServerWorld) event.player.world).getEntities().forEach((Entity entity) -> {
 						if (entity instanceof WingsEntity
-								&& ((WingsEntity) entity).getUniqueID().equals(data.wingsUniqueId)) {
+								&& ((WingsEntity) entity).getUniqueID().equals(basicData.wingsUniqueId)) {
 							((WingsEntity) entity).realSetPosAndUpdate();
 						}
 					});
+				}
+			}
+			if (event.side == LogicalSide.SERVER) {
+				ServerPlayerEntity serverPlayer = (ServerPlayerEntity) event.player;
+				HastyData hastyData = wings.getDataManager().getOrAddDefault(Serializers.HASTY_SERIALIZER);
+				long currentTime = serverPlayer.world.getGameTime();
+				PlayerInteractionManager interaction = serverPlayer.interactionManager;
+				ServerWorld world = (ServerWorld) serverPlayer.world;
+				if (interaction.isDestroyingBlock
+						&& world.getBlockState(interaction.destroyPos).getBlockHardness(world,
+								interaction.destroyPos) > 0
+						&& (currentTime - hastyData.lastProc) > hastyData.cooldown
+						&& tmp_random.nextDouble() < hastyData.probability) {
+					hastyData.lastProc = currentTime;
+					WingxPacketHandler.INSTANCE.send(
+							PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> serverPlayer),
+							new TrickPerformedMessage(
+									new HastyPlayerTrick(serverPlayer, hastyData, interaction.destroyPos)));
+					// TODO add stat (later)
 				}
 			}
 		});
@@ -137,5 +168,10 @@ public class ForgeBusEventListener {
 		LOG.debug("Registering wingx command");
 		WingxComand.register(event.getServer().getCommandManager().getDispatcher());
 		LOG.debug("Registered wingx command");
+	}
+
+	@SubscribeEvent
+	public static void onRenderWorldLast(final RenderWorldLastEvent event) {
+		AbstractTickingOverlay.onRenderWorldLast(event);
 	}
 }

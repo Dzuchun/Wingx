@@ -1,8 +1,14 @@
 {
-  "ambient.wingx.end": {
-    "sounds": [
-      "wingx:ambient/end/ambient1"
-    ],
-    "subtitle": "subtitles.wingx.end.ambient"
-  }
+	"ambient.wingx.end": {
+		"sounds": [
+			"wingx:ambient/end/ambient1"
+		],
+		"subtitle": "subtitles.wingx.end.ambient"
+	},
+	"random.hasty_proc": {
+		"sounds" : [
+			"wingx:random/hasty_proc"
+		],
+		"subtitle": "subtitles.wingx.random.hasty_proc"
+	}
 }

@@ -17,6 +17,7 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 
@@ -63,7 +64,10 @@ public class TrickPerformedMessage {
 							((ITargetedTrick) trick).setTargetWorld(world);
 						}
 						trick.execute(LogicalSide.SERVER);
-						WingxPacketHandler.INSTANCE.send(trick.getBackPacketTarget(), msg);
+						PacketTarget target = trick.getBackPacketTarget();
+						if (target != null) {
+							WingxPacketHandler.INSTANCE.send(target, msg);
+						}
 
 					} else {
 						LOG.warn("Unknown direction, ignoring message");
