@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import dzuchun.wingx.Wingx;
+import dzuchun.wingx.client.render.overlay.GearSkyOverlay;
 import dzuchun.wingx.net.ToggleWingsMessage;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
@@ -250,6 +251,25 @@ enum WingxKey {
 			super.register();
 		}
 	},
+	SKY {
+
+		@Override
+		public void execute() {
+			GearSkyOverlay instance = GearSkyOverlay.instance;
+			if (instance != null) {
+				instance.deactivate();
+			} else {
+				new GearSkyOverlay().activate();
+			}
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.toggle_sky", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+			super.register();
+		}
+	},
 	TEMPLATE {
 
 		@Override
@@ -260,7 +280,7 @@ enum WingxKey {
 		@Override
 		public void register() {
 //			this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-//					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME);
+//					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
 	};

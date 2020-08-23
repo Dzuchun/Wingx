@@ -10,6 +10,7 @@
 	"key.wingx.swap": "Perform Swap",
 	"key.wingx.fireball": "Cast Fireball",
 	"key.wingx.section_name": "Wingx Keys",
+	"key.wingx.toggle_sky": "Toggle Sky",
 	"wingx.commands.error.unknown": "Unknown error happened",
 	"wingx.commands.error.no_wings": "Target does not have wings",
 	"wingx.commands.error.not_enough_arguments": "Few arguments",
@@ -44,6 +45,6 @@
 	"wingx.gui.node.desc.fireball_internal": "Upgrade your fireball",
 	"wingx.gui.node.desc.fireball_internal.distance": "Upgrade fireball distance",
 	"wingx.gui.node.desc.hasty_external": "Hasty node",
-	"subtitles.wingx.end.ambient" : "Example end ambient",
-	"subtitles.wingx.random.hasty_proc" : "Hasty proced"
+	"subtitles.wingx.end.ambient": "Example end ambient",
+	"subtitles.wingx.random.hasty_proc": "Hasty proced"
 }

@@ -37,7 +37,6 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 
 	private static final ResourceLocation PIG_TEXTURES = new ResourceLocation("textures/entity/pig/pig.png");
 	protected final WingsModel<WingsEntity> modelAll = new WingsModel<WingsEntity>();
-	private boolean isActive = false;
 	private double radiusSq = 0.0d;
 	private boolean mustSee = true;
 	private Predicate<LivingEntity> additionalCondition = (LivingEntity entity) -> true;
@@ -48,7 +47,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 		if (other != null) {
 			this.additionalCondition = other;
 		}
-		if (instance == null || instance.isActive == false) {
+		if (instance == null || instance.active == false) {
 			instance = this;
 		}
 	}
@@ -56,11 +55,6 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 	@Override
 	boolean conflicts(AbstractOverlay other) {
 		return other instanceof LivingEntitySelectOverlay ? true : false;
-	}
-
-	@Override
-	public boolean isActive() {
-		return this.isActive;
 	}
 
 	private LivingEntity target = null;
@@ -139,7 +133,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 	@Override
 	public void deactivate() {
 		deactivate(this);
-		this.isActive = false;
+		this.active = false;
 		instance = null;
 	}
 
@@ -149,7 +143,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 
 	@Override
 	public boolean activate() {
-		this.isActive = activate(this);
-		return this.isActive;
+		this.active = activate(this);
+		return this.active;
 	}
 }

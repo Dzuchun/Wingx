@@ -35,7 +35,6 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 	private static final VertexFormat VERTEX_FORMAT = new VertexFormat(ImmutableList
 			.of(DefaultVertexFormats.POSITION_3F, DefaultVertexFormats.COLOR_4UB, DefaultVertexFormats.TEX_2F));
 
-	private boolean isActive;
 	private long endTime;
 
 	private long beginTime;
@@ -53,16 +52,11 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 		return false;
 	}
 
-	@Override
-	public boolean isActive() {
-		return this.isActive;
-	}
-
 	@SuppressWarnings("resource")
 	@Override
 	public void onClienTick(ClientTickEvent event) {
 		if (this.endTime < Minecraft.getInstance().world.getGameTime()) {
-			this.isActive = false;
+			this.active = false;
 		}
 	}
 
@@ -159,7 +153,7 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 			LOG.warn("Could not activate overlay of {} type", this.getClass().getName());
 			return false;
 		}
-		this.isActive = true;
+		this.active = true;
 		this.beginTime = Minecraft.getInstance().world.getGameTime();
 		this.endTime = this.beginTime + DURATION;
 		return true;

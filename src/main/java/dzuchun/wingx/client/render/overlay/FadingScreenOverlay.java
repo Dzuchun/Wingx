@@ -33,7 +33,6 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 	public static Consumer<Boolean> DO_NOTHING = (successfull) -> {
 	};
 
-	private boolean isActive = false;
 	private Vector4f beginColor;
 	private Vector4f endColor;
 	private Vector4f lastColor;
@@ -66,18 +65,13 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 	@Override
 	public void onClienTick(ClientTickEvent event) {
 		if (this.endTime < Minecraft.getInstance().world.getGameTime()) {
-			this.isActive = false;
+			this.active = false;
 		}
 	}
 
 	@Override
 	boolean conflicts(AbstractOverlay other) {
 		return other instanceof FadingScreenOverlay;
-	}
-
-	@Override
-	public boolean isActive() {
-		return this.isActive;
 	}
 
 	@Override
@@ -102,7 +96,7 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 			LOG.warn("Could not activate overlay of {} type", this.getClass().getName());
 			return false;
 		}
-		this.isActive = true;
+		this.active = true;
 		instance = this;
 		this.beginTime = Minecraft.getInstance().world.getGameTime();
 		this.endTime = this.beginTime + this.ticksDuration;
@@ -116,7 +110,7 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 		if (this.onClose != null) {
 			this.onClose.accept(Minecraft.getInstance().world.getGameTime() >= this.endTime);
 		}
-		this.isActive = false;
+		this.active = false;
 		instance = null;
 		super.deactivate();
 	}

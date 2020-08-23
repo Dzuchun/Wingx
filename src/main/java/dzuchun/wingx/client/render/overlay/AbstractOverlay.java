@@ -101,9 +101,15 @@ public abstract class AbstractOverlay {
 	void renderWorldLast(RenderWorldLastEvent event) {
 	}
 
+	// TODO create default method!
 	protected abstract boolean activate();
 
+	// TODO create default method!
 	protected abstract void deactivate();
 
-	public abstract boolean isActive();
+	protected boolean active = false;
+
+	public boolean isActive() {
+		return this.active;
+	}
 }
