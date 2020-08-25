@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.trick.AbstractTrick;
+import dzuchun.wingx.trick.AgilPlayerTrick;
 import dzuchun.wingx.trick.DashPlayerTrick;
 import dzuchun.wingx.trick.FireballCastPlayerTrick;
 import dzuchun.wingx.trick.HastyPlayerTrick;
@@ -43,7 +44,7 @@ public class ModBusEventListener {
 	public static void registerTricks(final RegistryEvent.Register<AbstractTrick> event) {
 		event.getRegistry().registerAll(new DashPlayerTrick(), new SmashPlayerTrick(), new PunchPlayerTrick(),
 				new TemplateCastPlayerTrick(), new SwapPlayerTrick(), new MeditationPlayerTrick(),
-				new FireballCastPlayerTrick(), new HastyPlayerTrick());
+				new FireballCastPlayerTrick(), new HastyPlayerTrick(), new AgilPlayerTrick());
 	}
 
 	// Texture locations
@@ -53,15 +54,21 @@ public class ModBusEventListener {
 
 	private static final ResourceLocation AMBIENT_END_LOCATION = new ResourceLocation(Wingx.MOD_ID,
 			"ambient.wingx.end");
+
 	private static final ResourceLocation HASTY_PROC_SOUND_LOCATION = new ResourceLocation(Wingx.MOD_ID,
 			"random.hasty_proc");
 	public static SoundEvent HASTY_PROC_SOUND;
+	private static final ResourceLocation AGIL_PROC_SOUND_LOCATION = new ResourceLocation(Wingx.MOD_ID,
+			"random.agil_proc");
+	public static SoundEvent AGIL_PROC_SOUND;
 
 	@SubscribeEvent
 	public static void registerSounds(final RegistryEvent.Register<SoundEvent> event) {
 		HASTY_PROC_SOUND = new SoundEvent(HASTY_PROC_SOUND_LOCATION).setRegistryName(HASTY_PROC_SOUND_LOCATION);
+		AGIL_PROC_SOUND = new SoundEvent(AGIL_PROC_SOUND_LOCATION).setRegistryName(AGIL_PROC_SOUND_LOCATION);
+
 		event.getRegistry().registerAll(new SoundEvent(AMBIENT_END_LOCATION).setRegistryName(AMBIENT_END_LOCATION),
-				HASTY_PROC_SOUND);
+				HASTY_PROC_SOUND, AGIL_PROC_SOUND);
 	}
 
 	@OnlyIn(value = Dist.CLIENT)

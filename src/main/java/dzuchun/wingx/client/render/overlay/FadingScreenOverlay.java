@@ -33,14 +33,14 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 	public static Consumer<Boolean> DO_NOTHING = (successfull) -> {
 	};
 
-	private Vector4f beginColor;
-	private Vector4f endColor;
-	private Vector4f lastColor;
-	private double ticksDuration;
-	private double beginTime;
-	private double endTime;
-	private Consumer<Boolean> onClose;
-	private FadeFunction fadeFunction;
+	protected Vector4f beginColor;
+	protected Vector4f endColor;
+	protected Vector4f lastColor;
+	protected double ticksDuration;
+	protected double beginTime;
+	protected double endTime;
+	protected Consumer<Boolean> onClose;
+	protected FadeFunction fadeFunction;
 
 	public FadingScreenOverlay(Vector4f beginColor, Vector4f endColor, double ticksDuration,
 			Consumer<Boolean> onDeactivate, FadeFunction fadeFunction) {

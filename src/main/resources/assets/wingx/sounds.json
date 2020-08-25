@@ -10,5 +10,11 @@
 			"wingx:random/hasty_proc"
 		],
 		"subtitle": "subtitles.wingx.random.hasty_proc"
+	},
+	"random.agil_proc": {
+		"sounds" : [
+			"wingx:random/agil_proc"
+		],
+		"subtitle": "subtitles.wingx.random.agil_proc"
 	}
 }

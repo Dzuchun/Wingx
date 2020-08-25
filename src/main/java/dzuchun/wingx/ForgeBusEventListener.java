@@ -1,12 +1,18 @@
 package dzuchun.wingx;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ibm.icu.impl.Pair;
+
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
+import dzuchun.wingx.capability.entity.wings.WingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.capability.entity.wings.storage.AgilData;
 import dzuchun.wingx.capability.entity.wings.storage.BasicData;
 import dzuchun.wingx.capability.entity.wings.storage.HastyData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
@@ -19,14 +25,19 @@ import dzuchun.wingx.entity.misc.WingsEntity;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
+import dzuchun.wingx.trick.AgilPlayerTrick;
 import dzuchun.wingx.trick.HastyPlayerTrick;
 import dzuchun.wingx.trick.meditation.MeditationUtil;
 import dzuchun.wingx.util.animation.AnimationHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.entity.projectile.ProjectileHelper;
 import net.minecraft.server.management.PlayerInteractionManager;
+import net.minecraft.util.EntityPredicates;
+import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggedOutEvent;
@@ -37,6 +48,7 @@ import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.PlayerTickEvent;
 import net.minecraftforge.event.TickEvent.WorldTickEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
@@ -67,17 +79,19 @@ public class ForgeBusEventListener {
 			return;
 		}
 		event.player.getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wings) -> {
+			PlayerEntity player = event.player;
+			World world = player.world;
 			BasicData basicData = wings.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
 			if (basicData.wingsActive) {
 				if (event.side == LogicalSide.CLIENT) {
-					((ClientWorld) event.player.world).getAllEntities().forEach((Entity entity) -> {
+					((ClientWorld) world).getAllEntities().forEach((Entity entity) -> {
 						if (entity instanceof WingsEntity
 								&& ((WingsEntity) entity).getUniqueID().equals(basicData.wingsUniqueId)) {
 							((WingsEntity) entity).realSetPosAndUpdate();
 						}
 					});
 				} else {
-					((ServerWorld) event.player.world).getEntities().forEach((Entity entity) -> {
+					((ServerWorld) world).getEntities().forEach((Entity entity) -> {
 						if (entity instanceof WingsEntity
 								&& ((WingsEntity) entity).getUniqueID().equals(basicData.wingsUniqueId)) {
 							((WingsEntity) entity).realSetPosAndUpdate();
@@ -86,11 +100,10 @@ public class ForgeBusEventListener {
 				}
 			}
 			if (event.side == LogicalSide.SERVER) {
-				ServerPlayerEntity serverPlayer = (ServerPlayerEntity) event.player;
+				ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
 				HastyData hastyData = wings.getDataManager().getOrAddDefault(Serializers.HASTY_SERIALIZER);
 				long currentTime = serverPlayer.world.getGameTime();
 				PlayerInteractionManager interaction = serverPlayer.interactionManager;
-				ServerWorld world = (ServerWorld) serverPlayer.world;
 				if (interaction.isDestroyingBlock
 						&& world.getBlockState(interaction.destroyPos).getBlockHardness(world,
 								interaction.destroyPos) > 0
@@ -101,11 +114,32 @@ public class ForgeBusEventListener {
 							PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> serverPlayer),
 							new TrickPerformedMessage(
 									new HastyPlayerTrick(serverPlayer, hastyData, interaction.destroyPos)));
-					// TODO add stat (later)
+					// TODO add stat (hasty)
+				}
+				if (player.ticksSinceLastSwing == 0) {
+					AgilData agilData = wings.getDataManager().getOrAddDefault(Serializers.AGIL_SERIALIZER);
+					if (agilData.isActive && (world.getGameTime() - agilData.lastProc) >= agilData.cooldown) {
+						EntityRayTraceResult entityRayTrace = ProjectileHelper.rayTraceEntities(world, player,
+								player.getEyePosition(1.0f),
+								player.getPositionVec().add(serverPlayer.getForward().scale(5.0d)),
+								player.getBoundingBox().grow(5.0d), EntityPredicates.IS_ALIVE);
+						if (entityRayTrace != null && tmp_random.nextDouble() <= agilData.probability) {
+							agilData.lastProc = player.world.getGameTime();
+							player.ticksSinceLastSwing = 1000;
+							Entity target = entityRayTrace.getEntity();
+							target.hurtResistantTime = 0;
+							WingxPacketHandler.INSTANCE.send(
+									PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
+									new TrickPerformedMessage(new AgilPlayerTrick(player, target, agilData)));
+							// TODO add stat (agil)
+						}
+					}
 				}
 			}
 		});
 	}
+
+	private static List<Pair<AttackEntityEvent, WingsCapability>> attackEventsToProcess = new ArrayList<Pair<AttackEntityEvent, WingsCapability>>();
 
 	@SubscribeEvent
 	public static void onWorldTick(final WorldTickEvent event) {
@@ -118,6 +152,10 @@ public class ForgeBusEventListener {
 							cap.onWorldTick(world);
 						});
 				AnimationHandler.onServerTick(event);
+				for (Pair<AttackEntityEvent, WingsCapability> attackEvent : attackEventsToProcess) {
+					processAttackEntityEvent(attackEvent.first, attackEvent.second);
+				}
+				attackEventsToProcess.clear();
 			}
 		}
 	}
@@ -174,4 +212,14 @@ public class ForgeBusEventListener {
 	public static void onRenderWorldLast(final RenderWorldLastEvent event) {
 		AbstractTickingOverlay.onRenderWorldLast(event);
 	}
+
+	@SubscribeEvent
+	public static void onAttackEntityEvent(final AttackEntityEvent event) {
+
+	}
+
+	private static void processAttackEntityEvent(AttackEntityEvent event, WingsCapability cap) {
+		LOG.info("Processing event");
+	}
+
 }

@@ -53,4 +53,12 @@ public class AbillityNodes {
 			this.isUnlocked = capabilityIn.getDataManager().getOrAddDefault(Serializers.HASTY_SERIALIZER).unlocked;
 		}
 	};
+	public static final ExternalAbillityNode AGIL = new ExternalAbillityNode(0, 60, 5, new StringTextComponent("Agil"),
+			new TranslationTextComponent("wingx.gui.node.desc.agil_external"), null, WINGX) {
+
+		@Override
+		public void setUnlocked(IWingsCapability capabilityIn) {
+			this.isUnlocked = false;
+		}
+	};
 }

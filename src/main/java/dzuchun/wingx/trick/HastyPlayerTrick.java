@@ -56,8 +56,8 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 					// Performing animation
 					new HastyPostAnimationOverlay(this.blocksPos, this.data).activate();
 					// Playing sound
-					minecraft.world.playSound((PlayerEntity) caster, this.blocksPos,
-							ModBusEventListener.HASTY_PROC_SOUND, SoundCategory.PLAYERS, 1.0f, 1.0f);
+					minecraft.world.playSound(minecraft.player, this.blocksPos, ModBusEventListener.HASTY_PROC_SOUND,
+							SoundCategory.PLAYERS, 1.0f, 1.0f);
 				}
 			}
 		}
