@@ -1,6 +1,5 @@
 package dzuchun.wingx.capability.entity.wings.storage;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -10,7 +9,6 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick.InterruptCondition;
-import net.minecraftforge.event.entity.ProjectileImpactEvent.Fireball;
 
 public class FireballData extends SerializedData {
 

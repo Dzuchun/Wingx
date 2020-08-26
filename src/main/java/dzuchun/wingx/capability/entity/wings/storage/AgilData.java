@@ -1,6 +1,5 @@
 package dzuchun.wingx.capability.entity.wings.storage;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,9 +35,9 @@ public class AgilData extends SerializedData {
 				new CommandLiteral<AgilData, Boolean>("active", BoolArgumentType.bool(), (data, b) -> data.isActive = b,
 						Boolean.class),
 				new CommandLiteral<AgilData, Integer>("cooldown", IntegerArgumentType.integer(),
-						(data, i) -> ((AgilData) data).cooldown = i, Integer.class),
+						(data, i) -> data.cooldown = i, Integer.class),
 				new CommandLiteral<AgilData, Double>("probability", DoubleArgumentType.doubleArg(),
-						(data, d) -> ((AgilData) data).probability = d, Double.class));
+						(data, d) -> data.probability = d, Double.class));
 	}
 
 }

@@ -2,7 +2,6 @@ package dzuchun.wingx.capability.entity.wings.storage;
 
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
@@ -17,7 +16,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.StringTextComponent;
 
 public abstract class SerializedData {
 	private static final Logger LOG = LogManager.getLogger();
@@ -47,18 +45,18 @@ public abstract class SerializedData {
 	@Nonnull
 	@SuppressWarnings("rawtypes")
 	public ArgumentBuilder getArgumentBuilder() {
-		if (argumentBuilder == null) {
-			argumentBuilder = getArgumentBuilderInner();
+		if (this.argumentBuilder == null) {
+			this.argumentBuilder = getArgumentBuilderInner();
 		}
-		return argumentBuilder;
+		return this.argumentBuilder;
 	}
 
 	protected class CommandLiteral<V extends SerializedData, U> {
 		public CommandLiteral(String nameIn, ArgumentType<U> typeIn, BiConsumer<V, U> setterIn, Class<U> classIn) {
-			name = nameIn;
-			type = typeIn;
-			setter = setterIn;
-			classField = classIn;
+			this.name = nameIn;
+			this.type = typeIn;
+			this.setter = setterIn;
+			this.classField = classIn;
 		}
 
 		private final String name;
@@ -69,10 +67,10 @@ public abstract class SerializedData {
 		public void set(CommandContext<CommandSource> source) {
 			try {
 				LOG.debug("Executing set");
-				U arg = source.getArgument(name, classField);
-				LOG.debug("Setting {}-{} to {} for {}", getSerializer().getName(), name, arg,
+				U arg = source.getArgument(this.name, this.classField);
+				LOG.debug("Setting {}-{} to {} for {}", getSerializer().getName(), this.name, arg,
 						source.getSource().asPlayer().getGameProfile().getName());
-				setter.accept(source.getSource().asPlayer().getCapability(WingsProvider.WINGS).orElse(null)
+				this.setter.accept(source.getSource().asPlayer().getCapability(WingsProvider.WINGS).orElse(null)
 						.getDataManager().getOrAddDefault(getSerializer()), arg);
 //				source.getSource().sendFeedback(new StringTextComponent("a"), true);
 			} catch (CommandSyntaxException | NullPointerException | IllegalArgumentException e) {

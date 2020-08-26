@@ -3,7 +3,6 @@ package dzuchun.wingx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Predicate;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,13 +32,11 @@ import dzuchun.wingx.util.animation.AnimationHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.entity.projectile.ProjectileHelper;
 import net.minecraft.server.management.PlayerInteractionManager;
-import net.minecraft.util.EntityPredicates;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -125,7 +122,7 @@ public class ForgeBusEventListener {
 				if (player.ticksSinceLastSwing == 0) {
 					AgilData agilData = wings.getDataManager().getOrAddDefault(Serializers.AGIL_SERIALIZER);
 					if (agilData.isActive && (world.getGameTime() - agilData.lastProc) >= agilData.cooldown) {
-						//TODO specify reach distance
+						// TODO specify reach distance
 						EntityRayTraceResult entityRayTrace = ProjectileHelper.rayTraceEntities(world, player,
 								player.getEyePosition(1.0f),
 								player.getPositionVec().add(serverPlayer.getForward().scale(5.0d)),

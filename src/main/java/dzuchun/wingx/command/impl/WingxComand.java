@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.ibm.icu.impl.Pair;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 
