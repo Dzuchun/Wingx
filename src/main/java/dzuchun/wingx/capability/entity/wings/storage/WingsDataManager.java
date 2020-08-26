@@ -8,7 +8,10 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mojang.brigadier.builder.ArgumentBuilder;
+
 import io.netty.util.internal.ConcurrentSet;
+import net.minecraft.command.Commands;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 
@@ -27,6 +30,17 @@ public class WingsDataManager {
 
 	public static Collection<Serializer<?>> getRegisteredSerializers() {
 		return new ArrayList<Serializer<?>>(registry.values());
+	}
+
+	private static final String COMMAND_LITERAL = "modify";
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static ArgumentBuilder getCommand() {
+		ArgumentBuilder res = Commands.literal(COMMAND_LITERAL);
+		for (Serializer<?> ser : registry.values()) {
+			res.then(ser.getDefault().getArgumentBuilder());
+		}
+		return res;
 	}
 
 	public void read(CompoundNBT nbt) {

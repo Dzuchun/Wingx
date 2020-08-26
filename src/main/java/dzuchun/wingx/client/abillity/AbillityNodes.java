@@ -41,7 +41,7 @@ public class AbillityNodes {
 			new TranslationTextComponent("wingx.gui.node.desc.fireball_external"), FIREBALL_INTERNAL, WINGX) {
 		@Override
 		public void setUnlocked(IWingsCapability capabilityIn) {
-			this.isUnlocked = true;
+			this.isUnlocked = capabilityIn.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER).isUnlocked;
 		}
 	};
 	public static final ExternalAbillityNode HASTY = new ExternalAbillityNode(35, 0, 4,

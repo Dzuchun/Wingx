@@ -3,6 +3,7 @@ package dzuchun.wingx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Predicate;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,6 +33,8 @@ import dzuchun.wingx.util.animation.AnimationHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityPredicate;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.entity.projectile.ProjectileHelper;
@@ -100,11 +103,12 @@ public class ForgeBusEventListener {
 				}
 			}
 			if (event.side == LogicalSide.SERVER) {
+				// TODO move to hasty
 				ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
 				HastyData hastyData = wings.getDataManager().getOrAddDefault(Serializers.HASTY_SERIALIZER);
 				long currentTime = serverPlayer.world.getGameTime();
 				PlayerInteractionManager interaction = serverPlayer.interactionManager;
-				if (interaction.isDestroyingBlock
+				if (hastyData.isActive && interaction.isDestroyingBlock
 						&& world.getBlockState(interaction.destroyPos).getBlockHardness(world,
 								interaction.destroyPos) > 0
 						&& (currentTime - hastyData.lastProc) > hastyData.cooldown
@@ -116,13 +120,16 @@ public class ForgeBusEventListener {
 									new HastyPlayerTrick(serverPlayer, hastyData, interaction.destroyPos)));
 					// TODO add stat (hasty)
 				}
+				// TODO move to agil
+				// TODO fix entity bugs
 				if (player.ticksSinceLastSwing == 0) {
 					AgilData agilData = wings.getDataManager().getOrAddDefault(Serializers.AGIL_SERIALIZER);
 					if (agilData.isActive && (world.getGameTime() - agilData.lastProc) >= agilData.cooldown) {
+						//TODO specify reach distance
 						EntityRayTraceResult entityRayTrace = ProjectileHelper.rayTraceEntities(world, player,
 								player.getEyePosition(1.0f),
 								player.getPositionVec().add(serverPlayer.getForward().scale(5.0d)),
-								player.getBoundingBox().grow(5.0d), EntityPredicates.IS_ALIVE);
+								player.getBoundingBox().grow(5.0d), entity -> entity instanceof LivingEntity);
 						if (entityRayTrace != null && tmp_random.nextDouble() <= agilData.probability) {
 							agilData.lastProc = player.world.getGameTime();
 							player.ticksSinceLastSwing = 1000;

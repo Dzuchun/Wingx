@@ -43,7 +43,9 @@ public class AgilPlayerTrick extends AbstractTargetedPlayerTrick {
 			ClientPlayerEntity caster = (ClientPlayerEntity) getCasterPlayer();
 			Entity target = getTarget();
 			caster.ticksSinceLastSwing = 1000;
-			target.hurtResistantTime = 0;
+			if (target != null) {
+				target.hurtResistantTime = 0;
+			}
 			// Playing sound
 			minecraft.world.playSound(minecraft.player, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
 					ModBusEventListener.AGIL_PROC_SOUND, SoundCategory.PLAYERS, 1.0f, 1.0f);

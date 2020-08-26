@@ -51,20 +51,23 @@ public class WingxComand {
 				return new TranslationTextComponent("wingx.commands.error.not_enough_arguments");
 			});
 
+	@SuppressWarnings("unchecked")
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {
 		dispatcher.register(Commands.literal("wingx").requires(source -> source.hasPermissionLevel(2))
 				.then(Commands.literal("reset").executes(source -> {
 					return execute(source.getSource(), Arrays.asList(source.getSource().asPlayer()), Action.RESET,
 							true);
-				})).then(Commands.literal("modify").then(Commands.literal("active")
-						.then(Commands.argument("isActive", BoolArgumentType.bool()).executes(source -> {
-							return execute(source.getSource(), Arrays.asList(source.getSource().asPlayer()),
-									Action.SET_ACTIVE, true, BoolArgumentType.getBool(source, "isActive"));
-						}))).then(Commands.literal("needs_end")
-								.then(Commands.argument("needs", BoolArgumentType.bool()).executes(source -> {
-									return execute(source.getSource(), Arrays.asList(source.getSource().asPlayer()),
-											Action.SET_NEEDS_END, true, BoolArgumentType.getBool(source, "needs"));
-								})))));
+				}))
+//				.then(Commands.literal("modify").then(Commands.literal("active")
+//						.then(Commands.argument("isActive", BoolArgumentType.bool()).executes(source -> {
+//							return execute(source.getSource(), Arrays.asList(source.getSource().asPlayer()),
+//									Action.SET_ACTIVE, true, BoolArgumentType.getBool(source, "isActive"));
+//						}))).then(Commands.literal("needs_end")
+//								.then(Commands.argument("needs", BoolArgumentType.bool()).executes(source -> {
+//									return execute(source.getSource(), Arrays.asList(source.getSource().asPlayer()),
+//											Action.SET_NEEDS_END, true, BoolArgumentType.getBool(source, "needs"));
+//								}))))
+				.then(WingsDataManager.getCommand()));
 	}
 
 	private static int execute(CommandSource source, List<PlayerEntity> targets, Action action, boolean throwError,
