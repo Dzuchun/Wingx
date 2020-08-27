@@ -55,6 +55,7 @@ public class TrickPerformedMessage {
 							((ITargetedTrick) trick).setTargetWorld(world);
 						}
 						trick.execute(LogicalSide.CLIENT);
+						trick.showMessage();
 					} else if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_SERVER) {
 						ServerWorld world = ctx.get().getSender().getServerWorld();
 						if (trick instanceof ICastedTrick) {

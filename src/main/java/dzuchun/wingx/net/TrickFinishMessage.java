@@ -51,6 +51,7 @@ public class TrickFinishMessage {
 				((ITargetedTrick) trick).setTargetWorld(world);
 			}
 			msg.trick.onCastEnd(LogicalSide.CLIENT);
+			msg.trick.showMessage();
 		});
 	}
 }

@@ -3,6 +3,8 @@ package dzuchun.wingx.trick;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.ImmutableList;
+
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
@@ -15,6 +17,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.LogicalSide;
@@ -57,6 +60,7 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	@Override
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
+			// We are on server
 			if (hasCasterPlayer() && getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()
 					&& AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) == 0) {
 				IWingsCapability cap = getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
@@ -65,18 +69,16 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 				this.interruptCondition = data.interruptCondition;
 				this.duration = data.castDuration;
 				this.interruptCondition.reset();
-				this.succesfull = true;
+				this.status = 0;
 			} else {
-				this.succesfull = false;
 				LOG.warn("Caster does not exist, has no capability or caster is busy");
-			}
-		} else {
-			if (amICaster()) {
-				Minecraft minecraft = Minecraft.getInstance();
-				minecraft.player.sendStatusMessage(
-						this.succesfull ? new TranslationTextComponent("wingx.trick.fireball.starting_execute")
-								: new TranslationTextComponent("wingx.trick.fireball.fail_execute"),
-						true);
+				if (!hasCasterPlayer()) {
+					this.status = 1;
+				} else if (!getCasterPlayer().getCapability(WingsProvider.WINGS).isPresent()) {
+					this.status = 2;
+				} else if (AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) != 0) {
+					this.status = 3;
+				}
 			}
 		}
 		super.execute(side);
@@ -87,19 +89,18 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	public void onCastEnd(LogicalSide side) {
 		super.onCastEnd(side);
 		if (side == LogicalSide.SERVER) {
+			// We are on server
 			if (castEndedNaturally()) {
 				((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(getCasterPlayer()));
 			}
 		} else {
-			if (amICaster()) {
+			// We are on client
+			if (amICaster() && this.status == 0) {
 				ClientPlayerEntity player = Minecraft.getInstance().player;
-				player.sendStatusMessage(this.succesfull ? new TranslationTextComponent("wingx.trick.fireball.executed")
-						: new TranslationTextComponent("wingx.trick.fireball.fail"), true);
-				if (this.succesfull) {
-					player.resetCooldown();
-					player.swingArm(Hand.MAIN_HAND);
-					// TODO play sound
-				}
+				player.resetCooldown();
+				player.swingArm(Hand.MAIN_HAND);
+				this.status = 4;
+				// TODO play sound
 			}
 		}
 	}
@@ -113,6 +114,21 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	public double partLeft() throws NoCasterException {
 		long current = this.casterWorld.getGameTime();
 		return (this.endTime - current) / (float) this.duration;
+	}
+
+	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
+			new TranslationTextComponent("wingx.trick.fireball.start").setStyle(SUCCESS_STYLE),
+			new TranslationTextComponent("wingx.trick.fireball.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.fireball.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_wings")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.fireball.error",
+					new TranslationTextComponent("wingx.trick.error_reason.caster_busy")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.fireball.success").setStyle(SUCCESS_STYLE));
+
+	@Override
+	protected ImmutableList<ITextComponent> getMessages() {
+		return MESSAGES;
 	}
 
 }

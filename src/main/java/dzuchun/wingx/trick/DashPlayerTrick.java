@@ -5,17 +5,17 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.ImmutableList;
+
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.util.Facing;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -53,6 +53,7 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 	@Override
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
+			// We are on server
 			assertHasCaster(this);
 			if (hasCasterPlayer()) {
 				PlayerEntity caster = getCasterPlayer();
@@ -68,18 +69,7 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 						SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 1.0f, 1.0f);
 			} else {
 				LOG.warn("No caster found");
-				this.succesfull = false;
-			}
-		} else if (amICaster()) {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (this.succesfull) {
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.dash.success")
-						.setStyle(Style.EMPTY.setFormatting(TextFormatting.AQUA)), true);
-			} else {
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.dash.fail")
-						// TODO add reason
-						.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_RED)), true);
-				// TODO specify reason
+				this.status = 1;
 			}
 		}
 	}
@@ -113,6 +103,16 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 	@Override
 	protected void setRegistryName() {
 		this.registryName = REGISTRY_NAME;
+	}
+
+	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
+			new TranslationTextComponent("wingx.trick.dash.success").setStyle(SUCCESS_STYLE),
+			new TranslationTextComponent("wingx.trick.dash.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE));
+
+	@Override
+	protected ImmutableList<ITextComponent> getMessages() {
+		return MESSAGES;
 	}
 
 }

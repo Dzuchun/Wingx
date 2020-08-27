@@ -8,7 +8,7 @@ import net.minecraft.util.ResourceLocation;
 public abstract class AbstractTrick implements ITrick {
 
 	protected ResourceLocation registryName = null;
-	protected boolean succesfull = true;
+	protected int status = 0;
 
 	public AbstractTrick() {
 		this.setRegistryName();
@@ -32,19 +32,19 @@ public abstract class AbstractTrick implements ITrick {
 	}
 
 	@Override
-	public boolean executedSuccesfully() {
-		return this.succesfull;
+	public int getStatus() {
+		return this.status;
 	}
 
 	@Override
 	public ITrick readFromBuf(PacketBuffer buf) {
-		this.succesfull = buf.readBoolean();
+		this.status = buf.readInt();
 		return this;
 	}
 
 	@Override
 	public ITrick writeToBuf(PacketBuffer buf) {
-		buf.writeBoolean(this.succesfull);
+		buf.writeInt(this.status);
 		return this;
 	}
 

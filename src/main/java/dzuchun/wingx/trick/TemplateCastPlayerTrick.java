@@ -39,12 +39,12 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
 			if (hasCasterPlayer() && AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) == 0) {
-				this.succesfull = true;
+				this.status = 0;
 			} else {
-				this.succesfull = false;
+				this.status = 1;
 			}
 		} else {
-			if (!this.succesfull) {
+			if (this.status != 0) {
 				Minecraft minecraft = Minecraft.getInstance();
 				minecraft.player
 						.sendStatusMessage(new TranslationTextComponent("wingx.trick.interrubtable.template.fail")
@@ -52,6 +52,12 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 			}
 		}
 		super.execute(side);
+	}
+
+	@Override
+	public void onCastEnd(LogicalSide side) {
+		this.status = 3;
+		super.onCastEnd(side);
 	}
 
 	@Override

@@ -3,6 +3,8 @@ package dzuchun.wingx.trick;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.ImmutableList;
+
 import dzuchun.wingx.ModBusEventListener;
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.storage.AgilData;
@@ -18,6 +20,8 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.vector.Vector4f;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -40,6 +44,7 @@ public class AgilPlayerTrick extends AbstractTargetedPlayerTrick {
 	public void execute(LogicalSide side) {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (side == LogicalSide.CLIENT) {
+			// We are on client
 			ClientPlayerEntity caster = (ClientPlayerEntity) getCasterPlayer();
 			Entity target = getTarget();
 			caster.ticksSinceLastSwing = 1000;
@@ -86,4 +91,11 @@ public class AgilPlayerTrick extends AbstractTargetedPlayerTrick {
 		return super.writeToBuf(buf);
 	}
 
+	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList
+			.of(new TranslationTextComponent("wingx.trick.agil.proc").setStyle(PROC_STYLE));
+
+	@Override
+	protected ImmutableList<ITextComponent> getMessages() {
+		return MESSAGES;
+	}
 }

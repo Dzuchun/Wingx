@@ -3,6 +3,8 @@ package dzuchun.wingx.trick.meditation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.ImmutableList;
+
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
@@ -19,6 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -77,12 +80,12 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 						BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
 						if (data.needsEnd && (caster.world.func_234923_W_() != World.field_234920_i_)) {
 							LOG.debug("Player requires end to meditate, but is not in end now.");
-							this.succesfull = false;
+							this.status = 1;
 							return;
 						}
 
 						if (MeditationUtil.getMeditationScore(caster) <= data.requiredMeditationScore) {
-							this.succesfull = false;
+							this.status = 2;
 							LOG.debug("Player has not enough meditation points to perform meditation.");
 							return;
 						}
@@ -98,22 +101,22 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 							});
 						});
 						if (!this.tmp_boolean_1) {
-							this.succesfull = false;
+							this.status = 3;
 							return;
 						}
-						this.succesfull = true;
+						this.status = 0;
 					});
 				} else {
 					LOG.warn("Caster doesn't have wings capability. Meditation won't be performed.");
-					this.succesfull = false;
+					this.status = 4;
 				}
 			} else {
 				LOG.warn("No caster found. Meditation won't be performed.");
-				this.succesfull = false;
+				this.status = 5;
 			}
 		} else {
 			Minecraft minecraft = Minecraft.getInstance();
-			if (this.succesfull) {
+			if (this.status == 0) {
 				if (FadingScreenOverlay.instance != null) {
 					FadingScreenOverlay.instance.deactivate();
 				}
@@ -124,9 +127,6 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				}
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.start")
 						.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
-			} else {
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.fail")
-						.setStyle(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
 			}
 		}
 		super.execute(side);
@@ -135,6 +135,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	@Override
 	public void onCastEnd(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
+			// We are on server
 			assertHasCaster(this);
 			if (castEndedNaturally()) {
 				LazyOptional<IWingsCapability> optionalCap = getCasterPlayer().getCapability(WingsProvider.WINGS, null);
@@ -150,29 +151,47 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				}
 			}
 		} else {
-			Minecraft minecraft = Minecraft.getInstance();
+			// We are on client
 			if (amICaster()) {
-				if (castEndedNaturally()) {
-					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.success")
-							.setStyle(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
-				} else {
-					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.interrupted")
-							.setStyle(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
-				}
 				if (!castEndedNaturally()) {
 					FadingScreenOverlay overlay = FadingScreenOverlay.instance;
 					if (overlay == null) {
 						LOG.warn("There is no overlay, but cast ended unnaturaly");
+					} else {
+						overlay.deactivate();
+						boolean res = new FadingScreenOverlay(overlay.getCurrentColor(), FadingScreenOverlay.Color.ZERO,
+								MEDITATION_FAIL_DURATION).activate();
+						if (!res) {
+							LOG.warn("Could not activate fail overlay");
+						}
 					}
-					overlay.deactivate();
-					boolean res = new FadingScreenOverlay(overlay.getCurrentColor(), FadingScreenOverlay.Color.ZERO,
-							MEDITATION_FAIL_DURATION).activate();
-					if (!res) {
-						LOG.warn("Could not activate fail overlay");
-					}
+					this.status = 6;
+				} else {
+					this.status = 7;
 				}
 			}
 		}
 		super.onCastEnd(side);
+	}
+
+	private static ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
+			new TranslationTextComponent("wingx.trick.meditation.start").setStyle(SUCCESS_STYLE),
+			new TranslationTextComponent("wingx.trick.meditation.error",
+					new TranslationTextComponent("wingx.trick.error_reason.not_in_end")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.meditation.error",
+					new TranslationTextComponent("wingx.trick.error_reason.not_enough_meditation_points"))
+							.setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.meditation.error",
+					new TranslationTextComponent("wingx.trick.error_reason.already_meditating")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.meditation.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_wings")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.meditation.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.meditation.interrupt").setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wings.trick.meditation.success").setStyle(SUCCESS_STYLE));
+
+	@Override
+	protected ImmutableList<ITextComponent> getMessages() {
+		return MESSAGES;
 	}
 }

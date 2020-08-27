@@ -31,9 +31,12 @@ public interface ITrick extends IForgeRegistryEntry<AbstractTrick> {
 	// TODO REDEFINE! THIS MAKES NO SENCE!
 	void execute(LogicalSide side);
 
-	boolean executedSuccesfully();
+	int getStatus();
 
 	PacketTarget getBackPacketTarget();
 
 	ITrick newEmpty();
+
+	default void showMessage() {
+	}
 }

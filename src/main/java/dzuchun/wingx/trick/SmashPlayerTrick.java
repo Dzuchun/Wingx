@@ -6,6 +6,8 @@ import java.util.Collection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.ImmutableList;
+
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.util.NBTHelper;
 import dzuchun.wingx.util.NBTReadingException;
@@ -22,8 +24,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -70,21 +71,12 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	public void execute(LogicalSide side) {
 		super.execute(side);
 		if (side == LogicalSide.SERVER) {
+			// We are on server
 			if (hasCasterPlayer()) {
-				this.succesfull = true;
+				this.status = 0;
 				this.damagedEntities = new ArrayList<Entity>(0);
 			} else {
-				this.succesfull = false;
-			}
-		}
-		if (side == LogicalSide.CLIENT) {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (this.succesfull) {
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.smash.succesfull")
-						.setStyle(Style.EMPTY.setFormatting(TextFormatting.LIGHT_PURPLE)), true);
-			} else {
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.smash.fail")
-						.setStyle(Style.EMPTY.setFormatting(TextFormatting.RED)), true);
+				this.status = 1; // No caster
 			}
 		}
 	}
@@ -110,20 +102,23 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 			return;
 		}
 		if (side == LogicalSide.CLIENT) {
+			// We are on client
 			Minecraft minecraft = Minecraft.getInstance();
-			minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.smash.completed")
-					.setStyle(Style.EMPTY.setFormatting(TextFormatting.BOLD)), true);
 			// Make additional variable then!
 			this.casterWorld.playSound(minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
 					minecraft.player.getPosZ(), SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0f, 1.0f);
 		} else {
+			// We are on server
 			if (hasCasterPlayer()) {
 				PlayerEntity caster = getCasterPlayer();
 				if (!castEndedNaturally()) {
+					this.status = 2;// Interrupted
 					this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(3.0d),
 							(Entity entity) -> true).forEach((Entity entity) -> {
 								entity.attackEntityFrom(getDamageSource(), this.mainDamage);
 							});
+				} else {
+					this.status = 3; // Cast ended naturally
 				}
 			} else {
 				LOG.warn("No caster found, can't perform onCastEnd");
@@ -161,7 +156,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	private static final String SPEED_TAG = "speed";
 	private static final String SIDE_DAMAGE_TAG = "side_damage";
 	private static final String MAIN_DAMAGE_TAG = "main_damage";
-	private static final String SUCCESFULL_TAG = "succesfull";
+	private static final String STATUS_TAG = "status";
 	private static final String END_TIME_TAG = "end_time";
 	private static final String DIRECTION_TAG = "direction";
 
@@ -170,7 +165,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		CompoundNBT compound = (CompoundNBT) nbt;
 		if (!compound.contains(HAS_CASTER_TAG) || !compound.contains(DURATION_TAG) || !compound.contains(SPEED_TAG)
 				|| !compound.contains(SIDE_DAMAGE_TAG) || !compound.contains(MAIN_DAMAGE_TAG)
-				|| !compound.contains(SUCCESFULL_TAG) || !compound.contains(END_TIME_TAG)
+				|| !compound.contains(STATUS_TAG) || !compound.contains(END_TIME_TAG)
 				|| !compound.contains(DIRECTION_TAG)) {
 			LOG.warn("NBT data is corrupted or lost, contact someone who understand what NBT is.");
 			return;
@@ -188,7 +183,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		this.speed = compound.getDouble(SPEED_TAG);
 		this.sideDamage = compound.getFloat(SIDE_DAMAGE_TAG);
 		this.mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
-		this.succesfull = compound.getBoolean(SUCCESFULL_TAG);
+		this.status = compound.getInt(STATUS_TAG);
 		this.endTime = compound.getLong(END_TIME_TAG);
 	}
 
@@ -205,7 +200,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		res.putDouble(SPEED_TAG, this.speed);
 		res.putFloat(SIDE_DAMAGE_TAG, this.sideDamage);
 		res.putFloat(MAIN_DAMAGE_TAG, this.mainDamage);
-		res.putBoolean(SUCCESFULL_TAG, this.succesfull);
+		res.putInt(STATUS_TAG, this.status);
 		res.putLong(END_TIME_TAG, this.endTime);
 		res.put(DIRECTION_TAG, NBTHelper.writeVector3d(this.direction));
 
@@ -263,6 +258,18 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		assertHasCaster(this);
 		PlayerEntity caster = getCasterPlayer();
 		return !caster.collidedHorizontally && !caster.collidedVertically;
+	}
+
+	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
+			new TranslationTextComponent("wingx.trick.smash.start").setStyle(SUCCESS_STYLE),
+			new TranslationTextComponent("wingx.trick.smash.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.smash.interrupt").setStyle(SUCCESS_STYLE),
+			new TranslationTextComponent("wingx.trick.smash.success").setStyle(SUCCESS_STYLE));
+
+	@Override
+	protected ImmutableList<ITextComponent> getMessages() {
+		return MESSAGES;
 	}
 
 }

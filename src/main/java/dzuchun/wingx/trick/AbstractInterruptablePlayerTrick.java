@@ -134,7 +134,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		}
 		@SuppressWarnings("unused")
 		PlayerEntity caster = getCasterPlayer();
-		if (this.succesfull) {
+		if (this.status == 0) {
 			beginCast();
 			// this.interrupt();
 			if (side == LogicalSide.SERVER) {

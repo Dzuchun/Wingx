@@ -1,7 +1,11 @@
 package dzuchun.wingx.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
+
+import com.ibm.icu.impl.Pair;
 
 public class Util {
 	public static <T> String iterableToString(Iterable<T> iterable) {
@@ -24,6 +28,15 @@ public class Util {
 		ArrayList<U> res = new ArrayList<U>();
 		for (T t : listIn) {
 			res.add(computer.apply(t));
+		}
+		return res;
+	}
+
+	@SafeVarargs
+	public static <T, U> Map<T, U> mapOf(Pair<T, U>... pairs) {
+		Map<T, U> res = new HashMap<T, U>(0);
+		for (Pair<T, U> entry : pairs) {
+			res.put(entry.first, entry.second);
 		}
 		return res;
 	}

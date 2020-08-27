@@ -5,6 +5,8 @@ import java.util.function.Predicate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.ImmutableList;
+
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.overlay.LivingEntitySelectOverlay;
 import net.minecraft.client.Minecraft;
@@ -15,6 +17,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -47,19 +50,18 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 	@Override
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.CLIENT) {
+			// We are on client
 			Minecraft minecraft = Minecraft.getInstance();
-			if (this.succesfull && amICaster()) {
+			if (this.status == 0 && amICaster()) {
 				Vector2f look = minecraft.player.getPitchYaw();
 				// TODO do something with pitch
 				minecraft.player.prevRotationYaw = look.y + 180f;
 				minecraft.player.rotationYaw = look.y + 180f;
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.swap.successfull"), true);
-			} else {
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.swap.fail"), true);
 			}
 		} else {
+			// We are on server
 			if (!hasCasterPlayer() || !hasTarget()) {
-				this.succesfull = false;
+				this.status = hasCasterPlayer() ? 2 : 1;
 				return;
 			}
 			PlayerEntity caster = getCasterPlayer();
@@ -69,7 +71,7 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 			LOG.debug("Performing swap: caster at {}, target at: {}", casterPos, targetPos);
 			caster.setPositionAndUpdate(targetPos.x, targetPos.y, targetPos.z);
 			target.setPositionAndUpdate(casterPos.x, casterPos.y, casterPos.z);
-			this.succesfull = true;
+			this.status = 0;
 		}
 	}
 
@@ -119,5 +121,17 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 	@Override
 	protected void setRegistryName() {
 		this.registryName = REGISTRY_NAME;
+	}
+
+	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
+			new TranslationTextComponent("wingx.trick.swap.success").setStyle(SUCCESS_STYLE),
+			new TranslationTextComponent("wingx.trick.swap.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE),
+			new TranslationTextComponent("wingx.trick.swap.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_target")).setStyle(ERROR_STYLE));
+
+	@Override
+	protected ImmutableList<ITextComponent> getMessages() {
+		return MESSAGES;
 	}
 }

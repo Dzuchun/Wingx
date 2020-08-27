@@ -5,6 +5,8 @@ import java.util.function.Predicate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.ImmutableList;
+
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.overlay.LivingEntitySelectOverlay;
 import net.minecraft.client.Minecraft;
@@ -14,6 +16,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -58,24 +61,20 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
 			Entity target = getTarget();
+			// TODO add caster check
 			if (target == null) {
 				LOG.warn("No target found");
-				this.succesfull = false;
+				this.status = 1;
 				return;
 			}
 			target.setMotion(target.getMotion().add(this.direction.scale(this.force)));
 			target.velocityChanged = true;
-			this.succesfull = true;
+			this.status = 0;
 		} else {
 			Minecraft minecraft = Minecraft.getInstance();
-			if (amICaster()) {
-				if (this.succesfull) {
-					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.punch.success")
-							.setStyle(Style.EMPTY.setFormatting(TextFormatting.YELLOW)), true);
-				} else {
-					minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.punch.fail")
-							.setStyle(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
-				}
+			if (amICaster() && this.status == 0) {
+				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.punch.success")
+						.setStyle(Style.EMPTY.setFormatting(TextFormatting.YELLOW)), true);
 			}
 		}
 	}
@@ -145,4 +144,15 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 	protected void setRegistryName() {
 		this.registryName = REGISTRY_NAME;
 	}
+
+	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
+			new TranslationTextComponent("wingx.trick.punch.success").setStyle(SUCCESS_STYLE),
+			new TranslationTextComponent("wingx.trick.punch.error",
+					new TranslationTextComponent("wingx.trick.error_reason.no_target")).setStyle(ERROR_STYLE));
+
+	@Override
+	protected ImmutableList<ITextComponent> getMessages() {
+		return MESSAGES;
+	}
+
 }
