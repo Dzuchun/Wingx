@@ -20,8 +20,8 @@ public class Util {
 		return String.format("%s[%s]", iterable.getClass().getName(), res);
 	}
 
-	public static <T> ArrayList<T> computeNewArrayList(Iterable<T> listIn, Function<T, T> computer) {
-		ArrayList<T> res = new ArrayList<T>();
+	public static <T, U> ArrayList<U> computeNewArrayList(Iterable<T> listIn, Function<T, U> computer) {
+		ArrayList<U> res = new ArrayList<U>();
 		for (T t : listIn) {
 			res.add(computer.apply(t));
 		}

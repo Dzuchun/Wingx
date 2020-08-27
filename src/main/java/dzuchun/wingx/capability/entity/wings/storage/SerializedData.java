@@ -1,5 +1,6 @@
 package dzuchun.wingx.capability.entity.wings.storage;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -14,8 +15,13 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
+import dzuchun.wingx.command.impl.WingxComand;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.command.arguments.EntitySelector;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public abstract class SerializedData {
 	private static final Logger LOG = LogManager.getLogger();
@@ -35,8 +41,7 @@ public abstract class SerializedData {
 			res.then(Commands.literal(par.name)
 					.then(Commands.argument(par.name, par.type).executes((CommandContext<CommandSource> source) -> {
 //						LOG.debug("Executing something");
-						par.set(source);
-						return 0;
+						return par.set(source);
 					})));
 		}
 		return res;
@@ -64,17 +69,39 @@ public abstract class SerializedData {
 		private final BiConsumer<V, U> setter;
 		private Class<U> classField;
 
-		public void set(CommandContext<CommandSource> source) {
+		public int set(CommandContext<CommandSource> source) {
 			try {
 				LOG.debug("Executing set");
 				U arg = source.getArgument(this.name, this.classField);
-				LOG.debug("Setting {}-{} to {} for {}", getSerializer().getName(), this.name, arg,
-						source.getSource().asPlayer().getGameProfile().getName());
-				this.setter.accept(source.getSource().asPlayer().getCapability(WingsProvider.WINGS).orElse(null)
-						.getDataManager().getOrAddDefault(getSerializer()), arg);
-//				source.getSource().sendFeedback(new StringTextComponent("a"), true);
-			} catch (CommandSyntaxException | NullPointerException | IllegalArgumentException e) {
-				e.printStackTrace();
+				List<? extends Entity> targetList;
+				try {
+					targetList = source.getArgument(WingxComand.TARGET_PAR_NAME, EntitySelector.class)
+							.select(source.getSource());
+				} catch (IllegalArgumentException e) {
+//					e.printStackTrace();
+					targetList = Arrays.asList(source.getSource().asPlayer());
+				}
+//				LOG.debug("Setting {}-{} to {} for {}", getSerializer().getName(), this.name, arg, target);
+				for (Entity target : targetList) {
+					if (target.getCapability(WingsProvider.WINGS).isPresent()) {
+						this.setter.accept(target.getCapability(WingsProvider.WINGS).orElse(null).getDataManager()
+								.getOrAddDefault(getSerializer()), arg);
+						source.getSource().sendFeedback(new TranslationTextComponent("wingx.command.success.modify",
+								target instanceof PlayerEntity ? ((PlayerEntity) target).getGameProfile().getName()
+										: new TranslationTextComponent("wingx.commmand.non_player_target_cap"),
+								String.format("%s-%s", getSerializer().getName(), this.name), arg)
+										.setStyle(WingxComand.SUCCEESS_STYLE),
+								true);
+					} else {
+						source.getSource().sendErrorMessage(
+								new TranslationTextComponent("wingx.command.error.modify.target_no_wings")
+										.setStyle(WingxComand.ERROR_STYLE));
+					}
+				}
+				return 0;
+			} catch (CommandSyntaxException e1) {
+				e1.printStackTrace();
+				return 1;
 			}
 		}
 	}
