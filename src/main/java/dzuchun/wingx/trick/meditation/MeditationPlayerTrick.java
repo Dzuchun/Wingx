@@ -78,7 +78,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				if (optionalCap.isPresent()) {
 					optionalCap.ifPresent((cap) -> {
 						BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
-						if (data.needsEnd && (caster.world.func_234923_W_() != World.field_234920_i_)) {
+						if (data.needsEnd && (caster.world.getDimensionKey() != World.THE_END)) {
 							LOG.debug("Player requires end to meditate, but is not in end now.");
 							this.status = 1;
 							return;
