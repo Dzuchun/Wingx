@@ -136,6 +136,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		PlayerEntity caster = getCasterPlayer();
 		if (this.status == 0) {
 			beginCast();
+			LOG.warn("Begining cast of {}", this);
 			// this.interrupt();
 			if (side == LogicalSide.SERVER) {
 				this.casterWorld.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent((cap) -> {
@@ -151,7 +152,8 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		}
 	}
 
-	private boolean interrupted = false;
+	@Deprecated
+	protected boolean interrupted = false; // TODO replace with status
 
 	// TODO doc
 	@Override

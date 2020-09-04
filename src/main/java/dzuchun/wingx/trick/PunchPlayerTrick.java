@@ -29,6 +29,7 @@ import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "punch_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
+	@Deprecated // TODO remove, replace with status
 	private State state;
 
 	public State getState() {

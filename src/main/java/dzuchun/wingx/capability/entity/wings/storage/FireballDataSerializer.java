@@ -12,8 +12,10 @@ public class FireballDataSerializer extends Serializer<FireballData> {
 	private static final String INTERRUPT_CONDITION_TAG = "interrupt_condition";
 	private static final String DAMAGE_TAG = "damage";
 	private static final String INITIAL_SPEED_TAG = "initial_speed";
-
 	private static final String IS_UNLOCKED_TAG = "unlocked_tag";
+
+	private static final String HOMING_UNLOCKED_TAG = "homing_unlocked";
+	private static final String HOMING_FORCE_TAG = "homing_force";
 
 	@Override
 	public FireballData read(CompoundNBT nbt) {
@@ -24,6 +26,8 @@ public class FireballDataSerializer extends Serializer<FireballData> {
 		data.damage = nbt.getFloat(DAMAGE_TAG);
 		data.initialSpeed = nbt.getDouble(INITIAL_SPEED_TAG);
 		data.isUnlocked = nbt.getBoolean(IS_UNLOCKED_TAG);
+		data.homingUnlocked = nbt.getBoolean(HOMING_UNLOCKED_TAG);
+		data.homingForce = nbt.getDouble(HOMING_FORCE_TAG);
 		return data;
 	}
 
@@ -35,6 +39,8 @@ public class FireballDataSerializer extends Serializer<FireballData> {
 		nbt.putFloat(DAMAGE_TAG, data.damage);
 		nbt.putDouble(INITIAL_SPEED_TAG, data.initialSpeed);
 		nbt.putBoolean(IS_UNLOCKED_TAG, data.isUnlocked);
+		nbt.putBoolean(HOMING_UNLOCKED_TAG, data.homingUnlocked);
+		nbt.putDouble(HOMING_FORCE_TAG, data.homingForce);
 	}
 
 	@Override
@@ -46,6 +52,8 @@ public class FireballDataSerializer extends Serializer<FireballData> {
 		data.damage = buf.readFloat();
 		data.initialSpeed = buf.readDouble();
 		data.isUnlocked = buf.readBoolean();
+		data.homingUnlocked = buf.readBoolean();
+		data.homingForce = buf.readDouble();
 		return data;
 	}
 
@@ -57,6 +65,8 @@ public class FireballDataSerializer extends Serializer<FireballData> {
 		buf.writeFloat(data.damage);
 		buf.writeDouble(data.initialSpeed);
 		buf.writeBoolean(data.isUnlocked);
+		buf.writeBoolean(data.homingUnlocked);
+		buf.writeDouble(data.homingForce);
 	}
 
 	@Override

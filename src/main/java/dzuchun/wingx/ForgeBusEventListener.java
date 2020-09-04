@@ -127,7 +127,12 @@ public class ForgeBusEventListener {
 								player.getEyePosition(1.0f),
 								player.getPositionVec().add(serverPlayer.getForward().scale(5.0d)),
 								player.getBoundingBox().grow(5.0d), entity -> entity instanceof LivingEntity);
-						if (entityRayTrace != null && tmp_random.nextDouble() <= agilData.probability) {
+						if (entityRayTrace != null
+								&& serverPlayer.equals(
+										((LivingEntity) entityRayTrace.getEntity()).getLastDamageSource() == null ? null
+												: ((LivingEntity) entityRayTrace.getEntity()).getLastDamageSource()
+														.getTrueSource())
+								&& tmp_random.nextDouble() <= agilData.probability) {
 							agilData.lastProc = player.world.getGameTime();
 							player.ticksSinceLastSwing = 1000;
 							Entity target = entityRayTrace.getEntity();
@@ -214,7 +219,7 @@ public class ForgeBusEventListener {
 
 	@SubscribeEvent
 	public static void onRenderWorldLast(final RenderWorldLastEvent event) {
-		AbstractTickingOverlay.onRenderWorldLast(event);
+		AbstractOverlay.onRenderWorldLast(event);
 	}
 
 	@SubscribeEvent

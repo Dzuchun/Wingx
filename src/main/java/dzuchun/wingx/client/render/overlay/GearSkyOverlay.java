@@ -43,6 +43,7 @@ public class GearSkyOverlay extends AbstractOverlay {
 		instance = null;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	void renderWorldLast(RenderWorldLastEvent event) {
 		super.renderWorldLast(event);

@@ -5,13 +5,13 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.ModBusEventListener;
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.storage.AgilData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.client.render.overlay.FadingScreenOverlay;
 import dzuchun.wingx.client.render.overlay.FadingScreenOverlay.FadeFunction;
 import dzuchun.wingx.client.render.overlay.RadiantFadingScreenOverlay;
+import dzuchun.wingx.init.SoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
@@ -53,7 +53,7 @@ public class AgilPlayerTrick extends AbstractTargetedPlayerTrick {
 			}
 			// Playing sound
 			minecraft.world.playSound(minecraft.player, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
-					ModBusEventListener.AGIL_PROC_SOUND, SoundCategory.PLAYERS, 1.0f, 1.0f);
+					SoundEvents.AGIL_PROC.get(), SoundCategory.PLAYERS, 1.0f, 1.0f);
 			if (amICaster()) {
 				// Adding animation
 				new RadiantFadingScreenOverlay(new Vector4f(0.0f, 1.0f, 0.0f, 1.0f),

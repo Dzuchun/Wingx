@@ -83,7 +83,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 
 	@Override
 	public boolean keepExecuting() {
-		AbstractPlayerCastedTrick.assertHasCasterInfo(this);
+		AbstractCastedTrick.assertHasCasterInfo(this);
 
 		if (this.casterWorld.getGameTime() >= this.endTime || !hasCasterPlayer()) {
 			LOG.info("End term expired or no caster exists. Stopping execute.");
@@ -96,7 +96,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	@Override
 	public void onCastEnd(LogicalSide side) {
 		super.onCastEnd(side);
-		AbstractPlayerCastedTrick.assertHasCasterInfo(this);
+		AbstractCastedTrick.assertHasCasterInfo(this);
 		if (!hasCasterPlayer()) {
 			LOG.warn("No caster found");
 			return;
@@ -129,7 +129,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	@Override
 	public void tick() {
 		super.tick();
-		AbstractPlayerCastedTrick.assertHasCasterInfo(this);
+		AbstractCastedTrick.assertHasCasterInfo(this);
 		if (!hasCasterPlayer()) {
 			// TODO check if caster teleported to another dimension.
 			return;

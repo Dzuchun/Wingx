@@ -16,6 +16,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderLivingEvent;
@@ -42,6 +43,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 	private Predicate<LivingEntity> additionalCondition = (LivingEntity entity) -> true;
 
 	public LivingEntitySelectOverlay(double radius, boolean mustSee, @Nullable Predicate<LivingEntity> other) {
+		// TODO check if player unlocked targeting
 		this.radiusSq = radius * radius;
 		this.mustSee = mustSee;
 		if (other != null) {
@@ -70,6 +72,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 	@Override
 	public void renderLiving(@SuppressWarnings("rawtypes") RenderLivingEvent event) {
 		LivingEntity entity = event.getEntity();
+		float partialTicks = event.getPartialRenderTick();
 		Minecraft minecraft = Minecraft.getInstance();
 		double d0 = minecraft.player.getDistanceSq(entity);
 		if (d0 > this.radiusSq || (this.mustSee && !minecraft.player.canEntityBeSeen(entity))
@@ -89,9 +92,10 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 						&& (!this.mustSee || minecraft.player.canEntityBeSeen(entityCurrent))) {
 					float playerYaw = (float) (minecraft.player.rotationYawHead / 180.0f * Math.PI + Math.PI / 2.0d);
 					float playerPitch = (float) (-minecraft.player.rotationPitch / 180.f * Math.PI);
-					double xDelta = entityCurrent.getPosX() - minecraft.player.getPosX();
-					double yDelta = entityCurrent.getPosY() - minecraft.player.getPosY();
-					double zDelta = entityCurrent.getPosZ() - minecraft.player.getPosZ();
+					Vector3d playerEyesPos = minecraft.player.getEyePosition(partialTicks);
+					double xDelta = entityCurrent.getPosX() - playerEyesPos.getX();
+					double yDelta = entityCurrent.getPosY() - playerEyesPos.getY();
+					double zDelta = entityCurrent.getPosZ() - playerEyesPos.getZ();
 					double xZDelta = Math.sqrt(xDelta * xDelta + zDelta * zDelta);
 					float entityPitch = (float) Math.atan(yDelta / xZDelta);
 					float entityYaw;

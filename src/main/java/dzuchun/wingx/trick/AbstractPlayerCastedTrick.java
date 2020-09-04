@@ -64,11 +64,20 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 		return MESSAGES;
 	}
 
+	private static final ITextComponent ERROR_UNKNOWN = new TranslationTextComponent("wingx.trick.error.unknown")
+			.setStyle(ERROR_STYLE);
+
 	@OnlyIn(value = Dist.CLIENT)
 	@Override
 	public void showMessage() {
 		if (amICaster()) {
-			getCasterPlayer().sendStatusMessage(getMessages().get(this.status), true);
+			if (status >= 0) {
+				// TODO add check for valid status
+				ITextComponent message = getMessages().get(this.status);
+				getCasterPlayer().sendStatusMessage(message, true);
+			} else {
+				getCasterPlayer().sendStatusMessage(ERROR_UNKNOWN, true);
+			}
 		}
 	}
 }

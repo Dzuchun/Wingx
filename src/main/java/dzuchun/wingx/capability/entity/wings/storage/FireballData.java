@@ -18,6 +18,9 @@ public class FireballData extends SerializedData {
 	public float damage;
 	public double initialSpeed;
 	public boolean isUnlocked;
+	public boolean homingUnlocked;
+	public double homingForce;
+	// TODO add parameters - fading speed, duration time, gravity amount
 
 	public FireballData() {
 		this.castDuration = 10;
@@ -26,6 +29,7 @@ public class FireballData extends SerializedData {
 		this.interruptCondition = InterruptCondition.NO_CONDITION;
 		this.initialSpeed = 0.7d;
 		this.isUnlocked = false;
+		this.homingUnlocked = false;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -48,7 +52,11 @@ public class FireballData extends SerializedData {
 				new CommandLiteral<FireballData, Double>("initial_speed", DoubleArgumentType.doubleArg(),
 						(data, d) -> data.initialSpeed = d, Double.class),
 				new CommandLiteral<FireballData, Boolean>("is_unlocked", BoolArgumentType.bool(),
-						(data, b) -> data.isUnlocked = b, Boolean.class));
+						(data, b) -> data.isUnlocked = b, Boolean.class),
+				new CommandLiteral<FireballData, Boolean>("homing_unlocked", BoolArgumentType.bool(),
+						(data, b) -> data.homingUnlocked = b, Boolean.class),
+				new CommandLiteral<FireballData, Double>("homing_force", DoubleArgumentType.doubleArg(),
+						(data, d) -> data.homingForce = d, Double.class));
 	}
 
 }

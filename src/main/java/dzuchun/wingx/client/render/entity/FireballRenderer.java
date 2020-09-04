@@ -28,7 +28,7 @@ public class FireballRenderer extends EntityRenderer<FireballEntity> {
 
 	public FireballRenderer(EntityRendererManager renderManager) {
 		super(renderManager);
-		this.shadowSize = 1.0f;
+		this.shadowSize = 0;
 		this.model = new FireballModel();
 	}
 

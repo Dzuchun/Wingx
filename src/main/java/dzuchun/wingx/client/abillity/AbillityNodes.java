@@ -28,12 +28,22 @@ public class AbillityNodes {
 		}
 	};
 	public static final InternalAbillityNode FIREBALL_DISTANCE = new InternalAbillityNode(50, 10, 3,
-			new StringTextComponent("Wingx").setStyle(NAME_STYLE),
+			new StringTextComponent("Distance").setStyle(NAME_STYLE),
 			new TranslationTextComponent("wingx.gui.node.desc.fireball_internal.distance"), FIREBALL_INTERNAL) {
 
 		@Override
 		public void setUnlocked(IWingsCapability capabilityIn) {
 			this.isUnlocked = false;
+		}
+	};
+	public static final InternalAbillityNode FIREBALL_HOMING = new InternalAbillityNode(-50, 10, 6,
+			new StringTextComponent("Homing").setStyle(NAME_STYLE),
+			new TranslationTextComponent("wingx.gui.desc.fireball_internal.homing"), FIREBALL_INTERNAL) {
+
+		@Override
+		public void setUnlocked(IWingsCapability capabilityIn) {
+			this.isUnlocked = capabilityIn.getDataManager()
+					.getOrAddDefault(Serializers.FIREBALL_SERIALIZER).homingUnlocked;
 		}
 	};
 	public static final ExternalAbillityNode FIREBALL = new ExternalAbillityNode(-40, -10, 2,

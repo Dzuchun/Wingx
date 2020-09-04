@@ -5,11 +5,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.ModBusEventListener;
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.storage.HastyData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.client.render.overlay.HastyPostAnimationOverlay;
+import dzuchun.wingx.init.SoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.multiplayer.PlayerController;
@@ -61,7 +61,7 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 					// Performing animation
 					new HastyPostAnimationOverlay(this.blocksPos, this.data).activate();
 					// Playing sound
-					minecraft.world.playSound(minecraft.player, this.blocksPos, ModBusEventListener.HASTY_PROC_SOUND,
+					minecraft.world.playSound(minecraft.player, this.blocksPos, SoundEvents.HASTY_PROC.get(),
 							SoundCategory.PLAYERS, 1.0f, 1.0f);
 				}
 			}

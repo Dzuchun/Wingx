@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.entity.misc.WingsEntity;
 import dzuchun.wingx.entity.projectile.FireballEntity;
+import dzuchun.wingx.entity.projectile.HomingFireballEntity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.util.ResourceLocation;
@@ -20,9 +21,11 @@ public class EntityTypes {
 
 	public static final String WINGS_NAME = "wings";
 	public static final String FIREBALL_NAME = "fireball";
+	public static final String HOMING_FIREBALL_NAME = "homing_fireball";
 
 	public static RegistryObject<EntityType<WingsEntity>> wings_entity_type;
 	public static RegistryObject<EntityType<FireballEntity>> fireball_entity_type;
+	public static RegistryObject<EntityType<HomingFireballEntity>> homing_fireball_entity_type;
 
 	public static void registerEntityTypes(IEventBus bus) {
 
@@ -43,6 +46,15 @@ public class EntityTypes {
 										EntityClassification.MISC)
 								.size(6f / 16f, 6f / 16f).immuneToFire()
 								.build(new ResourceLocation(Wingx.MOD_ID, FIREBALL_NAME).toString()));
+		homing_fireball_entity_type = register.register(HOMING_FIREBALL_NAME,
+				() -> EntityType.Builder
+						.<HomingFireballEntity>create(
+								(EntityType<HomingFireballEntity> type,
+										World world) -> (HomingFireballEntity) new FireballEntity(world),
+								EntityClassification.MISC)
+						.size(6f / 16f, 6f / 16f).immuneToFire()
+						.build(new ResourceLocation(Wingx.MOD_ID, HOMING_FIREBALL_NAME).toString()));
+		// TODO delete, just add parameters to normal fireball
 		LOG.debug("Registered entity types in deferred register");
 		register.register(bus);
 	}

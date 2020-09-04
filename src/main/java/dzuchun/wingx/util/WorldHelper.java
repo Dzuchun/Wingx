@@ -1,8 +1,6 @@
 package dzuchun.wingx.util;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -44,16 +42,16 @@ public class WorldHelper {
 		return res;
 	}
 
-	private static List<Entity> res_1 = new ArrayList<Entity>(0);
+	public static Iterable<Entity> getEntitiesWithin(World world, Vector3d pos, double radius) {
+		if (world instanceof ServerWorld) {
+			return chooseEntitiesWithin(((ServerWorld) world).getEntities().iterator(), pos, radius);
+		} else {
+			return chooseEntitiesWithin(((ClientWorld) world).getAllEntities().iterator(), pos, radius);
+		}
+	}
 
-	public static synchronized Iterable<Entity> getEntitiesWithin(ServerWorld world, Vector3d pos, double radius) {
-		res_1.clear();
+	public static Iterable<Entity> chooseEntitiesWithin(Iterator<Entity> iterable, Vector3d pos, double radius) {
 		double radiusSq = radius * radius;
-		world.getEntities().forEach(entity -> {
-			if (entity.getDistanceSq(pos) <= radiusSq) {
-				res_1.add(entity);
-			}
-		});
-		return res_1;
+		return Util.chooseFromIterable(iterable, e -> e.getDistanceSq(pos) <= radiusSq);
 	}
 }

@@ -27,7 +27,6 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.NetworkHooks;
 
@@ -54,6 +53,7 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 		FireballData data = cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER);
 		this.initialSpeed = data.initialSpeed;
 		this.packedColor = data.packedColor;
+		this.mainDamage = data.damage;
 		setMotion(caster.getMotion()
 				.add(Vector3d.fromPitchYaw(caster.getPitchYaw()).normalize().scale(this.initialSpeed)));
 		setPositionAndRotation(caster.getPosX(), caster.getPosY() + caster.getEyeHeight() - 0.2d, caster.getPosZ(),
@@ -136,9 +136,9 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	}
 
 	private void collideEntities() {
-		if (this.world.isRemote) {
-			return;
-		}
+//		if (this.world.isRemote) {
+//			return;
+//		}
 		this.world.getEntitiesInAABBexcluding(this, getBoundingBox(), entity -> true).forEach(entity -> {
 			if (!entity.getUniqueID().equals(this.ownerUniqueId)) {
 				applyEntityCollision(entity);
@@ -152,7 +152,7 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 			return;
 		}
 		entityIn.attackEntityFrom(getDamageSource(), this.mainDamage);
-		onInsideBlock(Blocks.STONE.getDefaultState());
+		onInsideBlock(Blocks.STONE.getDefaultState()); // TODO get block
 	}
 
 	@Override
@@ -161,7 +161,7 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 			return;
 		}
 		if (!blockStateIn.equals(Blocks.AIR.getDefaultState())) {
-			WorldHelper.getEntitiesWithin((ServerWorld) this.world, getPositionVec(), 1.0d).forEach(entity -> {
+			WorldHelper.getEntitiesWithin(this.world, getPositionVec(), 1.0d).forEach(entity -> {
 				if (this.ownerUniqueId != null && !entity.getUniqueID().equals(this.ownerUniqueId)
 						&& !getUniqueID().equals(entity.getUniqueID())) {
 					entity.attackEntityFrom(getDamageSource(), this.mainDamage);

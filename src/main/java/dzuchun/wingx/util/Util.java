@@ -2,8 +2,10 @@ package dzuchun.wingx.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.ibm.icu.impl.Pair;
 
@@ -38,6 +40,16 @@ public class Util {
 		for (Pair<T, U> entry : pairs) {
 			res.put(entry.first, entry.second);
 		}
+		return res;
+	}
+
+	public static <T> Iterable<T> chooseFromIterable(Iterator<T> iterable, Predicate<T> rule) {
+		ArrayList<T> res = new ArrayList<T>(0);
+		iterable.forEachRemaining(t -> {
+			if (rule.test(t)) {
+				res.add(t);
+			}
+		});
 		return res;
 	}
 }

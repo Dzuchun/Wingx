@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
@@ -316,7 +316,7 @@ public class MeditationScreen extends Screen {
 			vLine(matrixStackIn, x + size, y + size - length, y + size, color);
 		}
 
-		RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		matrixStackIn.pop();
 	}
 

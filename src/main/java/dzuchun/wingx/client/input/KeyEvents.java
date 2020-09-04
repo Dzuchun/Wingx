@@ -15,6 +15,7 @@ import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.DashPlayerTrick;
 import dzuchun.wingx.trick.FireballCastPlayerTrick;
+import dzuchun.wingx.trick.HomingFireballCastTargetedPlayerTrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
 import dzuchun.wingx.trick.SwapPlayerTrick;
@@ -178,6 +179,7 @@ enum WingxKey {
 			} else {
 				if (this.trick.getState() == PunchPlayerTrick.State.AIMING) {
 					this.trick.aimed();
+					this.trick.showMessage();
 					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
 				}
 				this.trick = null;
@@ -247,6 +249,35 @@ enum WingxKey {
 		@Override
 		public void register() {
 			this.key = new KeyBinding("key.wingx.fireball", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+			super.register();
+		}
+	},
+	FIREBALL_HOMING {
+		private HomingFireballCastTargetedPlayerTrick trick = null;
+
+		@SuppressWarnings("resource")
+		@Override
+		public void execute() {
+			if (this.trick == null) {
+				this.trick = new HomingFireballCastTargetedPlayerTrick(Minecraft.getInstance().player);
+				if (this.trick.getStatus() != 3) {
+					this.trick.showMessage();
+					this.trick = null;
+				}
+			} else {
+				if (this.trick.getStatus() == 3) {
+					this.trick.aimed();
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+				}
+				this.trick.showMessage();
+				this.trick = null;
+			}
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.fireball_homing", KeyConflictContext.IN_GAME, KeyModifier.NONE,
 					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
 			super.register();
 		}
