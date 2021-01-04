@@ -17,6 +17,7 @@ import dzuchun.wingx.client.render.gui.SeparateRenderers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
@@ -238,6 +239,33 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 				this.prevPos = null;
 				this.prevRotation = null;
 			}
+		},
+		CHANGED_SLOT_CONDITION {
+
+			@Override
+			public int toInt() {
+				return 2;
+			}
+
+			ItemStack stack;
+
+			@Override
+			public Predicate<PlayerEntity> condition() {
+				return (PlayerEntity player) -> {
+					if (stack == null) {
+						stack = player.getHeldItemMainhand();
+						return false;
+					}
+					return !stack.isItemEqual(player.getHeldItemMainhand());
+				};
+			}
+
+			@Override
+			public void reset() {
+				stack = null;
+				super.reset();
+			}
+
 		};
 
 		public Predicate<PlayerEntity> condition() {
@@ -257,6 +285,8 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 				return NO_CONDITION;
 			case 1:
 				return MOVED_CONDITION;
+			case 2:
+				return CHANGED_SLOT_CONDITION;
 			default:
 				return null;
 			}

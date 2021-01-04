@@ -12,6 +12,7 @@
 	"key.wingx.fireball_homing": "[WIP] Cast homing fireball",
 	"key.wingx.section_name": "Wingx Keys",
 	"key.wingx.toggle_sky": "Toggle Sky",
+	"key.wingx.summon_sword": "Summon soul sword",
 	"wingx.commands.error.unknown": "Unknown error happened",
 	"wingx.commands.error.no_wings": "Target does not have wings",
 	"wingx.commands.error.not_enough_arguments": "Few arguments",

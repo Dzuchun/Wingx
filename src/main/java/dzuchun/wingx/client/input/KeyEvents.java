@@ -301,6 +301,20 @@ enum WingxKey {
 			super.register();
 		}
 	},
+	SUMMON_SWORD {
+
+		@Override
+		public void execute() {
+			// TODO specify execute
+		}
+
+		@Override
+		public void register() {
+			this.key = new KeyBinding("key.wingx.summon_sword", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+			super.register();
+		}
+	},
 	TEMPLATE {
 
 		@Override
