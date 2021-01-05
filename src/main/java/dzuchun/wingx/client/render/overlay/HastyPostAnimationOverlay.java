@@ -60,7 +60,6 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void renderWorldLast(RenderWorldLastEvent event) {
 		MatrixStack matrixStack = event.getMatrixStack();

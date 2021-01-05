@@ -2,31 +2,37 @@ package dzuchun.wingx.client.render.overlay;
 
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
+import dzuchun.wingx.init.Items;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
 
 @OnlyIn(Dist.CLIENT)
-public class SoulswordOverlay extends AbstractOverlay {
+public class SoulswordOverlay extends AbstractTickingOverlay {
 
-	private ClientPlayerEntity caster;
+	public final ClientPlayerEntity caster;
+	private boolean summoned;
 
 	public SoulswordOverlay(ClientPlayerEntity casterIn) {
 		this.caster = casterIn;
+		this.summoned = false;
 	}
 
 	@Override
 	boolean conflicts(AbstractOverlay other) {
-		return false;
+		return (other instanceof SoulswordOverlay && ((SoulswordOverlay) other).caster.equals(caster));
 	}
 
 	private long beginTime;
+	@SuppressWarnings("unused")
 	private long endTime;
 
 	@Override
-	protected boolean activate() {
-		if (activate(this)) {
+	public boolean activate() {
+		if (super.activate()) {
 			beginTime = caster.world.getGameTime();
 			endTime = beginTime + caster.getCapability(WingsProvider.WINGS, null).orElse(null).getDataManager()
 					.getOrAddDefault(Serializers.SOULSWORD_SERIALIZER).summonDurationTicks;
@@ -37,17 +43,36 @@ public class SoulswordOverlay extends AbstractOverlay {
 	}
 
 	@Override
-	protected void deactivate() {
-		deactivate(this);
+	public void deactivate() {
+		super.deactivate();
 	}
 
 	@Override
 	void renderLiving(@SuppressWarnings("rawtypes") RenderLivingEvent event) {
+		super.renderLiving(event);
 		if (caster != event.getEntity()) {
 			return;
 		}
-		
-		super.renderLiving(event);
+		// TODO render some sword-summoning stuff
 	}
-	
+
+	@Override
+	void renderGameOverlay(RenderGameOverlayEvent event) {
+		super.renderGameOverlay(event);
+		// TODO render some visual stuff
+	}
+
+	public void markSummoned() {
+		this.summoned = true;
+	}
+
+	@Override
+	public void onClienTick(ClientTickEvent event) {
+		if (((caster.getHeldItemMainhand().getItem() != Items.SUMMONING_SOULSWORD.get()) && !summoned)
+				|| ((caster.getHeldItemMainhand().getItem() != Items.REAL_SOULSWORD.get()) && summoned)) { // TODO
+																											// optimize
+			active = false;
+		}
+	}
+
 }

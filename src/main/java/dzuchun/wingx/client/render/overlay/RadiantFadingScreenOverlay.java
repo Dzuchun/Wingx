@@ -42,7 +42,6 @@ public class RadiantFadingScreenOverlay extends FadingScreenOverlay {
 		renderRadiantColorScreen(event.getMatrixStack(), color);
 	}
 
-	@SuppressWarnings("deprecation")
 	private static void renderRadiantColorScreen(MatrixStack matrixStackIn, Vector4f color) {
 		if (!Minecraft.isGuiEnabled()) {
 			return;

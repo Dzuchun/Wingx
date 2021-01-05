@@ -17,7 +17,7 @@ import dzuchun.wingx.client.render.gui.SeparateRenderers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.Item;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
@@ -240,29 +240,29 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 				this.prevRotation = null;
 			}
 		},
-		CHANGED_SLOT_CONDITION {
+		CHANGED_ITEM_CONDITION {
 
 			@Override
 			public int toInt() {
 				return 2;
 			}
 
-			ItemStack stack;
+			Item item;
 
 			@Override
 			public Predicate<PlayerEntity> condition() {
 				return (PlayerEntity player) -> {
-					if (stack == null) {
-						stack = player.getHeldItemMainhand();
+					if (item == null) {
+						item = player.getHeldItemMainhand().getItem();
 						return false;
 					}
-					return !stack.isItemEqual(player.getHeldItemMainhand());
+					return !item.equals(player.getHeldItemMainhand().getItem());
 				};
 			}
 
 			@Override
 			public void reset() {
-				stack = null;
+				item = null;
 				super.reset();
 			}
 
@@ -286,7 +286,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 			case 1:
 				return MOVED_CONDITION;
 			case 2:
-				return CHANGED_SLOT_CONDITION;
+				return CHANGED_ITEM_CONDITION;
 			default:
 				return null;
 			}
@@ -303,6 +303,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		LazyOptional<IActiveTricksCapability> capOptional = world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS);
 		if (capOptional.isPresent()) {
 			res_int_1 = 0;
+			// TODO rewrite using stream!!
 			capOptional.ifPresent((cap) -> {
 				cap.getActiveTricks().forEach((trick) -> {
 					if ((trick.hasCaster() && trick.getCaster().getUniqueID().equals(casterPlayer.getUniqueID()))

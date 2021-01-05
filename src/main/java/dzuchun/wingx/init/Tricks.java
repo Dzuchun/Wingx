@@ -9,6 +9,7 @@ import dzuchun.wingx.trick.HastyPlayerTrick;
 import dzuchun.wingx.trick.HomingFireballCastTargetedPlayerTrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
+import dzuchun.wingx.trick.SummonSwordPlayerTrick;
 import dzuchun.wingx.trick.SwapPlayerTrick;
 import dzuchun.wingx.trick.TemplateCastPlayerTrick;
 import dzuchun.wingx.trick.meditation.MeditationPlayerTrick;
@@ -32,6 +33,7 @@ public class Tricks {
 	public static final RegistryObject<AbstractTrick> AGIL_TRICK = register(AgilPlayerTrick.class);
 	public static final RegistryObject<AbstractTrick> HOMING_FIREBALL_CAST_TRICK = register(
 			HomingFireballCastTargetedPlayerTrick.class);
+	public static final RegistryObject<AbstractTrick> SUMMON_SOULSWORD_TRICK = register(SummonSwordPlayerTrick.class);
 
 	private static RegistryObject<AbstractTrick> register(Class<? extends AbstractTrick> trickClass) {
 		AbstractTrick trick;

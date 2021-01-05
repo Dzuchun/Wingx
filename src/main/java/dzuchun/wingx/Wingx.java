@@ -16,6 +16,7 @@ import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.config.ClientConfig;
 import dzuchun.wingx.config.ServerConfig;
 import dzuchun.wingx.init.EntityTypes;
+import dzuchun.wingx.init.Items;
 import dzuchun.wingx.init.SoundEvents;
 import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.net.WingxPacketHandler;
@@ -59,6 +60,7 @@ public class Wingx {
 		MOD_EVENT_BUS.addListener(Wingx::createResistries);
 
 		LOG.debug("Initing");
+		Items.registerItems(MOD_EVENT_BUS);
 		EntityTypes.registerEntityTypes(MOD_EVENT_BUS);
 		Tricks.registerTricks(MOD_EVENT_BUS);
 		SoundEvents.registerSoundEvents(MOD_EVENT_BUS);

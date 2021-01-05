@@ -18,6 +18,7 @@ import dzuchun.wingx.trick.FireballCastPlayerTrick;
 import dzuchun.wingx.trick.HomingFireballCastTargetedPlayerTrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
+import dzuchun.wingx.trick.SummonSwordPlayerTrick;
 import dzuchun.wingx.trick.SwapPlayerTrick;
 import dzuchun.wingx.trick.TemplateCastPlayerTrick;
 import dzuchun.wingx.trick.meditation.MeditationPlayerTrick;
@@ -303,9 +304,11 @@ enum WingxKey {
 	},
 	SUMMON_SWORD {
 
+		@SuppressWarnings("resource")
 		@Override
 		public void execute() {
-			// TODO specify execute
+			WingxPacketHandler.INSTANCE.sendToServer(
+					new TrickPerformedMessage(new SummonSwordPlayerTrick(Minecraft.getInstance().player)));
 		}
 
 		@Override

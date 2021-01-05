@@ -45,6 +45,7 @@
 	"wingx.trick.error_reason.interrupt_cast": "Interrupted cast",
 	"wingx.trick.error_reason.overlay_conflict": "Overlay conflict",
 	"wingx.trick.error_reason.overlay_unknown": "Unknown overlay error",
+	"wingx.trick.error_reason.hand_busy": "caster hand is busy",
 	"wingx.trick.meditation.success": "Begining meditation",
 	"wingx.trick.meditation.start": "Meditating...",
 	"wingx.trick.meditation.interrupt": "Meditation interrrupted",
@@ -64,6 +65,8 @@
 	"wingx.trick.smash.interrupt": "Smash interrupted",
 	"wingx.trick.swap.success": "Swapping...",
 	"wingx.trick.swap.error": "Cannot swap : %s",
+	"wingx.trick.summon_soulsword.start": "Casting soulsword...",
+	"wingx.trick.summon_soulsword.error": "Cannot summon Soul Sword : %s",
 	"wingx.config.client.example_boolean": "Example client config boolean",
 	"wingx.config.server.example_boolean": "Example server config boolean",
 	"wingx.gui.node.desc.wingx": "Root node of all the three",
@@ -75,5 +78,7 @@
 	"wingx.gui.node.desc.agil_external": "Perform a double attack!",
 	"subtitles.wingx.end.ambient": "Example end ambient",
 	"subtitles.wingx.random.hasty_proc": "Hasty proced",
-	"subtitles.wingx.random.agil_proc": "Agil proced"
+	"subtitles.wingx.random.agil_proc": "Agil proced",
+	"item.wingx.summoning_soulsword": "Souldword (summoning)",
+	"item.wingx.real_soulsword": "Souldword"
 }
