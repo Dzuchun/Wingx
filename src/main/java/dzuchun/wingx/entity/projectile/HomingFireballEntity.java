@@ -25,34 +25,35 @@ public class HomingFireballEntity extends FireballEntity {
 		super(caster);
 		this.target = target;
 		LazyOptional<IWingsCapability> wingsOptional = caster.getCapability(WingsProvider.WINGS, null);
-		if (!wingsOptional.isPresent())
+		if (!wingsOptional.isPresent()) {
 			throw (new NoWingsException(caster));
+		}
 		IWingsCapability wings = wingsOptional.orElse(null);
 		FireballData data = wings.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER);
-		homingForce = data.homingForce;
+		this.homingForce = data.homingForce;
 	}
 
 	@Override
 	public void tick() {
 		super.tick();
-		if (target != null) {
+		if (this.target != null) {
 			// TODO find better algorythm
-			Vector3d speed = getMotion();
-			Vector3d targetRelPos = target.getPositionVec().add(getPositionVec().scale(-1.0d));
+			Vector3d speed = this.getMotion();
+			Vector3d targetRelPos = this.target.getPositionVec().add(this.getPositionVec().scale(-1.0d));
 			Vector3d targetPosNormed = targetRelPos.normalize().scale(speed.length());
 			Vector3d speedDiffer = targetPosNormed.add(speed.scale(-1.0d));
-			Vector3d speedDelta = speedDiffer.normalize().scale(homingForce);
+			Vector3d speedDelta = speedDiffer.normalize().scale(this.homingForce);
 //			LOG.debug(
 //					"Results: rel pos = {}; rel pos normed = {}; speedDiffer = {}; homing force = {}, speedDelta = {}",
 //					targetRelPos, targetPosNormed, speedDiffer, homingForce, speedDelta);
 			if (speedDelta.length() >= speedDiffer.length()) {
 				double differSq = speedDiffer.lengthSquared();
-				double accSq = homingForce * homingForce - differSq;
+				double accSq = (this.homingForce * this.homingForce) - differSq;
 				speedDelta = speedDelta.normalize().scale(Math.sqrt(differSq))
 						.add(targetRelPos.normalize().scale(Math.sqrt(accSq)));
 			}
 //			LOG.info("Targeting {}, so adding {} to speed", target, targetRelPos, speedDelta);
-			addMotion(speedDelta);
+			this.addMotion(speedDelta);
 		} else {
 			LOG.warn("Target is null!!");
 		}
@@ -63,15 +64,15 @@ public class HomingFireballEntity extends FireballEntity {
 
 	@Override
 	protected void writeAdditional(CompoundNBT compound) {
-		compound.putDouble(HOMING_FORCE_TAG, homingForce);
-		compound.putUniqueId(TARGET_TAG, entityUniqueID);
+		compound.putDouble(HOMING_FORCE_TAG, this.homingForce);
+		compound.putUniqueId(TARGET_TAG, this.entityUniqueID);
 		super.writeAdditional(compound);
 	}
 
 	@Override
 	protected void readAdditional(CompoundNBT compound) {
-		homingForce = compound.getDouble(HOMING_FORCE_TAG);
-		target = WorldHelper.getEntityFromWorldByUniqueId(world, compound.getUniqueId(TARGET_TAG));
+		this.homingForce = compound.getDouble(HOMING_FORCE_TAG);
+		this.target = WorldHelper.getEntityFromWorldByUniqueId(this.world, compound.getUniqueId(TARGET_TAG));
 		super.readAdditional(compound);
 	}
 

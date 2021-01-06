@@ -55,8 +55,8 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 		if (side == LogicalSide.SERVER) {
 			// We are on server
 			assertHasCaster(this);
-			if (hasCasterPlayer()) {
-				PlayerEntity caster = getCasterPlayer();
+			if (this.hasCasterPlayer()) {
+				PlayerEntity caster = this.getCasterPlayer();
 				caster.fallDistance = 0.0f;
 				Vector3d motionChange = caster.getForward().scale(this.strength);
 				motionChange = this.facing.transform(motionChange);
@@ -92,7 +92,8 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.getCasterPlayer())
+				: null;
 	}
 
 	@Override

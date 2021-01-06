@@ -28,13 +28,13 @@ public abstract class AbstractTargetedPlayerTrick extends AbstractPlayerCastedTr
 
 	@Override
 	public boolean hasTarget() {
-		return this.targetUniqueId != null && this.targetWorld != null
-				&& WorldHelper.getEntityFromWorldByUniqueId(this.targetWorld, this.targetUniqueId) != null;
+		return (this.targetUniqueId != null) && (this.targetWorld != null)
+				&& (WorldHelper.getEntityFromWorldByUniqueId(this.targetWorld, this.targetUniqueId) != null);
 	}
 
 	@Override
 	public Entity getTarget() {
-		return this.targetWorld == null || this.targetUniqueId == null ? null
+		return (this.targetWorld == null) || (this.targetUniqueId == null) ? null
 				: WorldHelper.getEntityFromWorldByUniqueId(this.targetWorld, this.targetUniqueId);
 	}
 
@@ -69,7 +69,8 @@ public abstract class AbstractTargetedPlayerTrick extends AbstractPlayerCastedTr
 
 	@OnlyIn(Dist.CLIENT)
 	public boolean amITarget() {
-		return this.targetUniqueId != null && this.targetUniqueId.equals(Minecraft.getInstance().player.getUniqueID());
+		return (this.targetUniqueId != null)
+				&& this.targetUniqueId.equals(Minecraft.getInstance().player.getUniqueID());
 	}
 
 	@Override

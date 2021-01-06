@@ -85,14 +85,14 @@ public class ForgeBusEventListener {
 			if (basicData.wingsActive) {
 				if (event.side == LogicalSide.CLIENT) {
 					((ClientWorld) world).getAllEntities().forEach((Entity entity) -> {
-						if (entity instanceof WingsEntity
+						if ((entity instanceof WingsEntity)
 								&& ((WingsEntity) entity).getUniqueID().equals(basicData.wingsUniqueId)) {
 							((WingsEntity) entity).realSetPosAndUpdate();
 						}
 					});
 				} else {
 					((ServerWorld) world).getEntities().forEach((Entity entity) -> {
-						if (entity instanceof WingsEntity
+						if ((entity instanceof WingsEntity)
 								&& ((WingsEntity) entity).getUniqueID().equals(basicData.wingsUniqueId)) {
 							((WingsEntity) entity).realSetPosAndUpdate();
 						}
@@ -106,10 +106,10 @@ public class ForgeBusEventListener {
 				long currentTime = serverPlayer.world.getGameTime();
 				PlayerInteractionManager interaction = serverPlayer.interactionManager;
 				if (hastyData.isActive && interaction.isDestroyingBlock
-						&& world.getBlockState(interaction.destroyPos).getBlockHardness(world,
-								interaction.destroyPos) > 0
-						&& (currentTime - hastyData.lastProc) > hastyData.cooldown
-						&& tmp_random.nextDouble() < hastyData.probability) {
+						&& (world.getBlockState(interaction.destroyPos).getBlockHardness(world,
+								interaction.destroyPos) > 0)
+						&& ((currentTime - hastyData.lastProc) > hastyData.cooldown)
+						&& (tmp_random.nextDouble() < hastyData.probability)) {
 					hastyData.lastProc = currentTime;
 					WingxPacketHandler.INSTANCE.send(
 							PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> serverPlayer),
@@ -121,18 +121,18 @@ public class ForgeBusEventListener {
 				// TODO fix entity bugs
 				if (player.ticksSinceLastSwing == 0) {
 					AgilData agilData = wings.getDataManager().getOrAddDefault(Serializers.AGIL_SERIALIZER);
-					if (agilData.isActive && (world.getGameTime() - agilData.lastProc) >= agilData.cooldown) {
+					if (agilData.isActive && ((world.getGameTime() - agilData.lastProc) >= agilData.cooldown)) {
 						// TODO specify reach distance
 						EntityRayTraceResult entityRayTrace = ProjectileHelper.rayTraceEntities(world, player,
 								player.getEyePosition(1.0f),
 								player.getPositionVec().add(serverPlayer.getForward().scale(5.0d)),
 								player.getBoundingBox().grow(5.0d), entity -> entity instanceof LivingEntity);
-						if (entityRayTrace != null
+						if ((entityRayTrace != null)
 								&& serverPlayer.equals(
 										((LivingEntity) entityRayTrace.getEntity()).getLastDamageSource() == null ? null
 												: ((LivingEntity) entityRayTrace.getEntity()).getLastDamageSource()
 														.getTrueSource())
-								&& tmp_random.nextDouble() <= agilData.probability) {
+								&& (tmp_random.nextDouble() <= agilData.probability)) {
 							agilData.lastProc = player.world.getGameTime();
 							player.ticksSinceLastSwing = 1000;
 							Entity target = entityRayTrace.getEntity();
@@ -181,6 +181,7 @@ public class ForgeBusEventListener {
 //		}
 	}
 
+	// Client-only!
 	@SubscribeEvent
 	public static void onRenderGameOverlay(RenderGameOverlayEvent event) {
 		if (event instanceof RenderGameOverlayEvent.Post) {
@@ -194,6 +195,7 @@ public class ForgeBusEventListener {
 		}
 	}
 
+	// Client-only!
 	@SubscribeEvent
 	public static void onLogOut(LoggedOutEvent event) {
 		AbstractTickingOverlay.onDisconnect(event);

@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -44,9 +45,9 @@ public class LivingEntityTargetOverlay extends AbstractOverlay {
 
 	@Override
 	public boolean activate() {
-		if (target != null && AbstractOverlay.activate(this)) {
+		if ((this.target != null) && AbstractOverlay.activate(this)) {
 			synchronized (ACTIVE_INSTANCES_LOCK) {
-				activeInstances.put(target.getUniqueID(), this);
+				activeInstances.put(this.target.getUniqueID(), this);
 			}
 			return true;
 		} else {
@@ -58,14 +59,14 @@ public class LivingEntityTargetOverlay extends AbstractOverlay {
 	public void deactivate() {
 		AbstractOverlay.deactivate(this);
 		synchronized (ACTIVE_INSTANCES_LOCK) {
-			activeInstances.remove(target.getUniqueID());
+			activeInstances.remove(this.target.getUniqueID());
 		}
 	}
 
 	@Override
 	void renderLiving(@SuppressWarnings("rawtypes") RenderLivingEvent event) {
 		super.renderLiving(event);
-		if (event.getEntity().equals(target)) {
+		if (event.getEntity().equals(this.target)) {
 //			IRenderTypeBuffer buffer = event.getBuffers();
 			GL11.glPointSize(10.0f);
 			GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

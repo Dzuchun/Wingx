@@ -54,13 +54,13 @@ public class Animator {
 				if (!flow.upcomingValues.isEmpty()) {
 
 					if (flow.lastValue == null) {
-						flow.lastValue = getCurrentValue(i);
+						flow.lastValue = this.getCurrentValue(i);
 					}
 
-					float stage = getTimeStage(i, partialTicks);
+					float stage = this.getTimeStage(i, partialTicks);
 					AnimationValue value = flow.upcomingValues.getSmallest();
 //					LOG.debug("Last value {}, lerping to {}", flow.lastValue, value);
-					rendererValueSetter(i)
+					this.rendererValueSetter(i)
 							.accept(MathHelper.lerp(value.fadeFuntion.get(stage, AnimationParameter.get(i)),
 									flow.lastValue.value, value.value));
 				}
@@ -73,7 +73,7 @@ public class Animator {
 		AnimationValue value = flow.upcomingValues.getSmallest();
 		AnimationValue last = flow.lastValue;
 		return value.time == last.time ? 1.0f
-				: ((float) this.currentTimeSupplier.get() + partialTicks - last.time) / (value.time - last.time);
+				: (((float) this.currentTimeSupplier.get() + partialTicks) - last.time) / (value.time - last.time);
 	}
 
 	private AnimationState getCurrentState() {
@@ -82,7 +82,7 @@ public class Animator {
 
 	public void addCurrentState() {
 		synchronized (this.states_lock) {
-			addStateUnchecked(getCurrentState());
+			this.addStateUnchecked(this.getCurrentState());
 		}
 	}
 
@@ -107,25 +107,25 @@ public class Animator {
 	private Consumer<Float> rendererValueSetter(int type) {
 		switch (type) {
 		case 0:
-			return (v) -> this.renderer.rotationPointX = v;
+			return v -> this.renderer.rotationPointX = v;
 		case 1:
-			return (v) -> this.renderer.rotationPointY = v;
+			return v -> this.renderer.rotationPointY = v;
 		case 2:
-			return (v) -> this.renderer.rotationPointZ = v;
+			return v -> this.renderer.rotationPointZ = v;
 		case 3:
-			return (v) -> this.renderer.rotateAngleX = v;
+			return v -> this.renderer.rotateAngleX = v;
 		case 4:
-			return (v) -> this.renderer.rotateAngleY = v;
+			return v -> this.renderer.rotateAngleY = v;
 		case 5:
-			return (v) -> this.renderer.rotateAngleZ = v;
+			return v -> this.renderer.rotateAngleZ = v;
 		}
-		return (v) -> {
+		return v -> {
 		};
 	}
 
 	public AnimationValue getCurrentValue(int type) {
 		AnimationValue value = null;
-		value = new AnimationValue(this.currentTimeSupplier.get(), rendererValueSupplier(type).get(), 0,
+		value = new AnimationValue(this.currentTimeSupplier.get(), this.rendererValueSupplier(type).get(), 0,
 				FadeFunction.LINEAR);
 		return value;
 	}
@@ -133,30 +133,30 @@ public class Animator {
 	public AnimationState addState(AnimationState stateIn) {
 		synchronized (this.states_lock) {
 //			LOG.debug("Adding {} to {}", stateIn, this);
-			return stateIn == null ? null : addStateUnchecked(stateIn);
+			return stateIn == null ? null : this.addStateUnchecked(stateIn);
 		}
 	}
 
 	private AnimationState addStateUnchecked(@Nonnull AnimationState stateIn) {
 		return new AnimationState(stateIn.time, stateIn.fadeFunction, stateIn.priority,
-				addValueUnchecked(0,
+				this.addValueUnchecked(0,
 						new AnimationValue(stateIn.time, stateIn.x, stateIn.priority, stateIn.fadeFunction)) ? stateIn.x
 								: null,
-				addValueUnchecked(1,
+				this.addValueUnchecked(1,
 						new AnimationValue(stateIn.time, stateIn.y, stateIn.priority, stateIn.fadeFunction)) ? stateIn.y
 								: null,
-				addValueUnchecked(2,
+				this.addValueUnchecked(2,
 						new AnimationValue(stateIn.time, stateIn.z, stateIn.priority, stateIn.fadeFunction)) ? stateIn.z
 								: null,
-				addValueUnchecked(3,
+				this.addValueUnchecked(3,
 						new AnimationValue(stateIn.time, stateIn.xRot, stateIn.priority, stateIn.fadeFunction))
 								? stateIn.xRot
 								: null,
-				addValueUnchecked(4,
+				this.addValueUnchecked(4,
 						new AnimationValue(stateIn.time, stateIn.yRot, stateIn.priority, stateIn.fadeFunction))
 								? stateIn.yRot
 								: null,
-				addValueUnchecked(5,
+				this.addValueUnchecked(5,
 						new AnimationValue(stateIn.time, stateIn.zRot, stateIn.priority, stateIn.fadeFunction))
 								? stateIn.zRot
 								: null);
@@ -164,7 +164,7 @@ public class Animator {
 
 	public boolean addValue(int typeIn, float valueIn, boolean delay, long time, int priorityIn,
 			FadeFunction fadeFunctionIn) {
-		return addValue(typeIn, new AnimationValue(delay ? this.currentTimeSupplier.get() + time : time, valueIn,
+		return this.addValue(typeIn, new AnimationValue(delay ? this.currentTimeSupplier.get() + time : time, valueIn,
 				priorityIn, fadeFunctionIn));
 	}
 
@@ -173,7 +173,7 @@ public class Animator {
 			return false;
 		}
 		synchronized (this.states_lock) {
-			return addValueUnchecked(typeIn, valueIn);
+			return this.addValueUnchecked(typeIn, valueIn);
 		}
 	}
 
@@ -207,7 +207,7 @@ public class Animator {
 			}
 		}
 		if (!upcoming.getSmallest().equals(check)) {
-			upcoming.add(getCurrentValue(type));
+			upcoming.add(this.getCurrentValue(type));
 		}
 //		LOG.debug("Added value {}. Current flow: {}", valueIn, upcoming);
 		return upcoming.contains(valueIn);

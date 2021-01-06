@@ -49,12 +49,14 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	@Override
 	public PacketTarget getEndPacketTarget() {
 		// TODO redefine, when animate!
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
@@ -72,11 +74,11 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	@Override
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
-			if (hasCasterPlayer()) {
-				PlayerEntity caster = getCasterPlayer();
+			if (this.hasCasterPlayer()) {
+				PlayerEntity caster = this.getCasterPlayer();
 				LazyOptional<IWingsCapability> optionalCap = caster.getCapability(WingsProvider.WINGS, null);
 				if (optionalCap.isPresent()) {
-					optionalCap.ifPresent((cap) -> {
+					optionalCap.ifPresent(cap -> {
 						BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
 						if (data.needsEnd && (caster.world.getDimensionKey() != World.THE_END)) {
 							LOG.debug("Player requires end to meditate, but is not in end now.");
@@ -93,7 +95,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 						caster.world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent((worldCap) -> {
 							worldCap.getActiveTricks().forEach((trick) -> {
 								if (trick instanceof ICastedTrick) {
-									if (trick instanceof MeditationPlayerTrick
+									if ((trick instanceof MeditationPlayerTrick)
 											&& trick.getCaster().getUniqueID().equals(caster.getUniqueID())) {
 										this.tmp_boolean_1 = false;
 									}
@@ -137,13 +139,14 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 		if (side == LogicalSide.SERVER) {
 			// We are on server
 			assertHasCaster(this);
-			if (castEndedNaturally()) {
-				LazyOptional<IWingsCapability> optionalCap = getCasterPlayer().getCapability(WingsProvider.WINGS, null);
+			if (this.castEndedNaturally()) {
+				LazyOptional<IWingsCapability> optionalCap = this.getCasterPlayer().getCapability(WingsProvider.WINGS,
+						null);
 				if (optionalCap.isPresent()) {
-					optionalCap.ifPresent((cap) -> {
+					optionalCap.ifPresent(cap -> {
 						LOG.info("Opening meditation gui");
 						WingxPacketHandler.INSTANCE.send(
-								PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCasterPlayer()),
+								PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.getCasterPlayer()),
 								new MeditationGuiMessage(cap));
 					});
 				} else {
@@ -152,8 +155,8 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 			}
 		} else {
 			// We are on client
-			if (amICaster()) {
-				if (!castEndedNaturally()) {
+			if (this.amICaster()) {
+				if (!this.castEndedNaturally()) {
 					FadingScreenOverlay overlay = FadingScreenOverlay.instance;
 					if (overlay == null) {
 						LOG.warn("There is no overlay, but cast ended unnaturaly");

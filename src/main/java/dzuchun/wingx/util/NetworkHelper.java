@@ -81,20 +81,20 @@ public class NetworkHelper {
 		buf.writeLong(state.time);
 		writeString(buf, state.fadeFunction.getName().toString());
 		buf.writeInt(state.priority);
-		writeChecked(buf, state.x, (buffer, f) -> buffer.writeFloat(f));
-		writeChecked(buf, state.y, (buffer, f) -> buffer.writeFloat(f));
-		writeChecked(buf, state.z, (buffer, f) -> buffer.writeFloat(f));
-		writeChecked(buf, state.xRot, (buffer, f) -> buffer.writeFloat(f));
-		writeChecked(buf, state.yRot, (buffer, f) -> buffer.writeFloat(f));
-		writeChecked(buf, state.zRot, (buffer, f) -> buffer.writeFloat(f));
+		writeChecked(buf, state.x, PacketBuffer::writeFloat);
+		writeChecked(buf, state.y, PacketBuffer::writeFloat);
+		writeChecked(buf, state.z, PacketBuffer::writeFloat);
+		writeChecked(buf, state.xRot, PacketBuffer::writeFloat);
+		writeChecked(buf, state.yRot, PacketBuffer::writeFloat);
+		writeChecked(buf, state.zRot, PacketBuffer::writeFloat);
 	}
 
 	public static AnimationState readAnimationState(PacketBuffer buf) {
 		AnimationState res = new AnimationState(buf.readLong(),
 				FadeFunction.getByName(new ResourceLocation(readString(buf))), buf.readInt(),
-				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()),
-				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()),
-				readChecked(buf, buffer -> buffer.readFloat()), readChecked(buf, buffer -> buffer.readFloat()));
+				readChecked(buf, PacketBuffer::readFloat), readChecked(buf, PacketBuffer::readFloat),
+				readChecked(buf, PacketBuffer::readFloat), readChecked(buf, PacketBuffer::readFloat),
+				readChecked(buf, PacketBuffer::readFloat), readChecked(buf, PacketBuffer::readFloat));
 //		LOG.debug("Readed {}", res);
 		return res;
 	}

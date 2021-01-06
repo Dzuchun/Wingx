@@ -23,7 +23,7 @@ public class SoulswordOverlay extends AbstractTickingOverlay {
 
 	@Override
 	boolean conflicts(AbstractOverlay other) {
-		return (other instanceof SoulswordOverlay && ((SoulswordOverlay) other).caster.equals(caster));
+		return ((other instanceof SoulswordOverlay) && ((SoulswordOverlay) other).caster.equals(this.caster));
 	}
 
 	private long beginTime;
@@ -33,9 +33,9 @@ public class SoulswordOverlay extends AbstractTickingOverlay {
 	@Override
 	public boolean activate() {
 		if (super.activate()) {
-			beginTime = caster.world.getGameTime();
-			endTime = beginTime + caster.getCapability(WingsProvider.WINGS, null).orElse(null).getDataManager()
-					.getOrAddDefault(Serializers.SOULSWORD_SERIALIZER).summonDurationTicks;
+			this.beginTime = this.caster.world.getGameTime();
+			this.endTime = this.beginTime + this.caster.getCapability(WingsProvider.WINGS, null).orElse(null)
+					.getDataManager().getOrAddDefault(Serializers.SOULSWORD_SERIALIZER).summonDurationTicks;
 			return true;
 		} else {
 			return false;
@@ -50,7 +50,7 @@ public class SoulswordOverlay extends AbstractTickingOverlay {
 	@Override
 	void renderLiving(@SuppressWarnings("rawtypes") RenderLivingEvent event) {
 		super.renderLiving(event);
-		if (caster != event.getEntity()) {
+		if (this.caster != event.getEntity()) {
 			return;
 		}
 		// TODO render some sword-summoning stuff
@@ -68,10 +68,10 @@ public class SoulswordOverlay extends AbstractTickingOverlay {
 
 	@Override
 	public void onClienTick(ClientTickEvent event) {
-		if (((caster.getHeldItemMainhand().getItem() != Items.SUMMONING_SOULSWORD.get()) && !summoned)
-				|| ((caster.getHeldItemMainhand().getItem() != Items.REAL_SOULSWORD.get()) && summoned)) { // TODO
-																											// optimize
-			active = false;
+		if (((this.caster.getHeldItemMainhand().getItem() != Items.SUMMONING_SOULSWORD.get()) && !this.summoned)
+				|| ((this.caster.getHeldItemMainhand().getItem() != Items.REAL_SOULSWORD.get()) && this.summoned)) { // TODO
+			// optimize
+			this.active = false;
 		}
 	}
 

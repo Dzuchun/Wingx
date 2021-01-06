@@ -141,14 +141,14 @@ enum WingxKey {
 				return;
 			}
 			List<LivingEntity> livingEntities = new ArrayList<LivingEntity>(0);
-			minecraft.world.getAllEntities().forEach((entity) -> {
+			minecraft.world.getAllEntities().forEach(entity -> {
 				if (entity instanceof LivingEntity) {
 					livingEntities.add((LivingEntity) entity);
 				}
 			});
 			LivingEntity newEntity = minecraft.world.getClosestEntity(livingEntities,
 					new EntityPredicate().setCustomPredicate(
-							(entity) -> !entity.getUniqueID().equals(minecraft.player.getUniqueID())),
+							entity -> !entity.getUniqueID().equals(minecraft.player.getUniqueID())),
 					minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
 					minecraft.player.getPosZ());
 			if (newEntity != null) {
@@ -173,7 +173,7 @@ enum WingxKey {
 		public void execute() {
 			if (this.trick == null) {
 				this.trick = new PunchPlayerTrick(Minecraft.getInstance().player, 10.0d,
-						(entity) -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()), 10.0d);
+						entity -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()), 10.0d);
 				if (this.trick.getState() == PunchPlayerTrick.State.FAILED) {
 					this.trick = null;
 				}
@@ -202,7 +202,7 @@ enum WingxKey {
 		public void execute() {
 			if (this.trick == null) {
 				this.trick = new SwapPlayerTrick(Minecraft.getInstance().player, 10.0d,
-						(entity) -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()));
+						entity -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()));
 				if (this.trick.getState() == SwapPlayerTrick.State.FAILED) {
 					this.trick = null;
 				}
@@ -343,7 +343,7 @@ enum WingxKey {
 		if (this.key != null) {
 			ClientRegistry.registerKeyBinding(this.key);
 		} else {
-			LOG.warn("Tried to register null keybinding for {} wingx key", toString());
+			LOG.warn("Tried to register null keybinding for {} wingx key", this.toString());
 		}
 	}
 

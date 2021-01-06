@@ -46,12 +46,12 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 		if (side == LogicalSide.CLIENT) {
 			// We are on client
 			// TODO fix block not-dropping
-			Entity caster = getCaster();
+			Entity caster = this.getCaster();
 			if (caster instanceof ClientPlayerEntity) {
 				Minecraft minecraft = Minecraft.getInstance();
 				PlayerController controller = minecraft.playerController;
 				if (controller.isHittingBlock) {
-					if (amICaster()) {
+					if (this.amICaster()) {
 						if ((1.0f - controller.curBlockDamageMP) > this.data.jump) {
 							LOG.info("Executing hasty trick on client. Is hitting block={}, current damage={}",
 									controller.isHittingBlock, controller.curBlockDamageMP);

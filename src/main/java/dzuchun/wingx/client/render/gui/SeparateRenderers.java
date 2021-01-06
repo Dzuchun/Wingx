@@ -47,21 +47,22 @@ public class SeparateRenderers {
 		if (tricks == null) {
 			return;
 		}
-		tricks.forEach((trick) -> {
+		tricks.forEach(trick -> {
 			if (trick instanceof ITimeredTrick) {
 				defaultDrawCastingOverlayInner(event, (ITimeredTrick) trick);
 			}
 		});
 	}
 
+	@SuppressWarnings("deprecation")
 	private static void defaultDrawCastingOverlayInner(RenderGameOverlayEvent event, ITimeredTrick trick) {
 		Minecraft minecraft = Minecraft.getInstance();
 		double partLeft = trick.partLeft();
 
 		int scaledScreenWidth = Minecraft.getInstance().getMainWindow().getScaledWidth();
 		int scaledScreenHeight = Minecraft.getInstance().getMainWindow().getScaledHeight();
-		double scaledWidth = (double) defaultWidth * (double) scaledScreenWidth / defaultScreenWidth;
-		double scaledHeight = (double) defaultHeight * (double) scaledScreenHeight / defaultScreenHeight;
+		double scaledWidth = ((double) defaultWidth * (double) scaledScreenWidth) / defaultScreenWidth;
+		double scaledHeight = ((double) defaultHeight * (double) scaledScreenHeight) / defaultScreenHeight;
 		double xMin = scaledScreenWidth - xOffset - scaledWidth;
 		double xMax = scaledScreenWidth - xOffset;
 		double yMin = scaledScreenHeight - yOffset - scaledHeight;
@@ -86,8 +87,8 @@ public class SeparateRenderers {
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 0.5F);
 		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
 		bufferbuilder.pos(xMin, yMax, 0.0D).tex(0.0F, 1.0f).endVertex();
-		bufferbuilder.pos(xMin + scaledWidth * partLeft, yMax, 0.0D).tex((float) (1.0f * partLeft), 1.0F).endVertex();
-		bufferbuilder.pos(xMin + scaledWidth * partLeft, yMin, 0.0D).tex((float) (1.0f * partLeft), 0.5F).endVertex();
+		bufferbuilder.pos(xMin + (scaledWidth * partLeft), yMax, 0.0D).tex((float) (1.0f * partLeft), 1.0F).endVertex();
+		bufferbuilder.pos(xMin + (scaledWidth * partLeft), yMin, 0.0D).tex((float) (1.0f * partLeft), 0.5F).endVertex();
 		bufferbuilder.pos(xMin, yMin, 0.0D).tex(0.0F, 0.5F).endVertex();
 
 		tessellator.draw();
@@ -102,6 +103,7 @@ public class SeparateRenderers {
 		renderColorScreen(event.getMatrixStack(), color);
 	}
 
+	@SuppressWarnings("deprecation")
 	public static void renderColorScreen(MatrixStack matrixStackIn, Vector4f color) {
 		if (!Minecraft.isGuiEnabled()) {
 			return;
@@ -146,6 +148,7 @@ public class SeparateRenderers {
 		myBlit(matrixStackIn, xMin, yMin, width, height, uMin, vMin, uWidth, vHeight, packedColorIn);
 	}
 
+	@SuppressWarnings("deprecation")
 	public static void myBlit(MatrixStack matrixStackIn, int xMin, int yMin, int width, int height, float uMin,
 			float vMin, float uWidth, float vHeight, int packedColorIn) {
 		RenderSystem.assertThread(RenderSystem::isOnRenderThread);

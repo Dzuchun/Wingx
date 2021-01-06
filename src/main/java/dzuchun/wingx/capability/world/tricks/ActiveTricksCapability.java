@@ -52,7 +52,7 @@ public class ActiveTricksCapability implements IActiveTricksCapability {
 			return true;
 		}
 		synchronized (this.ACTIVE_TRICKS_LOCK) {
-			tricks.forEach((trick) -> {
+			tricks.forEach(trick -> {
 				trick.onCastEnd(LogicalSide.SERVER);
 				WingxPacketHandler.INSTANCE.send(trick.getEndPacketTarget(), new TrickFinishMessage(trick));
 			});
@@ -65,14 +65,14 @@ public class ActiveTricksCapability implements IActiveTricksCapability {
 	public void onWorldTick(World worldIn) {
 		synchronized (this.ACTIVE_TRICKS_LOCK) {
 			Collection<IInterruptableTrick> ended_tricks = new ArrayList<IInterruptableTrick>(0);
-			this.active_tricks.forEach((trick) -> {
+			this.active_tricks.forEach(trick -> {
 				trick.tick();
 				if (!trick.keepExecuting()) {
 					ended_tricks.add(trick);
 				}
 			});
 			if (!ended_tricks.isEmpty()) {
-				removeActiveTricks(ended_tricks);
+				this.removeActiveTricks(ended_tricks);
 				this.active_tricks.trimToSize();
 			}
 		}

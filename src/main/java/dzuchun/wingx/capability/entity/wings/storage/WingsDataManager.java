@@ -108,7 +108,7 @@ public class WingsDataManager {
 			CompoundNBT dataNBT = nbt.getCompound(name);
 			Serializer<?> serializer = registry.get(name);
 			synchronized (this.DATA_LOCK) {
-				if (!this.data.add(read(serializer, dataNBT))) {
+				if (!this.data.add(this.read(serializer, dataNBT))) {
 					LOG.warn("\"{}\" part was not added, it already present", name);
 				}
 			}
@@ -123,7 +123,7 @@ public class WingsDataManager {
 		synchronized (this.DATA_LOCK) {
 			this.data.forEach(dataInstance -> {
 				CompoundNBT res = new CompoundNBT();
-				write(res, dataInstance);
+				this.write(res, dataInstance);
 				nbt.put(dataInstance.getSerializer().getName(), res);
 			});
 		}
@@ -141,7 +141,7 @@ public class WingsDataManager {
 				int length = buf.readInt();
 				String name = buf.readString(length);
 				Serializer<?> serializer = registry.get(name);
-				this.data.add(read(serializer, buf));
+				this.data.add(this.read(serializer, buf));
 			}
 		}
 	}
@@ -157,7 +157,7 @@ public class WingsDataManager {
 				String name = dataInstance.getSerializer().getName();
 				buf.writeInt(name.length());
 				buf.writeString(name, name.length());
-				write(buf, dataInstance);
+				this.write(buf, dataInstance);
 			});
 		}
 	}

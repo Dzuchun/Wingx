@@ -40,7 +40,7 @@ public class FireballModel extends EntityModel<FireballEntity> {
 		this.second = new ModelRenderer(this);
 		this.second.setRotationPoint(0.0F, 0.0F, 6.0F);
 		this.body.addChild(this.second);
-		setRotationAngle(this.second, 0.0F, 0.0F, -0.5236F);
+		this.setRotationAngle(this.second, 0.0F, 0.0F, -0.5236F);
 		this.second.setTextureOffset(0, 12).addBox(-2.0F, -2.0F, -2.0F, 4.0F, 4.0F, 4.0F, 0.0F, false);
 
 		this.particles = new ModelRenderer(this);
@@ -50,28 +50,28 @@ public class FireballModel extends EntityModel<FireballEntity> {
 		this.part1 = new ModelRenderer(this);
 		this.part1.setRotationPoint(0.0F, 0.0F, 0.5F);
 		this.particles.addChild(this.part1);
-		setRotationAngle(this.part1, 0.2182F, 1.1781F, 0.0F);
+		this.setRotationAngle(this.part1, 0.2182F, 1.1781F, 0.0F);
 		this.part1.setTextureOffset(0, 0).addBox(0.0F, -2.0F, -1.0F, 1.0F, 1.0F, 1.0F, 0.0F, false);
 
 		this.part2 = new ModelRenderer(this);
 		this.part2.setRotationPoint(0.0F, 0.0F, 0.5F);
 		this.particles.addChild(this.part2);
-		setRotationAngle(this.part2, 0.0F, -0.2182F, 0.3054F);
+		this.setRotationAngle(this.part2, 0.0F, -0.2182F, 0.3054F);
 		this.part2.setTextureOffset(0, 4).addBox(-2.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F, false);
 
 		this.part3 = new ModelRenderer(this);
 		this.part3.setRotationPoint(0.0F, 0.0F, -0.5F);
 		this.particles.addChild(this.part3);
-		setRotationAngle(this.part3, 0.0F, -1.4835F, -0.6981F);
+		this.setRotationAngle(this.part3, 0.0F, -1.4835F, -0.6981F);
 		this.part3.setTextureOffset(0, 2).addBox(1.0F, 1.0F, -1.0F, 1.0F, 1.0F, 1.0F, 0.0F, false);
 	}
 
 	@Override
 	public void setRotationAngles(FireballEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks,
 			float netHeadYaw, float headPitch) {
-		setRotationAngle(this.main, 0.0f, 0.0f, getAngle(100.0F, ageInTicks));
-		setRotationAngle(this.second, 0.0f, 0.0f, -getAngle(58.5F, ageInTicks));
-		setRotationAngle(this.particles,
+		this.setRotationAngle(this.main, 0.0f, 0.0f, getAngle(100.0F, ageInTicks));
+		this.setRotationAngle(this.second, 0.0f, 0.0f, -getAngle(58.5F, ageInTicks));
+		this.setRotationAngle(this.particles,
 				convertToRadians(15.0F) * (float) Math.cos(1.634F + getAngle(40.0F, ageInTicks)),
 				convertToRadians(21.0F) * (float) Math.cos(0.346F + getAngle(40.0F, ageInTicks)),
 				getAngle(25.0F, ageInTicks));
@@ -90,11 +90,11 @@ public class FireballModel extends EntityModel<FireballEntity> {
 	}
 
 	private static float getAngle(float period, float existed) {
-		return (float) (existed / period * Math.PI * 2.0f);
+		return (float) ((existed / period) * Math.PI * 2.0f);
 	}
 
 	private static float convertToRadians(float angle) {
-		return (float) (angle / 180.0f * Math.PI);
+		return (float) ((angle / 180.0f) * Math.PI);
 	}
 
 }

@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
+
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.overlay.LivingEntitySelectOverlay;
 import dzuchun.wingx.client.render.overlay.LivingEntityTargetOverlay;
@@ -54,7 +55,8 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
@@ -64,11 +66,12 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 
 	@Override
 	public PacketTarget getEndPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.getCasterPlayer())
+				: null;
 	}
 
 	public boolean aimed() {
-		if (LivingEntitySelectOverlay.getInstance() == null || !LivingEntitySelectOverlay.getInstance().isActive()) {
+		if ((LivingEntitySelectOverlay.getInstance() == null) || !LivingEntitySelectOverlay.getInstance().isActive()) {
 			LOG.warn("Can't aim: overlay is not active.");
 			this.status = 1; // Unknown activation error
 		}
@@ -85,7 +88,7 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 			this.status = 4; // No target
 			return false;
 		}
-		setTarget(target);
+		this.setTarget(target);
 		this.status = 5; // Aimed
 		return true;
 	}
@@ -95,14 +98,15 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 	public void onCastEnd(LogicalSide side) {
 		super.onCastEnd(side);
 		if (side == LogicalSide.SERVER) {
-			if (status == 0 && interrupted == false) {
-				((ServerWorld) this.casterWorld).summonEntity(new HomingFireballEntity(getCasterPlayer(), getTarget()));
-				LOG.warn("Summoning homing fireball of {} to {}", getCasterPlayer(), getTarget());
+			if ((this.status == 0) && (this.interrupted == false)) {
+				((ServerWorld) this.casterWorld)
+						.summonEntity(new HomingFireballEntity(this.getCasterPlayer(), this.getTarget()));
+				LOG.warn("Summoning homing fireball of {} to {}", this.getCasterPlayer(), this.getTarget());
 			} else {
 				LOG.warn("Unknown error happened");
 			}
 		} else {
-			LivingEntityTargetOverlay overlay = LivingEntityTargetOverlay.getOverlayForTarget(getTarget());
+			LivingEntityTargetOverlay overlay = LivingEntityTargetOverlay.getOverlayForTarget(this.getTarget());
 			if (overlay != null) {
 				overlay.deactivate();
 			}
@@ -116,8 +120,8 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 			// unlocked, enough mana), set parameters
 			this.status = 0; // Executing
 		} else {
-			LOG.warn("Executing on client, status - {}", status);
-			new LivingEntityTargetOverlay((LivingEntity) getTarget()).activate();
+			LOG.warn("Executing on client, status - {}", this.status);
+			new LivingEntityTargetOverlay((LivingEntity) this.getTarget()).activate();
 			// TODO check if activated (usually it will)
 		}
 		super.execute(side);
@@ -133,13 +137,13 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 
 	@Override
 	public boolean hasTarget() {
-		return this.targetUniqueId != null && this.targetWorld != null
-				&& WorldHelper.getEntityFromWorldByUniqueId(this.targetWorld, this.targetUniqueId) != null;
+		return (this.targetUniqueId != null) && (this.targetWorld != null)
+				&& (WorldHelper.getEntityFromWorldByUniqueId(this.targetWorld, this.targetUniqueId) != null);
 	}
 
 	@Override
 	public Entity getTarget() {
-		return this.targetWorld == null || this.targetUniqueId == null ? null
+		return (this.targetWorld == null) || (this.targetUniqueId == null) ? null
 				: WorldHelper.getEntityFromWorldByUniqueId(this.targetWorld, this.targetUniqueId);
 	}
 
@@ -161,13 +165,13 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 
 	@Override
 	public ITrick writeToBuf(PacketBuffer buf) {
-		NetworkHelper.writeChecked(buf, targetUniqueId, (buffer, uuid) -> buffer.writeUniqueId(uuid));
+		NetworkHelper.writeChecked(buf, this.targetUniqueId, PacketBuffer::writeUniqueId);
 		return super.writeToBuf(buf);
 	}
 
 	@Override
 	public ITrick readFromBuf(PacketBuffer buf) {
-		targetUniqueId = NetworkHelper.readChecked(buf, buffer -> buffer.readUniqueId());
+		this.targetUniqueId = NetworkHelper.readChecked(buf, PacketBuffer::readUniqueId);
 		return super.readFromBuf(buf);
 	}
 
@@ -189,13 +193,13 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 
 	@Override
 	public int timeFull() throws NoCasterException {
-		return duration;
+		return this.duration;
 	}
 
 	@Override
 	public double partLeft() throws NoCasterException {
 		assertHasCaster(this);
-		long time = casterWorld.getGameTime();
-		return ((double) (time - beginTime)) / (duration);
+		long time = this.casterWorld.getGameTime();
+		return ((double) (time - this.beginTime)) / (this.duration);
 	}
 }

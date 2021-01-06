@@ -29,7 +29,7 @@ import net.minecraftforge.client.event.RenderLivingEvent;
  */
 public class LivingEntitySelectOverlay extends AbstractOverlay {
 	private static final float MAX_ANGLE = 20;
-	private static final double MAX_ANGLE_COS = MathHelper.cos((float) (MAX_ANGLE / 180 * Math.PI));
+	private static final double MAX_ANGLE_COS = MathHelper.cos((float) ((MAX_ANGLE / 180) * Math.PI));
 	private static LivingEntitySelectOverlay instance = null;
 
 	public static LivingEntitySelectOverlay getInstance() {
@@ -49,7 +49,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 		if (other != null) {
 			this.additionalCondition = other;
 		}
-		if (instance == null || instance.active == false) {
+		if ((instance == null) || (instance.active == false)) {
 			instance = this;
 		}
 	}
@@ -75,7 +75,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 		float partialTicks = event.getPartialRenderTick();
 		Minecraft minecraft = Minecraft.getInstance();
 		double d0 = minecraft.player.getDistanceSq(entity);
-		if (d0 > this.radiusSq || (this.mustSee && !minecraft.player.canEntityBeSeen(entity))
+		if ((d0 > this.radiusSq) || (this.mustSee && !minecraft.player.canEntityBeSeen(entity))
 				|| !this.additionalCondition.test(entity)) {
 			return;
 		}
@@ -87,16 +87,17 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 			this.selectedEntity = null;
 			this.selectedAngleCos = -1.0d;
 			minecraft.world.getAllEntities().forEach((Entity entityCurrent) -> {
-				if (minecraft.player.getDistanceSq(entityCurrent) <= this.radiusSq
-						&& entityCurrent instanceof LivingEntity
+				if ((minecraft.player.getDistanceSq(entityCurrent) <= this.radiusSq)
+						&& (entityCurrent instanceof LivingEntity)
 						&& (!this.mustSee || minecraft.player.canEntityBeSeen(entityCurrent))) {
-					float playerYaw = (float) (minecraft.player.rotationYawHead / 180.0f * Math.PI + Math.PI / 2.0d);
-					float playerPitch = (float) (-minecraft.player.rotationPitch / 180.f * Math.PI);
+					float playerYaw = (float) (((minecraft.player.rotationYawHead / 180.0f) * Math.PI)
+							+ (Math.PI / 2.0d));
+					float playerPitch = (float) ((-minecraft.player.rotationPitch / 180.f) * Math.PI);
 					Vector3d playerEyesPos = minecraft.player.getEyePosition(partialTicks);
 					double xDelta = entityCurrent.getPosX() - playerEyesPos.getX();
 					double yDelta = entityCurrent.getPosY() - playerEyesPos.getY();
 					double zDelta = entityCurrent.getPosZ() - playerEyesPos.getZ();
-					double xZDelta = Math.sqrt(xDelta * xDelta + zDelta * zDelta);
+					double xZDelta = Math.sqrt((xDelta * xDelta) + (zDelta * zDelta));
 					float entityPitch = (float) Math.atan(yDelta / xZDelta);
 					float entityYaw;
 					if (xDelta > 0) {
@@ -105,18 +106,18 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 						entityYaw = (float) (Math.atan(zDelta / xDelta) + Math.PI);
 					}
 					float deltaYaw = entityYaw - playerYaw;
-					float entityPitch_ = (float) (Math.PI / 2 - entityPitch);
-					float playerPitch_ = (float) (Math.PI / 2 - playerPitch);
-					double currentCos = MathHelper.cos(playerPitch_) * MathHelper.cos(entityPitch_)
-							+ MathHelper.sin(playerPitch_) * MathHelper.sin(entityPitch_) * MathHelper.cos(deltaYaw);
-					if (currentCos >= MAX_ANGLE_COS && currentCos > this.selectedAngleCos) {
+					float entityPitch_ = (float) ((Math.PI / 2) - entityPitch);
+					float playerPitch_ = (float) ((Math.PI / 2) - playerPitch);
+					double currentCos = (MathHelper.cos(playerPitch_) * MathHelper.cos(entityPitch_))
+							+ (MathHelper.sin(playerPitch_) * MathHelper.sin(entityPitch_) * MathHelper.cos(deltaYaw));
+					if ((currentCos >= MAX_ANGLE_COS) && (currentCos > this.selectedAngleCos)) {
 						this.selectedEntity = (LivingEntity) entityCurrent;
 						this.selectedAngleCos = currentCos;
 					}
 				}
 			});
 		}
-		if (this.selectedEntity != null && entity.equals(this.selectedEntity)) {
+		if ((this.selectedEntity != null) && entity.equals(this.selectedEntity)) {
 			red = 0.0F;
 			green = 1.0F;
 			blue = 0.0F;

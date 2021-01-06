@@ -48,9 +48,9 @@ public class WingsRenderer extends EntityRenderer<WingsEntity> {
 //		LOG.debug("Moving entity a bit: {}, entity at {}, real pos: {}, motion: {}", move, entityIn.getPositionVec(),
 //				entityIn.getRealPos(), entityIn.getMotion());
 		matrixStackIn.rotate(
-				new Quaternion(Vector3f.YN, entityIn.getRealYaw() + entityIn.getRealYawSpeed() * partialTicks, true));
+				new Quaternion(Vector3f.YN, entityIn.getRealYaw() + (entityIn.getRealYawSpeed() * partialTicks), true));
 		this.model.setRotationAngles(entityIn, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F); // TODO describe
-		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(this.model.getRenderType(getEntityTexture(entityIn)));
+		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(this.model.getRenderType(this.getEntityTexture(entityIn)));
 		this.model.render(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F,
 				1.0F);
 		matrixStackIn.pop();

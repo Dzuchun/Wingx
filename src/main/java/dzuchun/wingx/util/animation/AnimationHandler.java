@@ -34,9 +34,9 @@ public class AnimationHandler {
 		long time = world.getGameTime();
 		((ServerWorld) world).getEntities().forEach(entity -> {
 			IWingsCapability cap = entity.getCapability(WingsProvider.WINGS, null).orElse(null);
-			if (cap != null && cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER).wingsActive) {
+			if ((cap != null) && cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER).wingsActive) {
 //				LOG.debug("Ticking for active wings {}, time {}", cap, time);
-				if (time % 80 == 0) {
+				if ((time % 80) == 0) {
 					LOG.debug("Sending wings move cycle");
 					WingxPacketHandler.INSTANCE
 							.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity),

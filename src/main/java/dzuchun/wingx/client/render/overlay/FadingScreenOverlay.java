@@ -25,12 +25,10 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 	}
 
 	public interface FadeFunction extends Function<Double, Double> {
-		FadeFunction LINEAR = (Double d) -> {
-			return d;
-		};
+		FadeFunction LINEAR = (Double d) -> d;
 	}
 
-	public static Consumer<Boolean> DO_NOTHING = (successfull) -> {
+	public static Consumer<Boolean> DO_NOTHING = successfull -> {
 	};
 
 	protected Vector4f beginColor;
@@ -79,7 +77,7 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 		@SuppressWarnings("resource")
 		double realGameTime = Minecraft.getInstance().world.getGameTime() + event.getPartialTicks();
 		double partPassed = (realGameTime - this.beginTime) / this.ticksDuration;
-		if (partPassed > 1 || partPassed < 0) {
+		if ((partPassed > 1) || (partPassed < 0)) {
 			return;
 		}
 		double partColorPassed = this.fadeFunction.apply(partPassed);
@@ -91,7 +89,7 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 	@SuppressWarnings("resource")
 	@Override
 	public boolean activate() {
-		LOG.debug("Activating overlay {}", toString());
+		LOG.debug("Activating overlay {}", this.toString());
 		if (!super.activate()) {
 			LOG.warn("Could not activate overlay of {} type", this.getClass().getName());
 			return false;
@@ -106,7 +104,7 @@ public class FadingScreenOverlay extends AbstractTickingOverlay {
 	@SuppressWarnings("resource")
 	@Override
 	public void deactivate() {
-		LOG.debug("Deactivating overlay {}", toString());
+		LOG.debug("Deactivating overlay {}", this.toString());
 		if (this.onClose != null) {
 			this.onClose.accept(Minecraft.getInstance().world.getGameTime() >= this.endTime);
 		}

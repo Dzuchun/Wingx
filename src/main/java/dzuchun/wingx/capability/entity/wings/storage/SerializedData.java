@@ -36,13 +36,10 @@ public abstract class SerializedData {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Nonnull
 	private ArgumentBuilder getArgumentBuilderInner() {
-		ArgumentBuilder res = Commands.literal(getSerializer().getName());
-		for (CommandLiteral<?, ?> par : getCommandLiterals()) {
-			res.then(Commands.literal(par.name)
-					.then(Commands.argument(par.name, par.type).executes((CommandContext<CommandSource> source) -> {
-//						LOG.debug("Executing something");
-						return par.set(source);
-					})));
+		ArgumentBuilder res = Commands.literal(this.getSerializer().getName());
+		for (CommandLiteral<?, ?> par : this.getCommandLiterals()) {
+			res.then(Commands.literal(par.name).then(Commands.argument(par.name, par.type)
+					.executes((CommandContext<CommandSource> source) -> par.set(source))));
 		}
 		return res;
 	}
@@ -51,7 +48,7 @@ public abstract class SerializedData {
 	@SuppressWarnings("rawtypes")
 	public ArgumentBuilder getArgumentBuilder() {
 		if (this.argumentBuilder == null) {
-			this.argumentBuilder = getArgumentBuilderInner();
+			this.argumentBuilder = this.getArgumentBuilderInner();
 		}
 		return this.argumentBuilder;
 	}
@@ -85,11 +82,11 @@ public abstract class SerializedData {
 				for (Entity target : targetList) {
 					if (target.getCapability(WingsProvider.WINGS).isPresent()) {
 						this.setter.accept(target.getCapability(WingsProvider.WINGS).orElse(null).getDataManager()
-								.getOrAddDefault(getSerializer()), arg);
+								.getOrAddDefault(SerializedData.this.getSerializer()), arg);
 						source.getSource().sendFeedback(new TranslationTextComponent("wingx.command.success.modify",
 								target instanceof PlayerEntity ? ((PlayerEntity) target).getGameProfile().getName()
 										: new TranslationTextComponent("wingx.commmand.non_player_target_cap"),
-								String.format("%s-%s", getSerializer().getName(), this.name), arg)
+								String.format("%s-%s", SerializedData.this.getSerializer().getName(), this.name), arg)
 										.setStyle(WingxComand.SUCCEESS_STYLE),
 								true);
 					} else {

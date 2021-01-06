@@ -45,8 +45,8 @@ public class AgilPlayerTrick extends AbstractTargetedPlayerTrick {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (side == LogicalSide.CLIENT) {
 			// We are on client
-			ClientPlayerEntity caster = (ClientPlayerEntity) getCasterPlayer();
-			Entity target = getTarget();
+			ClientPlayerEntity caster = (ClientPlayerEntity) this.getCasterPlayer();
+			Entity target = this.getTarget();
 			caster.ticksSinceLastSwing = 1000;
 			if (target != null) {
 				target.hurtResistantTime = 0;
@@ -54,7 +54,7 @@ public class AgilPlayerTrick extends AbstractTargetedPlayerTrick {
 			// Playing sound
 			minecraft.world.playSound(minecraft.player, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
 					SoundEvents.AGIL_PROC.get(), SoundCategory.PLAYERS, 1.0f, 1.0f);
-			if (amICaster()) {
+			if (this.amICaster()) {
 				// Adding animation
 				new RadiantFadingScreenOverlay(new Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
 						new Vector4f(0.0f, 0.0f, 0.0f, 0.0f), 100, FadingScreenOverlay.DO_NOTHING, FadeFunction.LINEAR)

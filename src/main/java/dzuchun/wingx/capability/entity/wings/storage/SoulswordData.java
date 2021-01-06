@@ -30,7 +30,7 @@ public class SoulswordData extends SerializedData {
 		return Arrays
 				.asList(new CommandLiteral<SoulswordData, Boolean>("has_colors", BoolArgumentType.bool(), (data, b) -> {
 					data.hasColors = b;
-					if (hasColors) {
+					if (this.hasColors) {
 						data.assignColors();
 					}
 				}, Boolean.class),

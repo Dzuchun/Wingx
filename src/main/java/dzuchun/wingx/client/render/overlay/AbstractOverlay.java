@@ -68,7 +68,7 @@ public abstract class AbstractOverlay {
 	}
 
 	public static void onDisconnect(LoggedOutEvent event) {
-		if (event != null && event instanceof LoggedOutEvent) {
+		if ((event != null) && (event instanceof LoggedOutEvent)) {
 			synchronized (ACTIVE_OVERLAYS_LOCK) {
 				activeOverlays.clear();
 			}

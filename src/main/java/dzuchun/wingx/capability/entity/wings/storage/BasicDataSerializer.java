@@ -24,7 +24,7 @@ public class BasicDataSerializer extends Serializer<BasicData> {
 		}
 		res.requiredMeditationScore = nbt.getDouble(MIN_MEDITATION_SCORE_TAG);
 		res.needsEnd = nbt.getBoolean(NEEDS_END_TAG);
-		LOG.debug("Readed {} data: active {}, wings uuid {}, min meditation score {}, needs end {}", getName(),
+		LOG.debug("Readed {} data: active {}, wings uuid {}, min meditation score {}, needs end {}", this.getName(),
 				res.wingsActive, res.wingsUniqueId, res.requiredMeditationScore, res.needsEnd);
 		return res;
 	}
@@ -43,7 +43,7 @@ public class BasicDataSerializer extends Serializer<BasicData> {
 
 	@Override
 	public BasicData read(PacketBuffer buf) {
-		BasicData res = getDefault();
+		BasicData res = this.getDefault();
 		res.wingsActive = buf.readBoolean();
 		if (buf.readBoolean()) {
 			res.wingsUniqueId = buf.readUniqueId();

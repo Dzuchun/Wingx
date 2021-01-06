@@ -14,7 +14,7 @@ public class HastyDataSerializer extends Serializer<HastyData> {
 
 	@Override
 	public HastyData read(CompoundNBT nbt) {
-		HastyData res = getDefault();
+		HastyData res = this.getDefault();
 		res.isActive = nbt.getBoolean(IS_ACTIVE_TAG);
 		res.probability = nbt.getDouble(PROBABILITY_TAG);
 		res.jump = nbt.getFloat(JUMP_TAG);
@@ -34,13 +34,13 @@ public class HastyDataSerializer extends Serializer<HastyData> {
 
 	@Override
 	public HastyData read(PacketBuffer buf) {
-		return read(buf.readCompoundTag());
+		return this.read(buf.readCompoundTag());
 	}
 
 	@Override
 	public void write(PacketBuffer buf, HastyData data) {
 		CompoundNBT res = new CompoundNBT();
-		write(res, data);
+		this.write(res, data);
 		buf.writeCompoundTag(res);
 	}
 

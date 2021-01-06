@@ -52,7 +52,7 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 		if (side == LogicalSide.CLIENT) {
 			// We are on client
 			Minecraft minecraft = Minecraft.getInstance();
-			if (this.status == 0 && amICaster()) {
+			if ((this.status == 0) && this.amICaster()) {
 				Vector2f look = minecraft.player.getPitchYaw();
 				// TODO do something with pitch
 				minecraft.player.prevRotationYaw = look.y + 180f;
@@ -60,12 +60,12 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 			}
 		} else {
 			// We are on server
-			if (!hasCasterPlayer() || !hasTarget()) {
-				this.status = hasCasterPlayer() ? 2 : 1;
+			if (!this.hasCasterPlayer() || !this.hasTarget()) {
+				this.status = this.hasCasterPlayer() ? 2 : 1;
 				return;
 			}
-			PlayerEntity caster = getCasterPlayer();
-			Entity target = getTarget();
+			PlayerEntity caster = this.getCasterPlayer();
+			Entity target = this.getTarget();
 			Vector3d casterPos = caster.getPositionVec();
 			Vector3d targetPos = target.getPositionVec();
 			LOG.debug("Performing swap: caster at {}, target at: {}", casterPos, targetPos);
@@ -77,7 +77,8 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
@@ -90,7 +91,7 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 	 */
 	@OnlyIn(value = Dist.CLIENT)
 	public boolean aimed() {
-		if (LivingEntitySelectOverlay.getInstance() == null || !LivingEntitySelectOverlay.getInstance().isActive()) {
+		if ((LivingEntitySelectOverlay.getInstance() == null) || !LivingEntitySelectOverlay.getInstance().isActive()) {
 			LOG.warn("Can't aim: overlay is not active.");
 		}
 		LivingEntitySelectOverlay overlay = LivingEntitySelectOverlay.getInstance();
@@ -105,7 +106,7 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 			this.state = State.FAILED;
 			return false;
 		}
-		setTarget(target);
+		this.setTarget(target);
 		this.state = State.WAIT_FOR_EXECUTION;
 		return true;
 	}

@@ -28,13 +28,13 @@ public class AgilDataSerializer extends Serializer<AgilData> {
 
 	@Override
 	public AgilData read(PacketBuffer buf) {
-		return read(buf.readCompoundTag());
+		return this.read(buf.readCompoundTag());
 	}
 
 	@Override
 	public void write(PacketBuffer buf, AgilData data) {
 		CompoundNBT nbt = new CompoundNBT();
-		write(nbt, data);
+		this.write(nbt, data);
 		buf.writeCompoundTag(nbt);
 	}
 

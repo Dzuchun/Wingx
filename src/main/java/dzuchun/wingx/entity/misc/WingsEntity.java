@@ -53,8 +53,8 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	public WingsEntity(World worldIn) {
 		super(TYPE, worldIn);
 		LOG.info("Creating wings");
-		setInvulnerable(true);
-		setNoGravity(true);
+		this.setInvulnerable(true);
+		this.setNoGravity(true);
 	}
 
 	public boolean setOwner(UUID newOwnerUUID, boolean force) {
@@ -77,7 +77,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 				LOG.info("Assigning wigns to {}", newOwner.getGameProfile().getName());
 			}
 			this.owner = newOwner;
-			setPosition(this.owner.getPosX(), this.owner.getPosY(), this.owner.getPosZ());
+			this.setPosition(this.owner.getPosX(), this.owner.getPosY(), this.owner.getPosZ());
 			this.ownerUniqueId = null;
 			return true;
 		}
@@ -91,21 +91,21 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 
 	@Override
 	public void tick() {
-		if (!this.world.isRemote && this.world.getGameTime() % 40 == 0) {
+		if (!this.world.isRemote && ((this.world.getGameTime() % 40) == 0)) {
 			if (this.ownerUniqueId != null) {
-				if (this.owner == null
-						|| (this.owner != null && !this.owner.getUniqueID().equals(this.ownerUniqueId))) {
+				if ((this.owner == null)
+						|| ((this.owner != null) && !this.owner.getUniqueID().equals(this.ownerUniqueId))) {
 					LOG.debug("Trying to find my owner");
-					if (setOwner(this.ownerUniqueId, true)) {
+					if (this.setOwner(this.ownerUniqueId, true)) {
 						LOG.debug("Here he is - {}", this.owner.getGameProfile().getName());
 					}
 				}
 			}
 		}
 
-		if (hasOwner() && !this.world.isRemote) {
+		if (this.hasOwner() && !this.world.isRemote) {
 
-			setPositionAndUpdate(this.owner.getPosX(), this.owner.getPosY(), this.owner.getPosZ());
+			this.setPositionAndUpdate(this.owner.getPosX(), this.owner.getPosY(), this.owner.getPosZ());
 			WingxPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_CHUNK
 					.with(() -> this.world.getChunk(this.chunkCoordX, this.chunkCoordZ)), new OwnerDataMessage(this));
 		}
@@ -126,7 +126,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 			buffer.writeBoolean(true);
 			buffer.writeUniqueId(this.owner.getUniqueID());
 		}
-		buffer.writeUniqueId(getUniqueID());
+		buffer.writeUniqueId(this.getUniqueID());
 	}
 
 	@Override
@@ -137,14 +137,14 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 			LOG.warn("Readed data of the wings with no owner, leaving owner unchanged");
 //			this.owner = null;
 		} else {
-			if (setOwner(additionalData.readUniqueId(), true)) {
-				setPosition(this.owner.lastTickPosX, this.owner.lastTickPosY, this.owner.lastTickPosZ);
+			if (this.setOwner(additionalData.readUniqueId(), true)) {
+				this.setPosition(this.owner.lastTickPosX, this.owner.lastTickPosY, this.owner.lastTickPosZ);
 			}
 		}
-		setUniqueId(additionalData.readUniqueId());
-		LOG.debug("Setting UUID {} to wings", getUniqueID());
-		setInvulnerable(true);
-		setNoGravity(true);
+		this.setUniqueId(additionalData.readUniqueId());
+		LOG.debug("Setting UUID {} to wings", this.getUniqueID());
+		this.setInvulnerable(true);
+		this.setNoGravity(true);
 	}
 
 	@Override
@@ -168,10 +168,10 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	private float realLastYaw = 0, realLastYawV = 0;
 
 	public void realSetPosAndUpdate() {
-		if (this.noTimeX == 0 && this.noTimeY == 0 && this.noTimeZ == 0 && this.noTimeYaw == 0) {
+		if ((this.noTimeX == 0) && (this.noTimeY == 0) && (this.noTimeZ == 0) && (this.noTimeYaw == 0)) {
 			return;
 		}
-		if (this.realLastX == 0 && this.realLastY == 0 && this.realLastZ == 0 && this.realLastYaw == 0) {
+		if ((this.realLastX == 0) && (this.realLastY == 0) && (this.realLastZ == 0) && (this.realLastYaw == 0)) {
 			this.realLastX = this.noTimeX;
 			this.realLastY = this.noTimeY;
 			this.realLastZ = this.noTimeZ;
@@ -186,8 +186,8 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 		this.realLastY = this.noTimeY;
 		this.realLastZ = this.noTimeZ;
 		this.realLastYaw = this.noTimeYaw;
-		setPosition(this.realLastX, this.realLastY, this.realLastZ);
-		setRotation(this.realLastYaw, 0);
+		this.setPosition(this.realLastX, this.realLastY, this.realLastZ);
+		this.setRotation(this.realLastYaw, 0);
 		this.setMotion(this.realLastXV, this.realLastYV, this.realLastZV);
 	}
 
@@ -223,7 +223,7 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	@Override
 	public CompoundNBT writeWithoutTypeId(CompoundNBT compound) {
 		// TODO write mine
-		if (hasOwner()) {
+		if (this.hasOwner()) {
 			compound.putUniqueId(OWNER_UUID_TAG, this.owner.getUniqueID());
 		}
 		return super.writeWithoutTypeId(compound);
@@ -233,9 +233,9 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 	public void read(CompoundNBT compound) {
 		// TODO read mine
 		if (compound.hasUniqueId(OWNER_UUID_TAG)) {
-			setOwner(compound.getUniqueId(OWNER_UUID_TAG), true);
+			this.setOwner(compound.getUniqueId(OWNER_UUID_TAG), true);
 		} else {
-			LOG.warn("Wings object with UUID {} has no owner tag", getUniqueID());
+			LOG.warn("Wings object with UUID {} has no owner tag", this.getUniqueID());
 		}
 		super.read(compound);
 	}

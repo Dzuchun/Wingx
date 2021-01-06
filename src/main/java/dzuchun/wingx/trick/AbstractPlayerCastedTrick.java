@@ -20,9 +20,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
-	protected static final Style ERROR_STYLE = Style.EMPTY.setColor(Color.func_240743_a_(0xFFFF0000));
-	protected static final Style SUCCESS_STYLE = Style.EMPTY.setColor(Color.func_240743_a_(0xFF22BB00));
-	protected static final Style PROC_STYLE = Style.EMPTY.setColor(Color.func_240743_a_(0xFF888888));
+	protected static final Style ERROR_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFFFF0000));
+	protected static final Style SUCCESS_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFF22BB00));
+	protected static final Style PROC_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFF888888));
 
 	public AbstractPlayerCastedTrick() {
 		super();
@@ -34,7 +34,8 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 
 	@OnlyIn(Dist.CLIENT)
 	public boolean amICaster() {
-		return this.casterUniqueId != null && this.casterUniqueId.equals(Minecraft.getInstance().player.getUniqueID());
+		return (this.casterUniqueId != null)
+				&& this.casterUniqueId.equals(Minecraft.getInstance().player.getUniqueID());
 	}
 
 	/**
@@ -42,8 +43,8 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 	 */
 	@Nullable
 	public PlayerEntity getCasterPlayer() {
-		Entity caster = getCaster();
-		return caster != null && caster instanceof PlayerEntity ? (PlayerEntity) caster : null;
+		Entity caster = this.getCaster();
+		return (caster != null) && (caster instanceof PlayerEntity) ? (PlayerEntity) caster : null;
 	}
 
 	/**
@@ -51,7 +52,7 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 	 */
 	@Nullable
 	public boolean hasCasterPlayer() {
-		return getCasterPlayer() != null;
+		return this.getCasterPlayer() != null;
 	}
 
 	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
@@ -70,13 +71,13 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 	@OnlyIn(value = Dist.CLIENT)
 	@Override
 	public void showMessage() {
-		if (amICaster()) {
-			if (status >= 0) {
+		if (this.amICaster()) {
+			if (this.status >= 0) {
 				// TODO add check for valid status
-				ITextComponent message = getMessages().get(this.status);
-				getCasterPlayer().sendStatusMessage(message, true);
+				ITextComponent message = this.getMessages().get(this.status);
+				this.getCasterPlayer().sendStatusMessage(message, true);
 			} else {
-				getCasterPlayer().sendStatusMessage(ERROR_UNKNOWN, true);
+				this.getCasterPlayer().sendStatusMessage(ERROR_UNKNOWN, true);
 			}
 		}
 	}

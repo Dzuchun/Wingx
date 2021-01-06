@@ -77,9 +77,9 @@ public class MeditationScreen extends Screen {
 				new TranslationTextComponent(MeditationScreen.isInsideNode ? "wingx.gui.goout" : "wingx.gui.gointo"),
 				(Button button) -> {
 					// TODO go into :)
-					if (!MeditationScreen.isInsideNode && MeditationScreen.selectedNode != null
+					if (!MeditationScreen.isInsideNode && (MeditationScreen.selectedNode != null)
 							&& MeditationScreen.selectedNode.isUnlocked()
-							&& ((ExternalAbillityNode) MeditationScreen.selectedNode).getInternal() != null) {
+							&& (((ExternalAbillityNode) MeditationScreen.selectedNode).getInternal() != null)) {
 						// Getting in
 						LOG.debug("Getting in");
 						MeditationScreen.isInsideNode = true;
@@ -104,14 +104,14 @@ public class MeditationScreen extends Screen {
 						this.xCenter = 0;
 						this.yCenter = 0;
 					}
-					updateRenderedNodes();
-					updateRenderedDescription();
-					updateUnlocked();
+					this.updateRenderedNodes();
+					this.updateRenderedDescription();
+					this.updateUnlocked();
 				}));
 		MeditationScreen.currentRoot = MeditationScreen.currentRoot == null ? AbillityNodes.WINGX : currentRoot;
 		// TODO reset theese on world rejoin
-		updateRenderedNodes();
-		updateUnlocked();
+		this.updateRenderedNodes();
+		this.updateUnlocked();
 		this.xCenter = 0;
 		this.yCenter = 0;
 	}
@@ -125,13 +125,13 @@ public class MeditationScreen extends Screen {
 	@Override
 	public void render(MatrixStack matrixStackIn, int p_230430_2_, int p_230430_3_, float p_230430_4_) {
 		this.renderBackground(matrixStackIn, 0);
-		renderNodes(matrixStackIn);
+		this.renderNodes(matrixStackIn);
 		int alpha = 255;
 		float ticksPassed = (System.currentTimeMillis() - openGuiTime) / 50.0f;
 		if (ticksPassed < OPEN_ANIMATION_DURATION) {
-			alpha = (int) (ticksPassed / OPEN_ANIMATION_DURATION * 255);
+			alpha = (int) ((ticksPassed / OPEN_ANIMATION_DURATION) * 255);
 		}
-		renderHud(matrixStackIn, alpha);
+		this.renderHud(matrixStackIn, alpha);
 		super.render(matrixStackIn, p_230430_2_, p_230430_3_, p_230430_4_);
 	}
 
@@ -142,7 +142,7 @@ public class MeditationScreen extends Screen {
 			net.minecraftforge.common.MinecraftForge.EVENT_BUS
 					.post(new net.minecraftforge.client.event.GuiScreenEvent.BackgroundDrawnEvent(this, matrixStackIn));
 		} else {
-			renderDirtBackground(p_238651_2_);
+			this.renderDirtBackground(p_238651_2_);
 		}
 
 	}
@@ -152,7 +152,7 @@ public class MeditationScreen extends Screen {
 
 	@Override
 	public boolean mouseDragged(double xPos, double yPos, int buttonIn, double xMove, double yMove) {
-		if (canBeClicked(xPos, yPos)) {
+		if (this.canBeClicked(xPos, yPos)) {
 			this.xCenter += xMove;
 			this.yCenter += yMove;
 		}
@@ -162,10 +162,10 @@ public class MeditationScreen extends Screen {
 	@Override
 	public boolean mouseClicked(double xPos, double yPos, int buttonIn) {
 		if (buttonIn == 0) {
-			if (canBeClicked(xPos, yPos)) {
-				boolean flag = selectNode(xPos, yPos);
+			if (this.canBeClicked(xPos, yPos)) {
+				boolean flag = this.selectNode(xPos, yPos);
 				if (flag) {
-					updateRenderedDescription();
+					this.updateRenderedDescription();
 				}
 			} else {
 				// TODO click
@@ -214,12 +214,12 @@ public class MeditationScreen extends Screen {
 	}
 
 	private boolean selectNode(double xPos, double yPos) {
-		double xCoord = xPos - this.xCenter - this.width / 2;
-		double yCoord = yPos - this.yCenter - this.height / 2;
+		double xCoord = xPos - this.xCenter - (this.width / 2);
+		double yCoord = yPos - this.yCenter - (this.height / 2);
 		LOG.debug("Trying to select node at [{}, {}]", xCoord, yCoord);
 		for (AbillityNode node : this.renderedNodes) {
-			if (Math.abs(xCoord - node.xCenterPos) <= AbillityNode.NODE_SIZE / 2
-					&& Math.abs(yCoord - node.yCenterPos) <= AbillityNode.NODE_SIZE / 2) {
+			if ((Math.abs(xCoord - node.xCenterPos) <= (AbillityNode.NODE_SIZE / 2))
+					&& (Math.abs(yCoord - node.yCenterPos) <= (AbillityNode.NODE_SIZE / 2))) {
 				MeditationScreen.selectedNode = node;
 				LOG.debug("Selecting node {}", node);
 				return true;
@@ -264,7 +264,7 @@ public class MeditationScreen extends Screen {
 	private void renderNodes(MatrixStack matrixStackIn) {
 		// TODO optimize! (render only visible)
 		matrixStackIn.push();
-		matrixStackIn.translate(this.xCenter + this.width / 2, this.yCenter + this.height / 2, 0);
+		matrixStackIn.translate(this.xCenter + (this.width / 2), this.yCenter + (this.height / 2), 0);
 		this.minecraft.textureManager.bindTexture(NODES_ATLAS);
 		float ticksPassed = (System.currentTimeMillis() - openTime) / 50.0f;
 		// Rendering nodes and lines
@@ -275,12 +275,12 @@ public class MeditationScreen extends Screen {
 			float scaleFactor = 1.0f;
 			double distance = Math
 					.sqrt(Math.pow(node.xCenterPos + this.xCenter, 2) + Math.pow(node.yCenterPos + this.yCenter, 2));
-			if (ticksPassed - OPEN_ANIMATION_DELAY_OVER_DISTANCE * distance < OPEN_ANIMATION_DURATION) {
+			if ((ticksPassed - (OPEN_ANIMATION_DELAY_OVER_DISTANCE * distance)) < OPEN_ANIMATION_DURATION) {
 				// TODO optimize!
-				float semiTicksPassed = (float) (ticksPassed - OPEN_ANIMATION_DELAY_OVER_DISTANCE * distance);
+				float semiTicksPassed = (float) (ticksPassed - (OPEN_ANIMATION_DELAY_OVER_DISTANCE * distance));
 				semiTicksPassed = MathHelper.clamp(semiTicksPassed, 0.0f, OPEN_ANIMATION_DURATION);
 				alpha = semiTicksPassed / OPEN_ANIMATION_DURATION;
-				scaleFactor = (float) (OPEN_ANIMATION_SCALE - OPEN_ANIMATION_SCALE_OVER_TICK * semiTicksPassed);
+				scaleFactor = (float) (OPEN_ANIMATION_SCALE - (OPEN_ANIMATION_SCALE_OVER_TICK * semiTicksPassed));
 			}
 			alpha = MathHelper.clamp(alpha, 0.0f, 1.0f);
 			// Rendering lines
@@ -299,21 +299,21 @@ public class MeditationScreen extends Screen {
 			matrixStackIn.pop();
 		}
 		if (MeditationScreen.selectedNode != null) {
-			int x = MeditationScreen.selectedNode.xCenterPos - AbillityNode.NODE_SIZE / 2 - SELECTION_WIDTH;
-			int y = MeditationScreen.selectedNode.yCenterPos - AbillityNode.NODE_SIZE / 2 - SELECTION_WIDTH;
-			int size = AbillityNode.NODE_SIZE + SELECTION_WIDTH * 2 - 1;
+			int x = MeditationScreen.selectedNode.xCenterPos - (AbillityNode.NODE_SIZE / 2) - SELECTION_WIDTH;
+			int y = MeditationScreen.selectedNode.yCenterPos - (AbillityNode.NODE_SIZE / 2) - SELECTION_WIDTH;
+			int size = (AbillityNode.NODE_SIZE + (SELECTION_WIDTH * 2)) - 1;
 			int length = 5; // TODO parametrize
 			int color = 0xFF00FF00; // TODO parametrize
 
-			hLine(matrixStackIn, x, x + length, y, color);
-			hLine(matrixStackIn, x, x + length, y + size, color);
-			hLine(matrixStackIn, x + size - length, x + size, y, color);
-			hLine(matrixStackIn, x + size - length, x + size, y + size, color);
+			this.hLine(matrixStackIn, x, x + length, y, color);
+			this.hLine(matrixStackIn, x, x + length, y + size, color);
+			this.hLine(matrixStackIn, (x + size) - length, x + size, y, color);
+			this.hLine(matrixStackIn, (x + size) - length, x + size, y + size, color);
 
-			vLine(matrixStackIn, x, y, y + length, color);
-			vLine(matrixStackIn, x, y + size - length, y + size, color);
-			vLine(matrixStackIn, x + size, y, y + length, color);
-			vLine(matrixStackIn, x + size, y + size - length, y + size, color);
+			this.vLine(matrixStackIn, x, y, y + length, color);
+			this.vLine(matrixStackIn, x, (y + size) - length, y + size, color);
+			this.vLine(matrixStackIn, x + size, y, y + length, color);
+			this.vLine(matrixStackIn, x + size, (y + size) - length, y + size, color);
 		}
 
 		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -337,7 +337,7 @@ public class MeditationScreen extends Screen {
 			matrixStackIn.push();
 			int nameHeight = (int) (this.height * 0.05);
 			int textColor = 0xFFFFFF00 + alphaIn;
-			this.font.func_238422_b_(matrixStackIn, name, (width - this.font.func_238414_a_(name)) / 2.0f,
+			this.font.func_243246_a(matrixStackIn, name, (width - this.font.getStringPropertyWidth(name)) / 2.0f,
 					(nameHeight - fontHeiht) / 2.0f, textColor);
 			SeparateRenderers.drawLine(matrixStackIn, -1, 1, 0, nameHeight, width, nameHeight);
 			matrixStackIn.translate(0, nameHeight + 2, 0);
@@ -347,8 +347,8 @@ public class MeditationScreen extends Screen {
 			Style descStyle = selectedNode.displayDescription.getStyle();
 			for (String row : renderedDescription) {
 				IFormattableTextComponent rowComponent = new StringTextComponent(row).setStyle(descStyle);
-				this.font.func_238422_b_(matrixStackIn, rowComponent, width - this.font.func_238414_a_(rowComponent), 0,
-						descColor);
+				this.font.func_243246_a(matrixStackIn, rowComponent,
+						width - this.font.getStringPropertyWidth(rowComponent), 0, descColor);
 				matrixStackIn.translate(0, fontHeiht + 1, 0);
 			}
 			matrixStackIn.pop();

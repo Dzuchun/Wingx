@@ -27,18 +27,18 @@ public class MeditationUtil {
 	public static final long MEDITATION_MINIMUM_CALCULATION_INTERVAL = 200l;
 	public static final double MEDITATION_MAX_DISTANCE = 20.0f;
 	public static final double MEDITATION_MAX_DISTANCE_SR = MEDITATION_MAX_DISTANCE * MEDITATION_MAX_DISTANCE;
-	public static final Function<Double, Double> MEDITATION_DISTANCE_WEIGHT = (d) -> d;
-	public static final Function<BlockState, Double> MEDITATION_BLOCK_WEIGHT = (blockstate) -> 1.0d;
-	public static final Function<FluidState, Double> MEDITATION_FLUID_WEIGHT = (fluidstate) -> 1.0d;
+	public static final Function<Double, Double> MEDITATION_DISTANCE_WEIGHT = d -> d;
+	public static final Function<BlockState, Double> MEDITATION_BLOCK_WEIGHT = blockstate -> 1.0d;
+	public static final Function<FluidState, Double> MEDITATION_FLUID_WEIGHT = fluidstate -> 1.0d;
 
 	public static final float MEDITATION_MAX_YAW_DEGREES = 15f;
-	public static final float MEDITATION_MAX_YAW = (float) (MEDITATION_MAX_YAW_DEGREES / 180.0d * Math.PI);
+	public static final float MEDITATION_MAX_YAW = (float) ((MEDITATION_MAX_YAW_DEGREES / 180.0d) * Math.PI);
 	public static final int MEDITATION_YAW_ITERATIONS = 3;
 	public static final float MEDITATION_YAW_STEP = MEDITATION_MAX_YAW / MEDITATION_YAW_ITERATIONS;
 	public static final float MEDITATION_YAW_STEP_DEGREES = MEDITATION_MAX_YAW_DEGREES / (MEDITATION_YAW_ITERATIONS);
 
 	public static final float MEDITATION_MAX_PITCH_DEGREES = 15f;
-	public static final float MEDITATION_MAX_PITCH = (float) (MEDITATION_MAX_YAW_DEGREES / 180.0d * Math.PI);
+	public static final float MEDITATION_MAX_PITCH = (float) ((MEDITATION_MAX_YAW_DEGREES / 180.0d) * Math.PI);
 	public static final int MEDITATION_PITCH_ITERATIONS = 3;
 	public static final float MEDITATION_PITCH_STEP = MEDITATION_MAX_YAW / MEDITATION_PITCH_ITERATIONS;
 	public static final float MEDITATION_PITCH_STEP_DEGREES = MEDITATION_MAX_PITCH_DEGREES
@@ -84,7 +84,8 @@ public class MeditationUtil {
 				}
 			}
 		}
-		return (res / ((double) MEDITATION_YAW_ITERATIONS * 2 + 1) / ((double) MEDITATION_PITCH_ITERATIONS * 2 + 1));
+		return (res / (((double) MEDITATION_YAW_ITERATIONS * 2) + 1)
+				/ (((double) MEDITATION_PITCH_ITERATIONS * 2) + 1));
 	}
 
 	private static double getMeditationScoreInner(Entity entity, float yawDelta, float pitchDelta) {

@@ -18,7 +18,7 @@ public abstract class AbstractCastedTrick extends AbstractTrick implements ICast
 	protected UUID casterUniqueId = null;
 
 	public static void assertHasCasterInfo(AbstractCastedTrick trick) throws NoCasterException {
-		if (trick.casterUniqueId == null || trick.casterWorld == null) {
+		if ((trick.casterUniqueId == null) || (trick.casterWorld == null)) {
 			throw new NoCasterException(trick);
 		}
 	}
@@ -36,7 +36,7 @@ public abstract class AbstractCastedTrick extends AbstractTrick implements ICast
 	public AbstractCastedTrick(@Nullable Entity caster) {
 		super();
 		if (caster != null) {
-			setCaster(caster);
+			this.setCaster(caster);
 		}
 	}
 
@@ -56,13 +56,13 @@ public abstract class AbstractCastedTrick extends AbstractTrick implements ICast
 	@Override
 	public Entity getCaster() {
 //		LOG.info("Getting trick caster: word {}, uuid {}", casterWorld, casterUniqueId);
-		return this.casterUniqueId == null || this.casterWorld == null ? null
+		return (this.casterUniqueId == null) || (this.casterWorld == null) ? null
 				: WorldHelper.getEntityFromWorldByUniqueId(this.casterWorld, this.casterUniqueId);
 	}
 
 	@Override
 	public boolean hasCaster() {
-		return this.casterUniqueId == null || this.casterWorld == null ? false : getCaster() != null;
+		return (this.casterUniqueId == null) || (this.casterWorld == null) ? false : this.getCaster() != null;
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public abstract class AbstractCastedTrick extends AbstractTrick implements ICast
 
 	@Override
 	public ITrick writeToBuf(PacketBuffer buf) {
-		if (!hasCaster()) {
+		if (!this.hasCaster()) {
 			buf.writeBoolean(false);
 		} else {
 			buf.writeBoolean(true);

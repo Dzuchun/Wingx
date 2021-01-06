@@ -26,8 +26,8 @@ public class WingxComand {
 
 	public static final String TARGET_PAR_NAME = "command_target";
 
-	public static final Style SUCCEESS_STYLE = Style.EMPTY.setColor(Color.func_240743_a_(0xFF00BB22));
-	public static final Style ERROR_STYLE = Style.EMPTY.setColor(Color.func_240743_a_(0xFFFF0000));
+	public static final Style SUCCEESS_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFF00BB22));
+	public static final Style ERROR_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFFFF0000));
 
 	@SuppressWarnings("unchecked")
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {

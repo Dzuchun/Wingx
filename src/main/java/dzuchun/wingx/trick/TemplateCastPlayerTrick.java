@@ -38,7 +38,8 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	@Override
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
-			if (hasCasterPlayer() && AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) == 0) {
+			if (this.hasCasterPlayer()
+					&& (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) == 0)) {
 				this.status = 0;
 			} else {
 				this.status = 1;
@@ -62,7 +63,8 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
@@ -77,7 +79,8 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 
 	@Override
 	public PacketTarget getEndPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
@@ -87,7 +90,7 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 
 	@Override
 	public double partLeft() throws NoCasterException {
-		return (double) timeLeft() / (double) this.duration;
+		return (double) this.timeLeft() / (double) this.duration;
 	}
 
 }

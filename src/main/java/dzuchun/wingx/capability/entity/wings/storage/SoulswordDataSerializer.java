@@ -15,7 +15,7 @@ public class SoulswordDataSerializer extends Serializer<SoulswordData> {
 
 	@Override
 	public SoulswordData read(CompoundNBT nbt) {
-		SoulswordData res = getDefault();
+		SoulswordData res = this.getDefault();
 		if (nbt.getBoolean(HAS_COLORS_TAG)) {
 			res.colors[0] = nbt.getInt(COLOR_1_TAG);
 			res.colors[1] = nbt.getInt(COLOR_2_TAG);
@@ -40,7 +40,7 @@ public class SoulswordDataSerializer extends Serializer<SoulswordData> {
 
 	@Override
 	public SoulswordData read(PacketBuffer buf) {
-		SoulswordData res = getDefault();
+		SoulswordData res = this.getDefault();
 		if (buf.readBoolean()) {
 			res.colors[0] = buf.readInt();
 			res.colors[1] = buf.readInt();

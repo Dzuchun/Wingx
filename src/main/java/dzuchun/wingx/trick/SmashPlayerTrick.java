@@ -72,7 +72,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		super.execute(side);
 		if (side == LogicalSide.SERVER) {
 			// We are on server
-			if (hasCasterPlayer()) {
+			if (this.hasCasterPlayer()) {
 				this.status = 0;
 				this.damagedEntities = new ArrayList<Entity>(0);
 			} else {
@@ -85,11 +85,11 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	public boolean keepExecuting() {
 		AbstractCastedTrick.assertHasCasterInfo(this);
 
-		if (this.casterWorld.getGameTime() >= this.endTime || !hasCasterPlayer()) {
+		if ((this.casterWorld.getGameTime() >= this.endTime) || !this.hasCasterPlayer()) {
 			LOG.info("End term expired or no caster exists. Stopping execute.");
 			return false;
 		}
-		PlayerEntity caster = getCasterPlayer();
+		PlayerEntity caster = this.getCasterPlayer();
 		return caster.collidedHorizontally || caster.collidedVertically ? false : true; // TODO repair collision checks
 	}
 
@@ -97,7 +97,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	public void onCastEnd(LogicalSide side) {
 		super.onCastEnd(side);
 		AbstractCastedTrick.assertHasCasterInfo(this);
-		if (!hasCasterPlayer()) {
+		if (!this.hasCasterPlayer()) {
 			LOG.warn("No caster found");
 			return;
 		}
@@ -109,13 +109,13 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 					minecraft.player.getPosZ(), SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0f, 1.0f);
 		} else {
 			// We are on server
-			if (hasCasterPlayer()) {
-				PlayerEntity caster = getCasterPlayer();
-				if (!castEndedNaturally()) {
+			if (this.hasCasterPlayer()) {
+				PlayerEntity caster = this.getCasterPlayer();
+				if (!this.castEndedNaturally()) {
 					this.status = 2;// Interrupted
 					this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(3.0d),
 							(Entity entity) -> true).forEach((Entity entity) -> {
-								entity.attackEntityFrom(getDamageSource(), this.mainDamage);
+								entity.attackEntityFrom(this.getDamageSource(), this.mainDamage);
 							});
 				} else {
 					this.status = 3; // Cast ended naturally
@@ -130,15 +130,15 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	public void tick() {
 		super.tick();
 		AbstractCastedTrick.assertHasCasterInfo(this);
-		if (!hasCasterPlayer()) {
+		if (!this.hasCasterPlayer()) {
 			// TODO check if caster teleported to another dimension.
 			return;
 		}
-		PlayerEntity caster = getCasterPlayer();
+		PlayerEntity caster = this.getCasterPlayer();
 		caster.fallDistance = 0;
 		this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(0.5d),
 				(Entity entity) -> !this.damagedEntities.contains(entity)).forEach((Entity entity) -> {
-					if (entity.attackEntityFrom(getDamageSource(), this.sideDamage)) {
+					if (entity.attackEntityFrom(this.getDamageSource(), this.sideDamage)) {
 						this.damagedEntities.add(entity);
 					}
 				});
@@ -147,7 +147,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	}
 
 	protected DamageSource getDamageSource() {
-		return hasCasterPlayer() ? new EntityDamageSource("smash", getCaster()) : null;
+		return this.hasCasterPlayer() ? new EntityDamageSource("smash", this.getCaster()) : null;
 	}
 
 	private static final String HAS_CASTER_TAG = "has_owner";
@@ -190,7 +190,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	@Override
 	public INBT writeToNBT() {
 		CompoundNBT res = new CompoundNBT();
-		if (hasCasterPlayer()) {
+		if (this.hasCasterPlayer()) {
 			res.putBoolean(HAS_CASTER_TAG, true);
 			res.putUniqueId(CASTER_UUID_TAG, this.casterUniqueId);
 		} else {
@@ -235,12 +235,14 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
 	public PacketTarget getEndPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
@@ -256,7 +258,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	@Override
 	public boolean castEndedNaturally() {
 		assertHasCaster(this);
-		PlayerEntity caster = getCasterPlayer();
+		PlayerEntity caster = this.getCasterPlayer();
 		return !caster.collidedHorizontally && !caster.collidedVertically;
 	}
 

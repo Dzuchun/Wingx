@@ -60,8 +60,10 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void renderWorldLast(RenderWorldLastEvent event) {
+		LOG.info("Render world last invoked");
 		MatrixStack matrixStack = event.getMatrixStack();
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientPlayerEntity player = minecraft.player;
@@ -72,7 +74,8 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 		double z = this.blockPos.getZ() - eyePos.z;
 		matrixStack.push();
 		matrixStack.translate(x, y, z);
-		float partPassed = Math.min((partialTicks + minecraft.world.getGameTime() - this.beginTime) / (DURATION), 1.0f);
+		float partPassed = Math.min(((partialTicks + minecraft.world.getGameTime()) - this.beginTime) / (DURATION),
+				1.0f);
 		float oneMinusPartPassed = 1.0f - partPassed;
 		minecraft.textureManager.bindTexture(TEXTURE);
 		RenderSystem.enableAlphaTest();
@@ -94,7 +97,7 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 			for (float d = 0.02f; d < 0.1f; d += 0.01f) {
 				// TODO parametrize!!!
 				renderLayer(builder, matrix, d, dzuchun.wingx.util.MathHelper.packColor(1.0f, 1.0f, 1.0f,
-						Math.max(oneMinusPartPassed + alphaPerBlock * d, 0.0f)));
+						Math.max(oneMinusPartPassed + (alphaPerBlock * d), 0.0f)));
 			}
 		}
 
@@ -148,7 +151,7 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 	@SuppressWarnings("resource")
 	@Override
 	public boolean activate() {
-		LOG.debug("Activating overlay {}", toString());
+		LOG.debug("Activating overlay {}", this.toString());
 		if (!super.activate()) {
 			LOG.warn("Could not activate overlay of {} type", this.getClass().getName());
 			return false;

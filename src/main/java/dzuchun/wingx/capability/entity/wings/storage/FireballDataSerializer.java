@@ -19,7 +19,7 @@ public class FireballDataSerializer extends Serializer<FireballData> {
 
 	@Override
 	public FireballData read(CompoundNBT nbt) {
-		FireballData data = getDefault();
+		FireballData data = this.getDefault();
 		data.castDuration = nbt.getInt(CAST_DURATION_TAG);
 		data.packedColor = nbt.getInt(COLOR_TAG);
 		data.interruptCondition = InterruptCondition.getFromInt(nbt.getInt(INTERRUPT_CONDITION_TAG));
@@ -45,7 +45,7 @@ public class FireballDataSerializer extends Serializer<FireballData> {
 
 	@Override
 	public FireballData read(PacketBuffer buf) {
-		FireballData data = getDefault();
+		FireballData data = this.getDefault();
 		data.castDuration = buf.readInt();
 		data.packedColor = buf.readInt();
 		data.interruptCondition = InterruptCondition.getFromInt(buf.readInt());

@@ -11,7 +11,7 @@ import com.ibm.icu.impl.Pair;
 
 public class Util {
 	public static <T> String iterableToString(Iterable<T> iterable) {
-		return iterableToString(iterable, t -> t.toString());
+		return iterableToString(iterable, Object::toString);
 	}
 
 	public static <T> String iterableToString(Iterable<T> iterable, Function<T, String> customToString) {

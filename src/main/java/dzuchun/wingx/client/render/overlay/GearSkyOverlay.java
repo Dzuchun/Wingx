@@ -43,6 +43,7 @@ public class GearSkyOverlay extends AbstractOverlay {
 		instance = null;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	void renderWorldLast(RenderWorldLastEvent event) {
 		super.renderWorldLast(event);
@@ -69,7 +70,7 @@ public class GearSkyOverlay extends AbstractOverlay {
 		matrixStack.push();
 		matrixStack.rotate(Vector3f.YP.rotationDegrees(-30.0F));
 //		matrixStack.push();
-		matrixStack.rotate(Vector3f.ZP.rotationDegrees((world.getGameTime()) + partialTicks / 360.0f));
+		matrixStack.rotate(Vector3f.ZP.rotationDegrees((world.getGameTime()) + (partialTicks / 360.0f)));
 		matrixStack.scale(1.0f, -1.0f, 1.0f);
 		Matrix4f matrix4f1 = matrixStack.getLast().getMatrix();
 		float gearSize = 60.0f / 2.0f;

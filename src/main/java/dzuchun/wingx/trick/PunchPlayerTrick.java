@@ -61,7 +61,7 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 	@Override
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
-			Entity target = getTarget();
+			Entity target = this.getTarget();
 			// TODO add caster check
 			if (target == null) {
 				LOG.warn("No target found");
@@ -73,7 +73,7 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 			this.status = 0;
 		} else {
 			Minecraft minecraft = Minecraft.getInstance();
-			if (amICaster() && this.status == 0) {
+			if (this.amICaster() && (this.status == 0)) {
 				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.punch.success")
 						.setStyle(Style.EMPTY.setFormatting(TextFormatting.YELLOW)), true);
 			}
@@ -86,7 +86,7 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 	@SuppressWarnings("resource")
 	@OnlyIn(value = Dist.CLIENT)
 	public boolean aimed() {
-		if (LivingEntitySelectOverlay.getInstance() == null || !LivingEntitySelectOverlay.getInstance().isActive()) {
+		if ((LivingEntitySelectOverlay.getInstance() == null) || !LivingEntitySelectOverlay.getInstance().isActive()) {
 			LOG.warn("Can't aim: overlay is not active.");
 		}
 		LivingEntitySelectOverlay overlay = LivingEntitySelectOverlay.getInstance();
@@ -101,7 +101,7 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 			this.state = State.FAILED;
 			return false;
 		}
-		setTarget(target);
+		this.setTarget(target);
 		if (this.casterUniqueId == null) {
 			LOG.warn("No caster found, so punch will be empty");
 		} else {
@@ -113,7 +113,8 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.getCasterPlayer())
+				: null;
 	}
 
 	@Override

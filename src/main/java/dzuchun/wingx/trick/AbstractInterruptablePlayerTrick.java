@@ -47,7 +47,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	public static synchronized ArrayList<AbstractInterruptablePlayerTrick> getForMe() {
 		res_tricks.clear();
 		synchronized (CLIENT_INSTANCES_LOCK) {
-			clientInstances.forEach((trick) -> {
+			clientInstances.forEach(trick -> {
 				if (trick.getCasterPlayer().equals(Minecraft.getInstance().player)) {
 					res_tricks.add(trick);
 				}
@@ -60,7 +60,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	public static void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
 		if (event.getType() == ElementType.CROSSHAIRS) {
 			synchronized (CLIENT_INSTANCES_LOCK) {
-				clientInstances.forEach((trick) -> {
+				clientInstances.forEach(trick -> {
 					trick.getDrawFunction().accept(event);
 				});
 			}
@@ -109,18 +109,18 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 
 	@Override
 	public void tick() {
-		PlayerEntity caster = getCasterPlayer();
-		if (hasCasterPlayer()) {
+		PlayerEntity caster = this.getCasterPlayer();
+		if (this.hasCasterPlayer()) {
 			if (this.interruptCondition.condition().test(caster)) {
-				interrupt();
+				this.interrupt();
 				LOG.debug("Interrupting cast: condition failed");
-				if (!hasCasterPlayer()) {
+				if (!this.hasCasterPlayer()) {
 					LOG.warn("Caster disappeared!");
 				}
 				return;
 			}
 		} else {
-			interrupt();
+			this.interrupt();
 			LOG.warn("No player caster for trick.");
 		}
 	}
@@ -130,17 +130,17 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 
 	@Override
 	public void execute(LogicalSide side) {
-		if (!hasCasterPlayer()) {
+		if (!this.hasCasterPlayer()) {
 			throw new NoCasterException(this);
 		}
 		@SuppressWarnings("unused")
-		PlayerEntity caster = getCasterPlayer();
+		PlayerEntity caster = this.getCasterPlayer();
 		if (this.status == 0) {
-			beginCast();
+			this.beginCast();
 			LOG.warn("Begining cast of {}", this);
 			// this.interrupt();
 			if (side == LogicalSide.SERVER) {
-				this.casterWorld.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent((cap) -> {
+				this.casterWorld.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent(cap -> {
 					cap.addActiveTrick(this);
 				});
 			} else {
@@ -223,7 +223,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 			@Override
 			public Predicate<PlayerEntity> condition() {
 				return (PlayerEntity player) -> {
-					if (this.prevPos == null || this.prevRotation == null) {
+					if ((this.prevPos == null) || (this.prevRotation == null)) {
 						this.prevRotation = player.getPitchYaw();
 						this.prevPos = player.getPositionVec();
 						return false;
@@ -252,17 +252,17 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 			@Override
 			public Predicate<PlayerEntity> condition() {
 				return (PlayerEntity player) -> {
-					if (item == null) {
-						item = player.getHeldItemMainhand().getItem();
+					if (this.item == null) {
+						this.item = player.getHeldItemMainhand().getItem();
 						return false;
 					}
-					return !item.equals(player.getHeldItemMainhand().getItem());
+					return !this.item.equals(player.getHeldItemMainhand().getItem());
 				};
 			}
 
 			@Override
 			public void reset() {
-				item = null;
+				this.item = null;
 				super.reset();
 			}
 
@@ -304,10 +304,10 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		if (capOptional.isPresent()) {
 			res_int_1 = 0;
 			// TODO rewrite using stream!!
-			capOptional.ifPresent((cap) -> {
+			capOptional.ifPresent(cap -> {
 				cap.getActiveTricks().forEach((trick) -> {
 					if ((trick.hasCaster() && trick.getCaster().getUniqueID().equals(casterPlayer.getUniqueID()))
-							&& res_int_1 < trick.timeLeft()) {
+							&& (res_int_1 < trick.timeLeft())) {
 						res_int_1 = trick.timeLeft();
 					}
 				});
@@ -333,7 +333,8 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		this.beginTime = this.casterWorld.getGameTime();
 		this.endTime = this.casterWorld.getGameTime() + this.duration;
 		LOG.debug("Beginning cast of {} trick with hashcode {}. Duration: {}, end time: {}, now: {}",
-				this.getClass().getName(), hashCode(), this.duration, this.endTime, this.casterWorld.getGameTime());
+				this.getClass().getName(), this.hashCode(), this.duration, this.endTime,
+				this.casterWorld.getGameTime());
 	}
 
 	@Override

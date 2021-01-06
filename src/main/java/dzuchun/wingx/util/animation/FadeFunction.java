@@ -20,9 +20,9 @@ public class FadeFunction {
 
 	public static final FadeFunction LINEAR = create(null, new ResourceLocation(Wingx.MOD_ID, "linear"));
 	public static final FadeFunction EASE_IN = create((f, p) -> f * f, new ResourceLocation(Wingx.MOD_ID, "ease_in"));
-	public static final FadeFunction EASE_OUT = create((f, p) -> 2f - f * f,
+	public static final FadeFunction EASE_OUT = create((f, p) -> 2f - (f * f),
 			new ResourceLocation(Wingx.MOD_ID, "ease_out"));
-	public static final FadeFunction EASE_IN_OUT = create((f, p) -> f < 0.5f ? 2 * f * f : 4 * f - 2 * f * f - 1,
+	public static final FadeFunction EASE_IN_OUT = create((f, p) -> f < 0.5f ? 2 * f * f : (4 * f) - (2 * f * f) - 1,
 			new ResourceLocation(Wingx.MOD_ID, "ease_in_out"));
 
 	public static void init() {

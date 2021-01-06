@@ -54,11 +54,11 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 		this.initialSpeed = data.initialSpeed;
 		this.packedColor = data.packedColor;
 		this.mainDamage = data.damage;
-		setMotion(caster.getMotion()
+		this.setMotion(caster.getMotion()
 				.add(Vector3d.fromPitchYaw(caster.getPitchYaw()).normalize().scale(this.initialSpeed)));
-		setPositionAndRotation(caster.getPosX(), caster.getPosY() + caster.getEyeHeight() - 0.2d, caster.getPosZ(),
-				caster.rotationYawHead, caster.rotationPitch);
-		recalculateSize();
+		this.setPositionAndRotation(caster.getPosX(), (caster.getPosY() + caster.getEyeHeight()) - 0.2d,
+				caster.getPosZ(), caster.rotationYawHead, caster.rotationPitch);
+		this.recalculateSize();
 	}
 
 	public FireballEntity(World worldIn) {
@@ -122,26 +122,26 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	@Override
 	public void tick() {
 		super.tick();
-		collideEntities();
-		if (!this.isDebug && this.ticksExisted > 20 + 10) {
-			remove(false);
+		this.collideEntities();
+		if (!this.isDebug && (this.ticksExisted > (20 + 10))) {
+			this.remove(false);
 			return;
 		}
 //		if (this.ticksExisted > 10) {
 //			this.setMotion(getMotion().scale(0.8));
 //		}
-		applyGravity();
-		turnToMovingDirection();
-		move(MoverType.SELF, getMotion());
+		this.applyGravity();
+		this.turnToMovingDirection();
+		this.move(MoverType.SELF, this.getMotion());
 	}
 
 	private void collideEntities() {
 //		if (this.world.isRemote) {
 //			return;
 //		}
-		this.world.getEntitiesInAABBexcluding(this, getBoundingBox(), entity -> true).forEach(entity -> {
+		this.world.getEntitiesInAABBexcluding(this, this.getBoundingBox(), entity -> true).forEach(entity -> {
 			if (!entity.getUniqueID().equals(this.ownerUniqueId)) {
-				applyEntityCollision(entity);
+				this.applyEntityCollision(entity);
 			}
 		});
 	}
@@ -151,8 +151,8 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 		if (this.isDebug) {
 			return;
 		}
-		entityIn.attackEntityFrom(getDamageSource(), this.mainDamage);
-		onInsideBlock(Blocks.STONE.getDefaultState()); // TODO get block
+		entityIn.attackEntityFrom(this.getDamageSource(), this.mainDamage);
+		this.onInsideBlock(Blocks.STONE.getDefaultState()); // TODO get block
 	}
 
 	@Override
@@ -161,10 +161,10 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 			return;
 		}
 		if (!blockStateIn.equals(Blocks.AIR.getDefaultState())) {
-			WorldHelper.getEntitiesWithin(this.world, getPositionVec(), 1.0d).forEach(entity -> {
-				if (this.ownerUniqueId != null && !entity.getUniqueID().equals(this.ownerUniqueId)
-						&& !getUniqueID().equals(entity.getUniqueID())) {
-					entity.attackEntityFrom(getDamageSource(), this.mainDamage);
+			WorldHelper.getEntitiesWithin(this.world, this.getPositionVec(), 1.0d).forEach(entity -> {
+				if ((this.ownerUniqueId != null) && !entity.getUniqueID().equals(this.ownerUniqueId)
+						&& !this.getUniqueID().equals(entity.getUniqueID())) {
+					entity.attackEntityFrom(this.getDamageSource(), this.mainDamage);
 				}
 			});
 			this.remove();
@@ -177,18 +177,18 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	}
 
 	protected void turnToMovingDirection() {
-		Vector3d move = getMotion();
+		Vector3d move = this.getMotion();
 		if (move.lengthSquared() > 0.0001d) {
-			this.rotationYaw = (float) (Math.atan2(move.z, move.x) / Math.PI * 180.0f) - 90.0f;
-			this.rotationPitch = (float) (Math.atan2(-move.y, Math.sqrt(move.x * move.x + move.z * move.z)) / Math.PI
-					* 180.0f);
+			this.rotationYaw = (float) ((Math.atan2(move.z, move.x) / Math.PI) * 180.0f) - 90.0f;
+			this.rotationPitch = (float) ((Math.atan2(-move.y, Math.sqrt((move.x * move.x) + (move.z * move.z)))
+					/ Math.PI) * 180.0f);
 		}
 	}
 
 	protected void applyGravity() {
 		if (this.ticksExisted < 30) {
-			addMotion(getGravity());
-			markVelocityChanged();
+			this.addMotion(this.getGravity());
+			this.markVelocityChanged();
 		}
 	}
 
@@ -200,21 +200,21 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	public boolean attackEntityFrom(DamageSource source, float amount) {
 		if (this.isDebug) {
 			if (source.getTrueSource() instanceof PlayerEntity) {
-				addMotion(Vector3d.fromPitchYaw(source.getTrueSource().getPitchYaw()).scale(0.5f));
+				this.addMotion(Vector3d.fromPitchYaw(source.getTrueSource().getPitchYaw()).scale(0.5f));
 			}
 			this.ticksExisted = 0;
-			this.initialSpeed = getMotion().length();
+			this.initialSpeed = this.getMotion().length();
 		}
 		return super.attackEntityFrom(source, amount);
 	}
 
 	public void addMotion(Vector3d addition) {
-		setMotion(getMotion().add(addition));
-		markVelocityChanged();
+		this.setMotion(this.getMotion().add(addition));
+		this.markVelocityChanged();
 	}
 
 	public void addMotion(double x, double y, double z) {
-		addMotion(new Vector3d(x, y, z));
+		this.addMotion(new Vector3d(x, y, z));
 	}
 
 	@Override
@@ -231,13 +231,13 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	@Override
 	public void writeSpawnData(PacketBuffer buffer) {
 		CompoundNBT res = new CompoundNBT();
-		writeAdditional(res);
+		this.writeAdditional(res);
 		buffer.writeCompoundTag(res);
 	}
 
 	@Override
 	public void readSpawnData(PacketBuffer additionalData) {
-		readAdditional(additionalData.readCompoundTag());
+		this.readAdditional(additionalData.readCompoundTag());
 	}
 
 	@Override

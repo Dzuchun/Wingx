@@ -39,8 +39,8 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 						Collection<IInterruptableTrick> active_tricks = instance.getActiveTricks();
 						compound.putInt(AMOUNT_TAG, active_tricks.size());
 						this.i = 0;
-						active_tricks.forEach((trick) -> {
-							if (trick.getRegistryName() != null && trick instanceof IPersistableTrick) {
+						active_tricks.forEach(trick -> {
+							if ((trick.getRegistryName() != null) && (trick instanceof IPersistableTrick)) {
 								String registryName = trick.getRegistryName().toString();
 								CompoundNBT tmp = new CompoundNBT();
 								tmp.putString(REGISTRY_NAME_TAG, registryName);

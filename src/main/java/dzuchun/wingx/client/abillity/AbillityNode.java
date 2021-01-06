@@ -90,8 +90,8 @@ public abstract class AbillityNode {
 			LOG.warn("Tried to draw node with unexisted atlas: {}", spriteNoIn);
 			return;
 		}
-		int x = spriteNoIn % SPRITES_IN_ROW * SPRITE_SIZE;
-		int y = spriteNoIn / SPRITES_IN_ROW * SPRITE_SIZE;
+		int x = (spriteNoIn % SPRITES_IN_ROW) * SPRITE_SIZE;
+		int y = (spriteNoIn / SPRITES_IN_ROW) * SPRITE_SIZE;
 		float u = ((float) x) / ((float) ATLAS_SIZE);
 		float v = ((float) y) / ((float) ATLAS_SIZE);
 		SeparateRenderers.myBlit(matrixStackIn, -NODE_SIZE / 2, -NODE_SIZE / 2, NODE_SIZE, NODE_SIZE, u, v,

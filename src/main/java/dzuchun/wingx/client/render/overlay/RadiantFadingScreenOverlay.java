@@ -28,7 +28,7 @@ public class RadiantFadingScreenOverlay extends FadingScreenOverlay {
 		@SuppressWarnings("resource")
 		double realGameTime = Minecraft.getInstance().world.getGameTime() + event.getPartialTicks();
 		double partPassed = (realGameTime - this.beginTime) / this.ticksDuration;
-		if (partPassed > 1 || partPassed < 0) {
+		if ((partPassed > 1) || (partPassed < 0)) {
 			return;
 		}
 		double partColorPassed = this.fadeFunction.apply(partPassed);
@@ -42,6 +42,7 @@ public class RadiantFadingScreenOverlay extends FadingScreenOverlay {
 		renderRadiantColorScreen(event.getMatrixStack(), color);
 	}
 
+	@SuppressWarnings("deprecation")
 	private static void renderRadiantColorScreen(MatrixStack matrixStackIn, Vector4f color) {
 		if (!Minecraft.isGuiEnabled()) {
 			return;

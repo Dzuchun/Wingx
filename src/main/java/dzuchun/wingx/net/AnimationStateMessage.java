@@ -58,7 +58,7 @@ public class AnimationStateMessage {
 			if (cap != null) {
 				Entity wings = WorldHelper.getEntityFromWorldByUniqueId(minecraft.world,
 						cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER).wingsUniqueId);
-				if (wings != null && wings instanceof WingsEntity) {
+				if ((wings != null) && (wings instanceof WingsEntity)) {
 					WingsEntity realWingsEntity = (WingsEntity) wings;
 					synchronized (realWingsEntity.upcomingStates_lock) {
 						realWingsEntity.setUpcomingStates(msg.states);

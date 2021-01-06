@@ -39,12 +39,14 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 
 	@Override
 	public PacketTarget getEndPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) getCasterPlayer()) : null;
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
@@ -61,9 +63,9 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	public void execute(LogicalSide side) {
 		if (side == LogicalSide.SERVER) {
 			// We are on server
-			if (hasCasterPlayer() && getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()
-					&& AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) == 0) {
-				IWingsCapability cap = getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
+			if (this.hasCasterPlayer() && this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()
+					&& (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) == 0)) {
+				IWingsCapability cap = this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
 				// Cap is nonnul
 				FireballData data = cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER);
 				this.interruptCondition = data.interruptCondition;
@@ -72,11 +74,11 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 				this.status = 0;
 			} else {
 				LOG.warn("Caster does not exist, has no capability or caster is busy");
-				if (!hasCasterPlayer()) {
+				if (!this.hasCasterPlayer()) {
 					this.status = 1;
-				} else if (!getCasterPlayer().getCapability(WingsProvider.WINGS).isPresent()) {
+				} else if (!this.getCasterPlayer().getCapability(WingsProvider.WINGS).isPresent()) {
 					this.status = 2;
-				} else if (AbstractInterruptablePlayerTrick.playerBusyFor(getCasterPlayer()) != 0) {
+				} else if (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) != 0) {
 					this.status = 3;
 				}
 			}
@@ -90,12 +92,12 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 		super.onCastEnd(side);
 		if (side == LogicalSide.SERVER) {
 			// We are on server
-			if (castEndedNaturally()) {
-				((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(getCasterPlayer()));
+			if (this.castEndedNaturally()) {
+				((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(this.getCasterPlayer()));
 			}
 		} else {
 			// We are on client
-			if (amICaster() && this.status == 0) {
+			if (this.amICaster() && (this.status == 0)) {
 				ClientPlayerEntity player = Minecraft.getInstance().player;
 				player.resetCooldown();
 				player.swingArm(Hand.MAIN_HAND);

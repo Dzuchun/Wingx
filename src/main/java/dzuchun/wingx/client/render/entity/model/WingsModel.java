@@ -69,13 +69,13 @@ public class WingsModel<T extends Entity> extends EntityModel<WingsEntity> {
 			for (List<AnimationState> states : upcomingStates) {
 //				LOG.debug("Handling adding {}", Util.iterableToString(states));
 				if (states != null) {
-					if (addStateIfPresent(this.baseAni, states.get(0))) {
+					if (this.addStateIfPresent(this.baseAni, states.get(0))) {
 						states.set(0, null);
 					}
-					if (addStateIfPresent(this.leftAni, states.get(1))) {
+					if (this.addStateIfPresent(this.leftAni, states.get(1))) {
 						states.set(1, null);
 					}
-					if (addStateIfPresent(this.rightAni, states.get(2))) {
+					if (this.addStateIfPresent(this.rightAni, states.get(2))) {
 						states.set(2, null);
 					}
 				}
