@@ -144,6 +144,11 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 						null);
 				if (optionalCap.isPresent()) {
 					optionalCap.ifPresent(cap -> {
+						BasicData basicData = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+						if (!basicData.getStageFlags(BasicData.MEDITATED_IN_END_MASK)) {
+//							basicData.setStageFlags(BasicData.MEDITATED_IN_END_MASK, true);
+							// TODO user's first meditation
+						}
 						LOG.info("Opening meditation gui");
 						WingxPacketHandler.INSTANCE.send(
 								PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer),

@@ -12,6 +12,7 @@ public class SoulswordDataSerializer extends Serializer<SoulswordData> {
 	private static final String COLOR_3_TAG = "color_3";
 	private static final String COLOR_4_TAG = "color_4";
 	private static final String SUMMON_DURATION_TAG = "summon_duration";
+	private static final String UNLOCKED_TAG = "unlocked";
 
 	@Override
 	public SoulswordData read(CompoundNBT nbt) {
@@ -22,6 +23,7 @@ public class SoulswordDataSerializer extends Serializer<SoulswordData> {
 			res.colors[2] = nbt.getInt(COLOR_3_TAG);
 			res.colors[3] = nbt.getInt(COLOR_4_TAG);
 			res.summonDurationTicks = nbt.getInt(SUMMON_DURATION_TAG);
+			res.isUnlocked = nbt.getBoolean(UNLOCKED_TAG);
 		}
 		return res;
 	}
@@ -35,6 +37,7 @@ public class SoulswordDataSerializer extends Serializer<SoulswordData> {
 			nbt.putInt(COLOR_3_TAG, data.colors[2]);
 			nbt.putInt(COLOR_4_TAG, data.colors[3]);
 			nbt.putInt(SUMMON_DURATION_TAG, data.summonDurationTicks);
+			nbt.putBoolean(UNLOCKED_TAG, data.isUnlocked);
 		}
 	}
 
@@ -47,6 +50,7 @@ public class SoulswordDataSerializer extends Serializer<SoulswordData> {
 			res.colors[2] = buf.readInt();
 			res.colors[3] = buf.readInt();
 			res.summonDurationTicks = buf.readInt();
+			res.isUnlocked = buf.readBoolean();
 		}
 		return res;
 	}
@@ -60,6 +64,7 @@ public class SoulswordDataSerializer extends Serializer<SoulswordData> {
 			buf.writeInt(data.colors[2]);
 			buf.writeInt(data.colors[3]);
 			buf.writeInt(data.summonDurationTicks);
+			buf.writeBoolean(data.isUnlocked);
 		}
 	}
 

@@ -68,7 +68,17 @@ public class AbillityNodes {
 
 		@Override
 		public void setUnlocked(IWingsCapability capabilityIn) {
-			this.isUnlocked = false;
+			this.isUnlocked = capabilityIn.getDataManager().getOrAddDefault(Serializers.AGIL_SERIALIZER).isUnlocked;
+		}
+	};
+	public static final ExternalAbillityNode SOULSWORD = new ExternalAbillityNode(50, 70, 7,
+			new StringTextComponent("Soulsword").setStyle(NAME_STYLE),
+			new TranslationTextComponent("wingx.gui.node.desc.soulsword_external"), null, AGIL) {
+
+		@Override
+		public void setUnlocked(IWingsCapability capabilityIn) {
+			this.isUnlocked = capabilityIn.getDataManager()
+					.getOrAddDefault(Serializers.SOULSWORD_SERIALIZER).isUnlocked;
 		}
 	};
 }

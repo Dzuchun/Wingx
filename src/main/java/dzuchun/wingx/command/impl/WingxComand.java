@@ -29,18 +29,25 @@ public class WingxComand {
 	public static final Style SUCCEESS_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFF00BB22));
 	public static final Style ERROR_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFFFF0000));
 
-	@SuppressWarnings("unchecked")
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {
 		LiteralArgumentBuilder<CommandSource> res = Commands.literal("wingx");
-		res = res.requires(source -> source.hasPermissionLevel(2));
-		res.then(addCommand(Commands.argument(TARGET_PAR_NAME, EntityArgument.entities())));
-		res.then(addCommand(Commands.literal("self")));
+//		res = res.requires(source -> source.hasPermissionLevel(2));
+//		res.then(addCapabilityDataCommand(Commands.argument(TARGET_PAR_NAME, EntityArgument.entities())));
+//		res.then(addCapabilityDataCommand(Commands.literal("self")));
+		res.then(capabilityDataCommand());
 		res.then(debug());
 		dispatcher.register(res);
 	}
 
+	@SuppressWarnings("unchecked")
+	private static ArgumentBuilder<CommandSource, ?> capabilityDataCommand() {
+		return Commands.literal("capability").requires(source -> source.hasPermissionLevel(2))
+				.then(addCapabilityDataCommand(Commands.argument(TARGET_PAR_NAME, EntityArgument.entities())))
+				.then(addCapabilityDataCommand(Commands.literal("self")));
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static ArgumentBuilder addCommand(ArgumentBuilder literal) {
+	private static ArgumentBuilder addCapabilityDataCommand(ArgumentBuilder literal) {
 		return literal.then(WingsDataManager.getResetCommand()).then(WingsDataManager.getModifyCommand());
 	}
 

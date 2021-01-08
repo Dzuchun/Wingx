@@ -12,11 +12,13 @@ public class SoulswordData extends SerializedData {
 	public boolean hasColors;
 	public int[] colors;
 	public int summonDurationTicks;
+	public boolean isUnlocked;
 
 	public SoulswordData() {
 		this.hasColors = false;
 		this.colors = new int[4];
 		this.summonDurationTicks = 160;
+		this.isUnlocked = false;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -43,7 +45,10 @@ public class SoulswordData extends SerializedData {
 						new CommandLiteral<SoulswordData, Integer>("color_4", IntegerArgumentType.integer(),
 								(data, c) -> data.colors[3] = c, Integer.class),
 						new CommandLiteral<SoulswordData, Integer>("summon_duration", IntegerArgumentType.integer(),
-								(data, n) -> data.summonDurationTicks = n, Integer.class));
+								(data, n) -> data.summonDurationTicks = n, Integer.class),
+						new CommandLiteral<SoulswordData, Boolean>("unlocked", BoolArgumentType.bool(), (data, b) -> {
+							data.isUnlocked = b;
+						}, Boolean.class));
 	}
 
 	void assignColors() {

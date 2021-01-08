@@ -77,6 +77,7 @@
 	"wingx.gui.desc.fireball_internal.homing": "Allows fireball to be homing - follow selected target",
 	"wingx.gui.node.desc.hasty_external": "Hasty node",
 	"wingx.gui.node.desc.agil_external": "Perform a double attack!",
+	"wingx.gui.node.desc.soulsword_external": "Summon a soulsword to eniolage(?) your enemy!",
 	"subtitles.wingx.end.ambient": "Example end ambient",
 	"subtitles.wingx.random.hasty_proc": "Hasty proced",
 	"subtitles.wingx.random.agil_proc": "Agil proced",

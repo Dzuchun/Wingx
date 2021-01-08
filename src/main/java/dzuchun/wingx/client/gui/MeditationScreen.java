@@ -269,8 +269,6 @@ public class MeditationScreen extends Screen {
 		float ticksPassed = (System.currentTimeMillis() - openTime) / 50.0f;
 		// Rendering nodes and lines
 		for (AbillityNode node : this.renderedNodes) {
-			matrixStackIn.push();
-			matrixStackIn.translate(node.xCenterPos, node.yCenterPos, 0);
 			float alpha = 1.0f;
 			float scaleFactor = 1.0f;
 			double distance = Math
@@ -293,9 +291,9 @@ public class MeditationScreen extends Screen {
 			}
 			// Rendering node
 			matrixStackIn.push();
+			matrixStackIn.translate(node.xCenterPos, node.yCenterPos, 0);
 			matrixStackIn.scale(scaleFactor, scaleFactor, 1.0f);
 			node.render(matrixStackIn, alpha);
-			matrixStackIn.pop();
 			matrixStackIn.pop();
 		}
 		if (MeditationScreen.selectedNode != null) {

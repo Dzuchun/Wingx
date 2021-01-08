@@ -9,6 +9,8 @@ import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsCapability;
+import dzuchun.wingx.capability.entity.wings.storage.BasicData;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.client.gui.MeditationScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
@@ -39,8 +41,16 @@ public class MeditationGuiMessage {
 		this.capability.writeToBuffer(buf);
 	}
 
+	@SuppressWarnings("resource")
 	public static void handle(MeditationGuiMessage msg, Supplier<NetworkEvent.Context> ctx) {
 		ctx.get().enqueueWork(() -> {
+			BasicData basicData = msg.capability.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+			if (!basicData.getStageFlags(BasicData.MEDITATED_IN_END_MASK)) {
+				basicData.setStageFlags(BasicData.MEDITATED_IN_END_MASK, true);
+				// TODO user's first meditation
+				LOG.warn("{}'s first  meditation! [Insert greet message here]",
+						Minecraft.getInstance().player.getGameProfile().getName());
+			}
 			Minecraft.getInstance().displayGuiScreen(new MeditationScreen(MEDITATION_SCREEN_TITLE, msg.capability));
 		});
 		ctx.get().setPacketHandled(true);

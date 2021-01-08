@@ -9,6 +9,7 @@ public class AgilDataSerializer extends Serializer<AgilData> {
 	private static final String ACIVE_TAG = "active";
 	private static final String COOLDOWN_TAG = "cooldown";
 	private static final String PROBABILITY_TAG = "probability";
+	private static final String UNLOCKED_TAG = "unlocked";
 
 	@Override
 	public AgilData read(CompoundNBT nbt) {
@@ -16,6 +17,7 @@ public class AgilDataSerializer extends Serializer<AgilData> {
 		res.isActive = nbt.getBoolean(ACIVE_TAG);
 		res.cooldown = nbt.getInt(COOLDOWN_TAG);
 		res.probability = nbt.getDouble(PROBABILITY_TAG);
+		res.isUnlocked = nbt.getBoolean(UNLOCKED_TAG);
 		return res;
 	}
 
@@ -24,6 +26,7 @@ public class AgilDataSerializer extends Serializer<AgilData> {
 		nbt.putBoolean(ACIVE_TAG, data.isActive);
 		nbt.putInt(COOLDOWN_TAG, data.cooldown);
 		nbt.putDouble(PROBABILITY_TAG, data.probability);
+		nbt.putBoolean(UNLOCKED_TAG, data.isUnlocked);
 	}
 
 	@Override

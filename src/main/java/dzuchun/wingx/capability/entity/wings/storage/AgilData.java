@@ -13,6 +13,7 @@ public class AgilData extends SerializedData {
 	public boolean isActive;
 	public int cooldown;
 	public double probability;
+	public boolean isUnlocked;
 
 	// Unserialized
 	public long lastProc;
@@ -21,6 +22,7 @@ public class AgilData extends SerializedData {
 		this.isActive = true;
 		this.cooldown = 100;
 		this.probability = 0.2d;
+		this.isUnlocked = false;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -37,7 +39,9 @@ public class AgilData extends SerializedData {
 				new CommandLiteral<AgilData, Integer>("cooldown", IntegerArgumentType.integer(),
 						(data, i) -> data.cooldown = i, Integer.class),
 				new CommandLiteral<AgilData, Double>("probability", DoubleArgumentType.doubleArg(),
-						(data, d) -> data.probability = d, Double.class));
+						(data, d) -> data.probability = d, Double.class),
+				new CommandLiteral<AgilData, Boolean>("unlocked", BoolArgumentType.bool(),
+						(data, b) -> data.isUnlocked = b, Boolean.class));
 	}
 
 }
