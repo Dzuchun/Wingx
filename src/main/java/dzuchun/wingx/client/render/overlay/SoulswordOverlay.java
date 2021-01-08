@@ -14,6 +14,7 @@ import net.minecraftforge.event.TickEvent.ClientTickEvent;
 public class SoulswordOverlay extends AbstractTickingOverlay {
 
 	public final ClientPlayerEntity caster;
+	@SuppressWarnings("unused")
 	private boolean summoned;
 
 	public SoulswordOverlay(ClientPlayerEntity casterIn) {
@@ -58,7 +59,7 @@ public class SoulswordOverlay extends AbstractTickingOverlay {
 
 	@Override
 	void renderGameOverlay(RenderGameOverlayEvent event) {
-		super.renderGameOverlay(event);
+
 		// TODO render some visual stuff
 	}
 
@@ -68,9 +69,7 @@ public class SoulswordOverlay extends AbstractTickingOverlay {
 
 	@Override
 	public void onClienTick(ClientTickEvent event) {
-		if (((this.caster.getHeldItemMainhand().getItem() != Items.SUMMONING_SOULSWORD.get()) && !this.summoned)
-				|| ((this.caster.getHeldItemMainhand().getItem() != Items.REAL_SOULSWORD.get()) && this.summoned)) { // TODO
-			// optimize
+		if (this.caster.getHeldItemMainhand().getItem() != Items.SOULSWORD.get()) {
 			this.active = false;
 		}
 	}

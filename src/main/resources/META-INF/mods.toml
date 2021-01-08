@@ -20,7 +20,7 @@ version="${file.jarVersion}" #mandatory
  # A display name for the mod
 displayName="Wingx Mod" #mandatory
 # A URL to query for updates for this mod. See the JSON update specification <here>
-updateJSONURL="https://raw.githubusercontent.com/Dzuchun/Wingx/1.16/version_check.json?token=ALEMV7GY7QCKD7J2AXOP53K7DKW4K"
+updateJSONURL="https://raw.githubusercontent.com/Dzuchun/Wingx/1.16/version_check.json"
 # A URL for the "homepage" for this mod, displayed in the mod UI
 displayURL="https://github.com/Dzuchun/Wingx" #optional
 # A file name (in the root of the mod JAR) containing a logo for display

@@ -92,8 +92,7 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
-		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.getCasterPlayer())
-				: null;
+		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer) : null;
 	}
 
 	@Override

@@ -67,6 +67,7 @@
 	"wingx.trick.swap.error": "Cannot swap : %s",
 	"wingx.trick.summon_soulsword.start": "Casting soulsword...",
 	"wingx.trick.summon_soulsword.error": "Cannot summon Soul Sword : %s",
+	"wingx.trick.summon_soulsword.success": "Soulsword summoned!",
 	"wingx.config.client.example_boolean": "Example client config boolean",
 	"wingx.config.server.example_boolean": "Example server config boolean",
 	"wingx.gui.node.desc.wingx": "Root node of all the three",
@@ -80,5 +81,5 @@
 	"subtitles.wingx.random.hasty_proc": "Hasty proced",
 	"subtitles.wingx.random.agil_proc": "Agil proced",
 	"item.wingx.summoning_soulsword": "Souldword (summoning)",
-	"item.wingx.real_soulsword": "Souldword"
+	"item.wingx.soulsword": "Soulsword"
 }

@@ -92,7 +92,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 							return;
 						}
 						this.tmp_boolean_1 = true;
-						caster.world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent((worldCap) -> {
+						caster.world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent(worldCap -> {
 							worldCap.getActiveTricks().forEach((trick) -> {
 								if (trick instanceof ICastedTrick) {
 									if ((trick instanceof MeditationPlayerTrick)
@@ -146,7 +146,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 					optionalCap.ifPresent(cap -> {
 						LOG.info("Opening meditation gui");
 						WingxPacketHandler.INSTANCE.send(
-								PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.getCasterPlayer()),
+								PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer),
 								new MeditationGuiMessage(cap));
 					});
 				} else {

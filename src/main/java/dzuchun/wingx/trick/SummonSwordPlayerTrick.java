@@ -13,6 +13,7 @@ import dzuchun.wingx.capability.entity.wings.storage.SoulswordData;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.client.render.overlay.SoulswordOverlay;
 import dzuchun.wingx.init.Items;
+import dzuchun.wingx.item.Soulsword;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
@@ -104,8 +105,9 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 					return;
 				}
 				// TODO some visual stuff
-				caster.setItemStackToSlot(EquipmentSlotType.MAINHAND,
-						Items.SUMMONING_SOULSWORD.get().getDefaultInstance());
+				ItemStack stack = Items.SOULSWORD.get().getDefaultInstance();
+				stack.getOrCreateTag().putBoolean(Soulsword.SUMMONED_TAG, false);
+				caster.setItemStackToSlot(EquipmentSlotType.MAINHAND, stack);
 //				//Trick succesfull
 			}
 		} else {
@@ -153,10 +155,8 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 				this.status = 3;
 			} else if (this.status == 0) {
 				ItemStack stack = caster.getHeldItemMainhand();
-				if (stack.isItemEqual(Items.SUMMONING_SOULSWORD.get().getDefaultInstance())) {
-					stack.setCount(0);
-					caster.setItemStackToSlot(EquipmentSlotType.MAINHAND,
-							Items.REAL_SOULSWORD.get().getDefaultInstance());
+				if (stack.isItemEqual(Items.SOULSWORD.get().getDefaultInstance())) {
+					stack.getOrCreateTag().putBoolean(Soulsword.SUMMONED_TAG, true);
 				}
 				this.status = 5;
 			}

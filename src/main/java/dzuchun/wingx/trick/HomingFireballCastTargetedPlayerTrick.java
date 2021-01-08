@@ -66,8 +66,7 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 
 	@Override
 	public PacketTarget getEndPacketTarget() {
-		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.getCasterPlayer())
-				: null;
+		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer) : null;
 	}
 
 	public boolean aimed() {

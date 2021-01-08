@@ -63,7 +63,7 @@ public class HastyPostAnimationOverlay extends AbstractTickingOverlay {
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void renderWorldLast(RenderWorldLastEvent event) {
-		LOG.info("Render world last invoked");
+//		LOG.info("Render world last invoked");
 		MatrixStack matrixStack = event.getMatrixStack();
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientPlayerEntity player = minecraft.player;

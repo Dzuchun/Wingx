@@ -305,7 +305,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 			res_int_1 = 0;
 			// TODO rewrite using stream!!
 			capOptional.ifPresent(cap -> {
-				cap.getActiveTricks().forEach((trick) -> {
+				cap.getActiveTricks().forEach(trick -> {
 					if ((trick.hasCaster() && trick.getCaster().getUniqueID().equals(casterPlayer.getUniqueID()))
 							&& (res_int_1 < trick.timeLeft())) {
 						res_int_1 = trick.timeLeft();

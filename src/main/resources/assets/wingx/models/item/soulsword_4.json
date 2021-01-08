@@ -1,0 +1,7 @@
+{
+	"parent": "wingx:item/soulsword",
+	"textures": {
+		"layer0": "wingx:item/soulsword",
+		"layer1": "wingx:item/soulsword_4"
+	}
+}

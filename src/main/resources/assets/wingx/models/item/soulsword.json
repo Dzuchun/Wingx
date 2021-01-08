@@ -1,0 +1,36 @@
+{
+	"parent": "item/handheld_rod",
+	"textures": {
+		"layer0": "wingx:item/summoning_soulsword"
+	},
+	"overrides": [
+		{
+			"predicate": {
+				"wingx:soulsword_summoned": 1,
+				"wingx:soulsword_animation_stage": 0.0
+			},
+			"model": "wingx:item/soulsword_1"
+		},
+		{
+			"predicate": {
+				"wingx:soulsword_summoned": 1,
+				"wingx:soulsword_animation_stage": 0.25
+			},
+			"model": "wingx:item/soulsword_2"
+		},
+		{
+			"predicate": {
+				"wingx:soulsword_summoned": 1,
+				"wingx:soulsword_animation_stage": 0.5
+			},
+			"model": "wingx:item/soulsword_3"
+		},
+		{
+			"predicate": {
+				"wingx:soulsword_summoned": 1,
+				"wingx:soulsword_animation_stage": 0.75
+			},
+			"model": "wingx:item/soulsword_4"
+		}
+	]
+}

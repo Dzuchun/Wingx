@@ -19,10 +19,12 @@ import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.init.Items;
 import dzuchun.wingx.init.SoundEvents;
 import dzuchun.wingx.init.Tricks;
+import dzuchun.wingx.item.Soulsword;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractTrick;
 import dzuchun.wingx.util.animation.FadeFunction;
 import net.minecraft.inventory.container.PlayerContainer;
+import net.minecraft.item.ItemModelsProperties;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -37,6 +39,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.config.ModConfig.Type;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.ParallelDispatchEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegistryBuilder;
 
@@ -58,6 +61,7 @@ public class Wingx {
 		FORGE_EVENT_BUS = MinecraftForge.EVENT_BUS;
 
 		MOD_EVENT_BUS.addListener(Wingx::createResistries);
+		MOD_EVENT_BUS.addListener(Wingx::registerModelOverrides);
 
 		LOG.debug("Initing");
 		Items.registerItems(MOD_EVENT_BUS);
@@ -145,5 +149,14 @@ public class Wingx {
 //			event.addSprite(GUI_INGAME_COOLDOWN_HORIZONTAL_TEXTURE);
 			LOG.info("Added block textures");
 		}
+	}
+
+	public static void registerModelOverrides(ParallelDispatchEvent event) {
+		event.enqueueWork(() -> {
+			ItemModelsProperties.registerProperty(Items.SOULSWORD.get(), Soulsword.ANIMATION_PROPERTY_LOCATION,
+					Soulsword.ANIMATION_PROPERTY_GETTER);
+			ItemModelsProperties.registerProperty(Items.SOULSWORD.get(), Soulsword.SUMMONED_PROPERTY_LOCATION,
+					Soulsword.SUMMONED_PROPERTY_GETTER);
+		});
 	}
 }

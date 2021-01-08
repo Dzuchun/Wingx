@@ -22,6 +22,7 @@ import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.client.render.overlay.AbstractTickingOverlay;
 import dzuchun.wingx.command.impl.WingxComand;
 import dzuchun.wingx.entity.misc.WingsEntity;
+import dzuchun.wingx.init.Items;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
@@ -32,7 +33,9 @@ import dzuchun.wingx.util.animation.AnimationHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.entity.projectile.ProjectileHelper;
@@ -165,6 +168,11 @@ public class ForgeBusEventListener {
 					processAttackEntityEvent(attackEvent.first, attackEvent.second);
 				}
 				attackEventsToProcess.clear();
+			}
+			if (!world.isRemote) {
+				((ServerWorld) world).getEntities().filter(e -> (e.getType() == EntityType.ITEM))
+						.filter(e -> (((ItemEntity) e).getItem().getItem() == Items.SOULSWORD.get()))
+						.forEach(Entity::remove); // TODO make better
 			}
 		}
 	}
