@@ -115,7 +115,8 @@ public class AbillityNodes {
 			this.add(createForName("fireball", 1, 0, 0, 2, -1, -1, "node~4"));// internal
 			this.add(createForName("fireball_distance", 2, 50, 10, 3, 1, -1,
 					"node~1 stat_minecraft:custom~minecraft:jump~230"));
-			this.add(createForName("fireball_homing", 3, -50, 10, 6, 1, -1, "node~1"));
+			this.add(createForName("fireball_homing", 3, -50, 10, 6, 1, -1,
+					"node~1 data_integer-bit_0000000000000001~basic-stage_flags"));
 			this.add(createForName("fireball_ionization_1", 8, -10, -40, 8, 1, -1,
 					"node~1 data_double~fireball-damage~10"));
 			this.add(createForName("fireball", 4, -40, -10, 2, 0, 1, "node~0"));
@@ -148,6 +149,10 @@ public class AbillityNodes {
 			Object containedValue = data.get(parts[1]);
 			LOG.debug("Contained value for data {} is {}", parts[1], containedValue);
 			if (containedValue instanceof Integer) {
+				if (type[1].equals("integer-bit")) {
+					int mask = Integer.parseInt(type[2], 2);
+					return ((int) containedValue & mask) != 0;
+				}
 				return (int) containedValue >= Integer.parseInt(parts[2]);
 			} else if (containedValue instanceof Double) {
 				return (double) containedValue >= Double.parseDouble(parts[2]);

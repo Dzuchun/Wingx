@@ -22,7 +22,7 @@ public class Util {
 		for (T o : iterable) {
 			res += customToString.apply(o) + ", ";
 		}
-		res = res.substring(0, res.length() - 3);
+		res = res.substring(0, res.length() - 2);
 		return String.format("%s[%s]", iterable.getClass().getName(), res);
 	}
 

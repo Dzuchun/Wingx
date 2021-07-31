@@ -10,8 +10,9 @@ public class BasicDataSerializer extends Serializer<BasicData> {
 	private static final Logger LOG = LogManager.getLogger();
 	private static final String NAME = "basic";
 
-	private static final String IS_ACTIVE_TAG = "is_active";
+	private static final String IS_ACTIVE_TAG = "wings_active";
 	private static final String WINGS_UUID_TAG = "wings_uuid";
+	private static final String MEDITATION_LENGTH = "meditation_length";
 	private static final String MIN_MEDITATION_SCORE_TAG = "min_meditation_score";
 	private static final String NEEDS_END_TAG = "needs_end";
 	private static final String STAGE_FLAGS_TAG = "stage_flags";
@@ -23,6 +24,7 @@ public class BasicDataSerializer extends Serializer<BasicData> {
 		if (nbt.contains(WINGS_UUID_TAG)) {
 			res.wingsUniqueId = nbt.getUniqueId(WINGS_UUID_TAG);
 		}
+		res.meditationLength = nbt.getInt(MEDITATION_LENGTH);
 		res.requiredMeditationScore = nbt.getDouble(MIN_MEDITATION_SCORE_TAG);
 		res.needsEnd = nbt.getBoolean(NEEDS_END_TAG);
 		res.stageFlags = nbt.getInt(STAGE_FLAGS_TAG);
@@ -37,6 +39,7 @@ public class BasicDataSerializer extends Serializer<BasicData> {
 		if (data.wingsUniqueId != null) {
 			nbt.putUniqueId(WINGS_UUID_TAG, data.wingsUniqueId);
 		}
+		nbt.putInt(MEDITATION_LENGTH, data.meditationLength);
 		nbt.putDouble(MIN_MEDITATION_SCORE_TAG, data.requiredMeditationScore);
 		nbt.putBoolean(NEEDS_END_TAG, data.needsEnd);
 //		LOG.debug("Writing {} data: active {}, wings uuid {}, min meditation score {}, needs end {}", getName(),
@@ -51,6 +54,7 @@ public class BasicDataSerializer extends Serializer<BasicData> {
 		if (buf.readBoolean()) {
 			res.wingsUniqueId = buf.readUniqueId();
 		}
+		res.meditationLength = buf.readInt();
 		res.requiredMeditationScore = buf.readDouble();
 		res.needsEnd = buf.readBoolean();
 		res.stageFlags = buf.readInt();
@@ -66,6 +70,7 @@ public class BasicDataSerializer extends Serializer<BasicData> {
 		if (data.wingsUniqueId != null) {
 			buf.writeUniqueId(data.wingsUniqueId);
 		}
+		buf.writeInt(data.meditationLength);
 		buf.writeDouble(data.requiredMeditationScore);
 		buf.writeBoolean(data.needsEnd);
 		buf.writeInt(data.stageFlags);

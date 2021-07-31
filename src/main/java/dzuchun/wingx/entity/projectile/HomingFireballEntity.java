@@ -16,6 +16,7 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.common.util.LazyOptional;
 
 public class HomingFireballEntity extends FireballEntity {
+	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 
 	protected double homingForce;

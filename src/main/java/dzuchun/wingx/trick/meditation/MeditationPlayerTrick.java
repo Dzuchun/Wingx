@@ -45,15 +45,13 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	private static final Logger LOG = LogManager.getLogger();
 
 	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "meditation_player_trick");
-	private static final int MEDITATION_DURATION = 100; // TODO parameterize
-	private static final int MEDITATION_FAIL_DURATION = 10;
 
 	public MeditationPlayerTrick() {
 		super();
 	}
 
 	public MeditationPlayerTrick(PlayerEntity caster) {
-		super(caster, MEDITATION_DURATION, InterruptCondition.MOVED_CONDITION);
+		super(caster, 0, InterruptCondition.MOVED_CONDITION);
 	}
 
 	@Override
@@ -101,6 +99,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 							LOG.debug("Player has not enough meditation points to perform meditation.");
 							return;
 						}
+						this.duration = data.meditationLength;
 						this.tmp_boolean_1 = true;
 						caster.world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent(worldCap -> {
 							worldCap.getActiveTricks().forEach(trick -> {
@@ -133,7 +132,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 					FadingScreenOverlay.instance.deactivate();
 				}
 				boolean b = new FadingScreenOverlay(FadingScreenOverlay.Color.ZERO, FadingScreenOverlay.Color.BLACK,
-						MEDITATION_DURATION + 2).activate();
+						this.duration + 2).activate();
 				if (!b) {
 					LOG.warn("Could not activate overlay!!");
 				}
@@ -156,12 +155,6 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 					optionalCap.ifPresent(cap -> {
 						ServerPlayerEntity caster = (ServerPlayerEntity) this.getCasterPlayer();
 						BasicData basicData = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
-						if (!basicData.getStageFlags(BasicData.MEDITATED_IN_END_FLAG)) {
-							basicData.setStageFlags(BasicData.MEDITATED_IN_END_FLAG, true);
-							// TODO user's first meditation
-							LOG.warn("{}'s first  meditation! [Insert greet message here]",
-									caster.getGameProfile().getName());
-						}
 						// Garthering required stats and data
 						if ((AbillityNodes.requiredStats == null) || (AbillityNodes.requiredData == null)) {
 							AbillityNodes.loadAbillityNodes();
@@ -180,6 +173,12 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 						WingxPacketHandler.INSTANCE.send(
 								PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer),
 								new MeditationGuiMessage(cap, requiredStats, requiredData));
+						if (!basicData.getStageFlags(BasicData.MEDITATED_IN_END_FLAG)) {
+							basicData.setStageFlags(BasicData.MEDITATED_IN_END_FLAG, true);
+							// TODO user's first meditation
+							LOG.warn("{}'s first  meditation! [Insert greet message here]",
+									caster.getGameProfile().getName());
+						}
 					});
 				} else {
 					LOG.warn("Caster does not have a wings capability");
@@ -195,7 +194,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 					} else {
 						overlay.deactivate();
 						boolean res = new FadingScreenOverlay(overlay.getCurrentColor(), FadingScreenOverlay.Color.ZERO,
-								MEDITATION_FAIL_DURATION).activate();
+								Math.max(1, this.duration / 10)).activate();
 						if (!res) {
 							LOG.warn("Could not activate fail overlay");
 						}
@@ -223,10 +222,9 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 		serializer.write(nbt, cap.getDataManager().getOrAddDefault(serializer));
 		if (!nbt.contains(path[1])) {
 			LOG.warn("Serialized data \"{}\" does not contain field named \"{}\"", path[0], path[1]);
-
 		}
 		// TODO rewrite using copying NBTs
-		Object dataValue;
+		Object dataValue = null;
 		if (dataType.equals(Integer.class)) {
 			dataValue = nbt.getInt(path[1]);
 		} else if (dataType.equals(Double.class)) {
@@ -237,6 +235,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 			LOG.warn("Unknown data type {}, skipping", dataType);
 			return;
 		}
+//		LOG.debug("For input ({}, {}, {}, {}) got result {}", requiredData, entry, dataType, cap, dataValue);
 		requiredData.put(entry, dataValue);
 	}
 

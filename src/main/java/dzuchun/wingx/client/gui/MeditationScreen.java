@@ -72,7 +72,7 @@ public class MeditationScreen extends Screen {
 		this.requiredData = requiredDataIn;
 		LOG.debug("Passed stats: {}", Util.iterableToString(this.requiredStats.entrySet(),
 				e -> String.format("(%s, %d)", e.getKey(), e.getValue())));
-		LOG.debug("Passed data: {}", Util.iterableToString(this.requiredStats.entrySet(),
+		LOG.debug("Passed data: {}", Util.iterableToString(this.requiredData.entrySet(),
 				e -> String.format("(%s, %d)", e.getKey(), e.getValue())));
 		this.minecraft = Minecraft.getInstance();
 		openTime = System.currentTimeMillis();
@@ -91,7 +91,6 @@ public class MeditationScreen extends Screen {
 				(int) (this.width * 0.25d), (int) (this.height * 0.05d),
 				new TranslationTextComponent(MeditationScreen.isInsideNode ? "wingx.gui.goout" : "wingx.gui.gointo"),
 				(Button button) -> {
-					// TODO go into :)
 					if (!MeditationScreen.isInsideNode && (MeditationScreen.selectedNode != null)
 							&& MeditationScreen.selectedNode.isUnlocked()
 							&& ((MeditationScreen.selectedNode).getInternal() != null)) {
