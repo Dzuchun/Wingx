@@ -2,68 +2,131 @@ package dzuchun.wingx.client.abillity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
-import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.client.render.gui.SeparateRenderers;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public abstract class AbillityNode {
+public class AbillityNode extends ArrayList<Object> {
+	private static final long serialVersionUID = 1L;
 	private static final Logger LOG = LogManager.getLogger();
 	private static final int SPRITE_SIZE = 32;
 	private static final int ATLAS_SIZE = 512;
 	private static final int SPRITES_IN_ROW = ATLAS_SIZE / SPRITE_SIZE;
 	private static final float SPRITE_UV_SIZE = ((float) SPRITE_SIZE) / (float) ATLAS_SIZE;
 	public static final int NODE_SIZE = 20; // TODO add config
-	protected boolean isRoot;
-	public final int xCenterPos;
-	public final int yCenterPos;
-	protected boolean isUnlocked;
-	public final int spriteNo;
-	protected List<AbillityNode> children = new ArrayList<AbillityNode>(0);
-	public final ITextComponent displayName;
-	public final ITextComponent displayDescription;
 
-	public boolean isRoot() {
-		return this.isRoot;
+	public ArrayList<AbillityNode> children = new ArrayList<AbillityNode>(0);
+	public AbillityNode parent = null, internal = null;
+
+	public AbillityNode getParent() {
+		return this.parent;
 	}
 
-	protected AbillityNode parent;
+	public AbillityNode getInternal() {
+		return this.internal;
+	}
 
-	protected AbillityNode(int xCenterPosIn, int yCenterPosIn, @Nonnegative int spriteNoIn,
-			@Nonnull ITextComponent displayNameIn, @Nonnull ITextComponent displayDescriptionIn,
-			AbillityNode parentIn) {
-		this.xCenterPos = xCenterPosIn;
-		this.yCenterPos = yCenterPosIn;
-		this.spriteNo = spriteNoIn < 0 ? -1 : spriteNoIn;
-		if (this.spriteNo < 0) {
+	boolean unlockedDirty = true;
+	boolean isUnlocked = false;
+
+	public void updateUnlocked(Map<String, Integer> statsIn, Map<String, Object> dataIn) {
+		if (this.unlockedDirty) {
+			String unlockCondition = this.getUnlockCondition();
+			this.isUnlocked = true;
+			String[] conditions = unlockCondition.split(" ");
+			for (String condition : conditions) {
+				if ((condition.length() > 0) && !AbillityNodes.evaluateCondition(condition, statsIn, dataIn)) {
+					this.isUnlocked = false;
+					break;
+				}
+			}
+			this.unlockedDirty = false;
+		}
+	}
+
+	public boolean isUnlocked() {
+		return this.isUnlocked;
+	}
+
+	public AbillityNode(List<Object> list) {
+		this((int) list.get(0), (int) list.get(1), (int) list.get(2), (int) list.get(3), (int) list.get(4),
+				(int) list.get(5), (String) list.get(6), (String) list.get(7), (String) list.get(8));
+	}
+
+	public AbillityNode(int id, int xCenterPosIn, int yCenterPosIn, @Nonnegative int spriteNoIn, int parentIdIn,
+			int internalIdIn, String nameLocIn, String descLocIn, String unclockConditionIn) {
+		super(0);
+		this.add(id);// 0
+		this.add(xCenterPosIn);// 1
+		this.add(yCenterPosIn);// 2
+		this.add(spriteNoIn);// 3
+		if (spriteNoIn < 0) {
 			LOG.warn("{} uses invalid sprite number: {}", this, spriteNoIn);
+			// TODO check for max sprite no
 		}
-		this.displayName = displayNameIn;
-		this.displayDescription = displayDescriptionIn;
-		if (parentIn == null) {
-			this.isRoot = true;
-		} else {
-			this.isRoot = false;
-			parentIn.children.add(this);
-		}
+		this.add(parentIdIn);// 4
+		this.add(internalIdIn);// 5
+		this.add(nameLocIn);// 6
+		this.add(descLocIn);// 7
+		this.add(unclockConditionIn); // 8
 	}
 
-	public abstract AbillityNode getParent();
-
-	public List<AbillityNode> getChildren() {
-		return new ArrayList<>(this.children);
+	public int getId() {
+		return (int) this.get(0);
 	}
 
+	public int xCenterPos() {
+		return (int) this.get(1);
+	}
+
+	public int yCenterPos() {
+		return (int) this.get(2);
+	}
+
+	public int getSpriteNo() {
+		return (int) this.get(3);
+	}
+
+	public int getParentId() {
+		return (int) this.get(4);
+	}
+
+	public int getInternalId() {
+		return (int) this.get(5);
+	}
+
+	public String getNameLoc() {
+		return (String) this.get(6);
+	}
+
+	public String getDescLoc() {
+		return (String) this.get(7);
+	}
+
+	public String getUnlockCondition() {
+		return (String) this.get(8);
+	}
+
+	public boolean hasParent() {
+		return (int) this.get(4) != -1;
+	}
+
+	public boolean hasInternal() {
+		return (int) this.get(5) != -1;
+	}
+
+	@OnlyIn(Dist.CLIENT)
 	public void render(MatrixStack matrixStackIn, float alphaIn) {
-		int packedColor = this.isUnlocked ? 0xFFFFFF00 : 0x88888800;
+		int packedColor = this.isUnlocked() ? 0xFFFFFF00 : 0x88888800;
 		packedColor += Math.round(alphaIn * 255);
 		matrixStackIn.push();
 		matrixStackIn.scale(1.5f, 1.5f, 1.5f);
@@ -72,19 +135,14 @@ public abstract class AbillityNode {
 		matrixStackIn.pop();
 		matrixStackIn.pop();
 		matrixStackIn.push();
-		drawNumeredSprite(matrixStackIn, this.spriteNo, packedColor);
+		drawNumeredSprite(matrixStackIn, (int) this.get(3), packedColor);
 		matrixStackIn.pop();
 	}
 
-	public abstract void setUnlocked(IWingsCapability capabilityIn);
-
-	public boolean isUnlocked() {
-		return this.isUnlocked;
-	}
-
 	/**
-	 * Requires atlas to be binded previously and matrix on a centaer of node.
+	 * Requires atlas to be binded previously and matrix on a center of node.
 	 */
+	@OnlyIn(Dist.CLIENT)
 	private static void drawNumeredSprite(MatrixStack matrixStackIn, int spriteNoIn, int packedColor) {
 		if (spriteNoIn == -1) {
 			LOG.warn("Tried to draw node with unexisted atlas: {}", spriteNoIn);

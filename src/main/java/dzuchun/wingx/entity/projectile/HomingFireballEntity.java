@@ -55,7 +55,7 @@ public class HomingFireballEntity extends FireballEntity {
 //			LOG.info("Targeting {}, so adding {} to speed", target, targetRelPos, speedDelta);
 			this.addMotion(speedDelta);
 		} else {
-			LOG.warn("Target is null!!");
+//			LOG.debug("Target is null!!");
 		}
 	}
 

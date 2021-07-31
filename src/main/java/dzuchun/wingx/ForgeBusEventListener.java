@@ -43,6 +43,7 @@ import net.minecraft.server.management.PlayerInteractionManager;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggedInEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggedOutEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.Post;
@@ -204,6 +205,13 @@ public class ForgeBusEventListener {
 	}
 
 	// Client-only!
+
+	@SubscribeEvent
+	public static void onLogInEvent(final LoggedInEvent event) {
+		LOG.warn("Logged in event");
+//		AbillityNodes.loadAbillityNodes();
+	}
+
 	@SubscribeEvent
 	public static void onLogOut(LoggedOutEvent event) {
 		AbstractTickingOverlay.onDisconnect(event);

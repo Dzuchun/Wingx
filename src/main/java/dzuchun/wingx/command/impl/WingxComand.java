@@ -11,7 +11,10 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 
 import dzuchun.wingx.capability.entity.wings.storage.WingsDataManager;
+import dzuchun.wingx.client.abillity.AbillityNodes;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
+import dzuchun.wingx.config.ServerConfig;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
@@ -36,6 +39,7 @@ public class WingxComand {
 //		res.then(addCapabilityDataCommand(Commands.literal("self")));
 		res.then(capabilityDataCommand());
 		res.then(debug());
+		res.then(config());
 		dispatcher.register(res);
 	}
 
@@ -66,6 +70,27 @@ public class WingxComand {
 				}).then(Commands.literal("clear").executes((CommandContext<CommandSource> source) -> {
 					AbstractOverlay.getActiveOverlays().clear();
 					source.getSource().sendFeedback(new StringTextComponent("Cleared"), true);
+					return 0;
+				}))).then(Commands.literal("loadnodes").executes((CommandContext<CommandSource> source) -> {
+					// TODO doesn't work
+					if (source.getSource().getEntity() instanceof ClientPlayerEntity) {
+						AbillityNodes.loadAbillityNodes();
+						source.getSource().sendFeedback(new StringTextComponent("Loaded abillity nodes"), true);
+					} else {
+						source.getSource().sendFeedback(
+								new StringTextComponent("Command must be performed by a client player"), true);
+					}
+					return 0;
+				}));
+	}
+
+	private static ArgumentBuilder<CommandSource, ?> config() {
+		return Commands.literal("config").then(Commands.literal("nodes").then(Commands.literal("reset")
+				.requires(source -> source.hasPermissionLevel(2)).executes((CommandContext<CommandSource> source) -> {
+					ServerConfig.get().ABILLITY_NODES.set(AbillityNodes.DEFAULT_NODES); // TODO repair - funtions only
+																						// after game restart
+					source.getSource()
+							.sendFeedback(new StringTextComponent("Abillity nodes config was reset to Default"), true);
 					return 0;
 				})));
 	}

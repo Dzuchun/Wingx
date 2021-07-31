@@ -30,6 +30,7 @@ public class FireballData extends SerializedData {
 		this.initialSpeed = 0.7d;
 		this.isUnlocked = false;
 		this.homingUnlocked = false;
+		this.homingForce = 0.02d;
 	}
 
 	@SuppressWarnings("unchecked")

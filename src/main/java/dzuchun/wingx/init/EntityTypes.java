@@ -34,8 +34,8 @@ public class EntityTypes {
 		wings_entity_type = register.register(WINGS_NAME, () -> EntityType.Builder
 				.<WingsEntity>create((EntityType<WingsEntity> entityType, World worldIn) -> new WingsEntity(worldIn),
 						EntityClassification.MISC)
-				.setCustomClientFactory((spawnEntity, world) -> new WingsEntity(world)).setUpdateInterval(3)
-				.immuneToFire().setShouldReceiveVelocityUpdates(false)
+				.setCustomClientFactory((spawnEntity, world) -> new WingsEntity(world)).setUpdateInterval(1)
+				.immuneToFire().setShouldReceiveVelocityUpdates(true)
 				.build(new ResourceLocation(Wingx.MOD_ID, WINGS_NAME).toString()));
 		fireball_entity_type = register
 				.register(FIREBALL_NAME,

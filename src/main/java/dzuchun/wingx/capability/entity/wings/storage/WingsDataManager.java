@@ -46,6 +46,10 @@ public class WingsDataManager {
 		return new ArrayList<Serializer<?>>(registry.values());
 	}
 
+	public static Serializer<?> getSerializerByName(String nameIn) {
+		return registry.get(nameIn);
+	}
+
 	private static final String MODIFY_COMMAND_LITERAL = "modify";
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

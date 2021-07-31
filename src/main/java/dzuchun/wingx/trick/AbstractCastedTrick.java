@@ -54,6 +54,7 @@ public abstract class AbstractCastedTrick extends AbstractTrick implements ICast
 
 	@Nullable
 	@Override
+	// TODO optimize (cache caster)
 	public Entity getCaster() {
 //		LOG.info("Getting trick caster: word {}, uuid {}", casterWorld, casterUniqueId);
 		return (this.casterUniqueId == null) || (this.casterWorld == null) ? null

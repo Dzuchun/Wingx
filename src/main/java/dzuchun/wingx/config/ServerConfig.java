@@ -1,9 +1,14 @@
 package dzuchun.wingx.config;
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dzuchun.wingx.client.abillity.AbillityNode;
+import dzuchun.wingx.client.abillity.AbillityNodes;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 
 public class ServerConfig {
 	private static final Logger LOG = LogManager.getLogger();
@@ -21,12 +26,11 @@ public class ServerConfig {
 		}
 	}
 
-	public final ForgeConfigSpec.BooleanValue exampleBoolean;
+	public final ConfigValue<List<? extends AbillityNode>> ABILLITY_NODES;
 
 	public ServerConfig(final ForgeConfigSpec.Builder builder) {
-		builder.push("general");
-		this.exampleBoolean = builder.comment("An example of boolean in server config")
-				.translation("wingx.config.server.example_boolean").define("serverExampleBolean", false);
-		builder.pop();
+		this.ABILLITY_NODES = builder.comment(
+				"All meditation screen nodes should be listed below in the following format: [<id>, <x position>, <y position>, <sprite number>, <parent id> (-1 for root nodes), <internal node id> (-1 for no such node), <name localization key>, <description localization key>]")
+				.defineList("meditation nodes", AbillityNodes.DEFAULT_NODES, e -> true);
 	}
 }

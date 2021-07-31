@@ -9,6 +9,7 @@ import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.CapabilityActiveTricks;
+import dzuchun.wingx.client.abillity.AbillityNodes;
 import dzuchun.wingx.client.input.KeyEvents;
 import dzuchun.wingx.client.render.entity.FireballRenderer;
 import dzuchun.wingx.client.render.entity.WingsRenderer;
@@ -25,6 +26,8 @@ import dzuchun.wingx.trick.AbstractTrick;
 import dzuchun.wingx.util.animation.FadeFunction;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemModelsProperties;
+import net.minecraft.stats.StatType;
+import net.minecraft.stats.Stats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -41,6 +44,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.ParallelDispatchEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryBuilder;
 
 @Mod(value = Wingx.MOD_ID)
@@ -96,12 +100,19 @@ public class Wingx {
 		FadeFunction.init();
 		LOG.debug("Inited animation stuff");
 
+		// TODO check if it really should be here:
 		LOG.info("Registering server config");
 		Pair<ServerConfig, ForgeConfigSpec> serverConfigPair = new ForgeConfigSpec.Builder()
 				.configure(ServerConfig::new);
 		ModLoadingContext.get().registerConfig(Type.SERVER, serverConfigPair.getRight());
 		ServerConfig.set(serverConfigPair.getLeft());
 		LOG.debug("Registered server config");
+
+		LOG.debug("Registering stat getters");
+		AbillityNodes.addStatGetter(Stats.CUSTOM, StatType::get);
+		AbillityNodes.addStatGetter(Stats.BLOCK_MINED,
+				(type, resource) -> type.get(ForgeRegistries.BLOCKS.getValue(resource)));
+		LOG.debug("Registered stat getters");
 
 		LOG.debug("Finished common setup");
 	}

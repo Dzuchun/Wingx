@@ -113,7 +113,8 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 				PlayerEntity caster = this.getCasterPlayer();
 				if (!this.castEndedNaturally()) {
 					this.status = 2;// Interrupted
-					this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(3.0d),
+					// TODO parametrize radius
+					this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(4.0d),
 							(Entity entity) -> true).forEach((Entity entity) -> {
 								entity.attackEntityFrom(this.getDamageSource(), this.mainDamage);
 							});

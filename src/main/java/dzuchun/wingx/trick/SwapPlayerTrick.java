@@ -71,6 +71,10 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 			LOG.debug("Performing swap: caster at {}, target at: {}", casterPos, targetPos);
 			caster.setPositionAndUpdate(targetPos.x, targetPos.y, targetPos.z);
 			target.setPositionAndUpdate(casterPos.x, casterPos.y, casterPos.z);
+			// TODO Check if swap negation is unlocked
+			caster.fallDistance = 0;
+			// TODO check if safeswap enabled
+//			target.fallDistance = 0;
 			this.status = 0;
 		}
 	}

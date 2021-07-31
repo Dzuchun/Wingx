@@ -268,8 +268,9 @@ enum WingxKey {
 				}
 			} else {
 				if (this.trick.getStatus() == 3) {
-					this.trick.aimed();
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+					if (this.trick.aimed()) {
+						WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+					}
 				}
 				this.trick.showMessage();
 				this.trick = null;

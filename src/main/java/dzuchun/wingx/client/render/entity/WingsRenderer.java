@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -42,9 +41,9 @@ public class WingsRenderer extends EntityRenderer<WingsEntity> {
 	public void render(WingsEntity entityIn, float entityYaw, float partialTicks, MatrixStack matrixStackIn,
 			IRenderTypeBuffer bufferIn, int packedLightIn) {
 		matrixStackIn.push();
-		Vector3d move = entityIn.getRealPos().add(entityIn.getPositionVec().scale(-1))
-				.add(entityIn.getMotion().scale(partialTicks + 1.0f));
-		matrixStackIn.translate(move.x, move.y, move.z);
+//		Vector3d move = entityIn.getRealPos().add(entityIn.getPositionVec().scale(-1))
+//				.add(entityIn.getMotion().scale(partialTicks));
+//		matrixStackIn.translate(move.x, move.y, move.z);
 //		LOG.debug("Moving entity a bit: {}, entity at {}, real pos: {}, motion: {}", move, entityIn.getPositionVec(),
 //				entityIn.getRealPos(), entityIn.getMotion());
 		matrixStackIn.rotate(

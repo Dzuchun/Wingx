@@ -11,7 +11,7 @@ import net.minecraft.command.arguments.UUIDArgument;
 
 public class BasicData extends SerializedData {
 
-	public static final int MEDITATED_IN_END_MASK = 0b0000000000000001;
+	public static final int MEDITATED_IN_END_FLAG = 0b0000000000000001;
 
 	public boolean wingsActive;
 	public UUID wingsUniqueId;
@@ -45,11 +45,11 @@ public class BasicData extends SerializedData {
 				new CommandLiteral<BasicData, Boolean>("needs_end", BoolArgumentType.bool(),
 						(data, b) -> data.needsEnd = b, Boolean.class),
 				new CommandLiteral<BasicData, Boolean>("meditated_in_end", BoolArgumentType.bool(),
-						(data, b) -> data.setStageFlags(MEDITATED_IN_END_MASK, b), Boolean.class));
+						(data, b) -> data.setStageFlags(MEDITATED_IN_END_FLAG, b), Boolean.class));
 	}
 
 	public void setStageFlags(int flagMask, boolean b) {
-		this.stageFlags = b ? (stageFlags | flagMask) : (stageFlags & (~flagMask));
+		this.stageFlags = b ? (this.stageFlags | flagMask) : (this.stageFlags & (~flagMask));
 	}
 
 	public boolean getStageFlags(int flagMask) {

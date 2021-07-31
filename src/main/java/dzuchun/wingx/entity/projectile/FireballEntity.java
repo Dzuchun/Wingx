@@ -193,7 +193,8 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	}
 
 	public Vector3d getGravity() {
-		return new Vector3d(0.0d, -this.initialSpeed / 10f, 0.0d);
+		// TODO parametrize gravity affection
+		return new Vector3d(0.0d, -this.initialSpeed / 50f, 0.0d);
 	}
 
 	@Override
@@ -246,6 +247,7 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	}
 
 	public DamageSource getDamageSource() {
-		return new EntityDamageSource("fireball", this);
+		return new EntityDamageSource("fireball",
+				WorldHelper.getEntityFromWorldByUniqueId(this.world, this.ownerUniqueId));
 	}
 }

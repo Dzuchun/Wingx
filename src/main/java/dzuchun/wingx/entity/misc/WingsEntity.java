@@ -79,6 +79,9 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 			this.owner = newOwner;
 			this.setPosition(this.owner.getPosX(), this.owner.getPosY(), this.owner.getPosZ());
 			this.ownerUniqueId = null;
+//			if(owner != null && !owner.getPassengers().contains(this)) {
+//				owner.getPassengers().add(this);
+//			}
 			return true;
 		}
 	}
@@ -238,5 +241,15 @@ public class WingsEntity extends Entity implements IEntityAdditionalSpawnData {
 			LOG.warn("Wings object with UUID {} has no owner tag", this.getUniqueID());
 		}
 		super.read(compound);
+	}
+
+	@Override
+	public Vector3d getMotion() {
+		return this.owner != null ? this.owner.getMotion() : Vector3d.ZERO;
+	}
+
+	@Override
+	public Vector3d getPositionVec() {
+		return this.owner != null ? this.owner.getPositionVec() : super.getPositionVec();
 	}
 }
