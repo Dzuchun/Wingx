@@ -26,7 +26,8 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -68,16 +69,14 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	}
 
 	@Override
-	public void execute(LogicalSide side) {
-		super.execute(side);
-		if (side == LogicalSide.SERVER) {
-			// We are on server
-			if (this.hasCasterPlayer()) {
-				this.status = 0;
-				this.damagedEntities = new ArrayList<Entity>(0);
-			} else {
-				this.status = 1; // No caster
-			}
+	public void executeServer() {
+		super.executeServer();
+		// We are on server
+		if (this.hasCasterPlayer()) {
+			this.status = 0; // Ok
+			this.damagedEntities = new ArrayList<Entity>(0);
+		} else {
+			this.status = 1; // No caster
 		}
 	}
 
@@ -94,36 +93,44 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	}
 
 	@Override
-	public void onCastEnd(LogicalSide side) {
-		super.onCastEnd(side);
+	public void onTrickEndCommon() throws NoCasterException {
+		super.onTrickEndCommon();
 		AbstractCastedTrick.assertHasCasterInfo(this);
 		if (!this.hasCasterPlayer()) {
 			LOG.warn("No caster found");
 			return;
 		}
-		if (side == LogicalSide.CLIENT) {
-			// We are on client
-			Minecraft minecraft = Minecraft.getInstance();
-			// Make additional variable then!
-			this.casterWorld.playSound(minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
-					minecraft.player.getPosZ(), SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0f, 1.0f);
-		} else {
-			// We are on server
-			if (this.hasCasterPlayer()) {
-				PlayerEntity caster = this.getCasterPlayer();
-				if (!this.castEndedNaturally()) {
-					this.status = 2;// Interrupted
-					// TODO parametrize radius
-					this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(4.0d),
-							(Entity entity) -> true).forEach((Entity entity) -> {
-								entity.attackEntityFrom(this.getDamageSource(), this.mainDamage);
-							});
-				} else {
-					this.status = 3; // Cast ended naturally
-				}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void onTrickEndClient() throws NoCasterException {
+		super.onTrickEndClient();
+		// We are on client
+		Minecraft minecraft = Minecraft.getInstance();
+		// Make additional variable then!
+		this.casterWorld.playSound(minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
+				minecraft.player.getPosZ(), SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, 1.0f, 1.0f);
+	}
+
+	@Override
+	public void onTrickEndServer() throws NoCasterException {
+		super.onTrickEndServer(); // We are on server
+		if (this.hasCasterPlayer()) {
+			PlayerEntity caster = this.getCasterPlayer();
+			if (!this.castEndedNaturally()) {
+				this.status = 2;// Interrupted
+				// TODO parametrize radius
+				this.casterWorld
+						.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(4.0d), (Entity entity) -> true)
+						.forEach((Entity entity) -> {
+							entity.attackEntityFrom(this.getDamageSource(), this.mainDamage);
+						});
 			} else {
-				LOG.warn("No caster found, can't perform onCastEnd");
+				this.status = 3; // Cast ended naturally
 			}
+		} else {
+			LOG.warn("No caster found, can't perform onCastEnd");
 		}
 	}
 

@@ -25,6 +25,7 @@ import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
 import dzuchun.wingx.trick.ICastedTrick;
 import dzuchun.wingx.trick.ITrick;
+import dzuchun.wingx.trick.NoCasterException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -36,8 +37,9 @@ import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -80,133 +82,139 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	private boolean tmp_boolean_1;
 
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.SERVER) {
-			if (this.hasCasterPlayer()) {
-				PlayerEntity caster = this.getCasterPlayer();
-				LazyOptional<IWingsCapability> optionalCap = caster.getCapability(WingsProvider.WINGS, null);
-				if (optionalCap.isPresent()) {
-					optionalCap.ifPresent(cap -> {
-						BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
-						if (data.needsEnd && (caster.world.getDimensionKey() != World.THE_END)) {
-							LOG.debug("Player requires end to meditate, but is not in end now.");
-							this.status = 1;
-							return;
-						}
+	public void executeServer() {
+		if (this.hasCasterPlayer()) {
+			PlayerEntity caster = this.getCasterPlayer();
+			LazyOptional<IWingsCapability> optionalCap = caster.getCapability(WingsProvider.WINGS, null);
+			if (optionalCap.isPresent()) {
+				optionalCap.ifPresent(cap -> {
+					BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+					if (data.needsEnd && (caster.world.getDimensionKey() != World.THE_END)) {
+						LOG.debug("Player requires end to meditate, but is not in end now.");
+						this.status = 1;
+						return;
+					}
 
-						if (MeditationUtil.getMeditationScore(caster) <= data.requiredMeditationScore) {
-							this.status = 2;
-							LOG.debug("Player has not enough meditation points to perform meditation.");
-							return;
-						}
-						this.duration = data.meditationLength;
-						this.tmp_boolean_1 = true;
-						caster.world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent(worldCap -> {
-							worldCap.getActiveTricks().forEach(trick -> {
-								if (trick instanceof ICastedTrick) {
-									if ((trick instanceof MeditationPlayerTrick)
-											&& trick.getCaster().getUniqueID().equals(caster.getUniqueID())) {
-										this.tmp_boolean_1 = false;
-									}
+					if (MeditationUtil.getMeditationScore(caster) <= data.requiredMeditationScore) {
+						this.status = 2;
+						LOG.debug("Player has not enough meditation points to perform meditation.");
+						return;
+					}
+					this.duration = data.meditationLength;
+					this.tmp_boolean_1 = true;
+					caster.world.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent(worldCap -> {
+						worldCap.getActiveTricks().forEach(trick -> {
+							if (trick instanceof ICastedTrick) {
+								if ((trick instanceof MeditationPlayerTrick)
+										&& trick.getCaster().getUniqueID().equals(caster.getUniqueID())) {
+									this.tmp_boolean_1 = false;
 								}
-							});
+							}
 						});
-						if (!this.tmp_boolean_1) {
-							this.status = 3;
-							return;
-						}
-						this.status = 0;
 					});
-				} else {
-					LOG.warn("Caster doesn't have wings capability. Meditation won't be performed.");
-					this.status = 4;
-				}
+					if (!this.tmp_boolean_1) {
+						this.status = 3;
+						return;
+					}
+					this.status = 0;
+				});
 			} else {
-				LOG.warn("No caster found. Meditation won't be performed.");
-				this.status = 5;
+				LOG.warn("Caster doesn't have wings capability. Meditation won't be performed.");
+				this.status = 4;
 			}
 		} else {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (this.status == 0) {
-				if (FadingScreenOverlay.instance != null) {
-					FadingScreenOverlay.instance.deactivate();
-				}
-				boolean b = new FadingScreenOverlay(FadingScreenOverlay.Color.ZERO, FadingScreenOverlay.Color.BLACK,
-						this.duration + 2).activate();
-				if (!b) {
-					LOG.warn("Could not activate overlay!!");
-				}
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.start")
-						.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
-			}
+			LOG.warn("No caster found. Meditation won't be performed.");
+			this.status = 5;
 		}
-		super.execute(side);
+		super.executeServer();
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void executeClient() {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (this.status == 0) {
+			if (FadingScreenOverlay.instance != null) {
+				FadingScreenOverlay.instance.deactivate();
+			}
+			boolean b = new FadingScreenOverlay(FadingScreenOverlay.Color.ZERO, FadingScreenOverlay.Color.BLACK,
+					this.duration).activate();
+			if (!b) {
+				LOG.warn("Could not activate overlay!!");
+			}
+			minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.meditate.start")
+					.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
+		}
+		super.executeClient();
 	}
 
 	@Override
-	public void onCastEnd(LogicalSide side) {
-		if (side == LogicalSide.SERVER) {
-			// We are on server
-			assertHasCaster(this);
-			if (this.castEndedNaturally()) {
-				LazyOptional<IWingsCapability> optionalCap = this.getCasterPlayer().getCapability(WingsProvider.WINGS,
-						null);
-				if (optionalCap.isPresent()) {
-					optionalCap.ifPresent(cap -> {
-						ServerPlayerEntity caster = (ServerPlayerEntity) this.getCasterPlayer();
-						BasicData basicData = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
-						// Garthering required stats and data
-						if ((AbillityNodes.requiredStats == null) || (AbillityNodes.requiredData == null)) {
-							AbillityNodes.loadAbillityNodes();
-						}
-						Map<String, Integer> requiredStats = new LinkedHashMap<String, Integer>(0);
-						for (Entry<String, Stat<?>> e : AbillityNodes.requiredStats.entrySet()) {
-							Stat<?> v = e.getValue();
-							requiredStats.put(e.getKey(), caster.getStats().getValue(v));
-						}
-						Map<String, Object> requiredData = new LinkedHashMap<String, Object>(0);
-						for (Entry<String, Class<?>> e : AbillityNodes.requiredData.entrySet()) {
-							writeRequiredDataEntry(requiredData, e.getKey(), e.getValue(), cap);
-						}
-						// Sending packet
-						LOG.info("Opening meditation gui");
-						WingxPacketHandler.INSTANCE.send(
-								PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer),
-								new MeditationGuiMessage(cap, requiredStats, requiredData));
-						if (!basicData.getStageFlags(BasicData.MEDITATED_IN_END_FLAG)) {
-							basicData.setStageFlags(BasicData.MEDITATED_IN_END_FLAG, true);
-							// TODO user's first meditation
-							LOG.warn("{}'s first  meditation! [Insert greet message here]",
-									caster.getGameProfile().getName());
-						}
-					});
-				} else {
-					LOG.warn("Caster does not have a wings capability");
-				}
-			}
-		} else {
-			// We are on client
-			if (this.amICaster()) {
-				if (!this.castEndedNaturally()) {
-					FadingScreenOverlay overlay = FadingScreenOverlay.instance;
-					if (overlay == null) {
-						LOG.warn("There is no overlay, but meditation cast ended unnaturaly");
-					} else {
-						overlay.deactivate();
-						boolean res = new FadingScreenOverlay(overlay.getCurrentColor(), FadingScreenOverlay.Color.ZERO,
-								Math.max(1, this.duration / 10)).activate();
-						if (!res) {
-							LOG.warn("Could not activate fail overlay");
-						}
+	public void onTrickEndServer() throws NoCasterException {
+		// We are on server
+		assertHasCaster(this);
+		if (this.castEndedNaturally()) {
+			LazyOptional<IWingsCapability> optionalCap = this.getCasterPlayer().getCapability(WingsProvider.WINGS,
+					null);
+			if (optionalCap.isPresent()) {
+				optionalCap.ifPresent(cap -> {
+					ServerPlayerEntity caster = (ServerPlayerEntity) this.getCasterPlayer();
+					BasicData basicData = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
+					// Garthering required stats and data
+					if ((AbillityNodes.requiredStats == null) || (AbillityNodes.requiredData == null)) {
+						AbillityNodes.loadAbillityNodes();
 					}
-					this.status = 6;
-				} else {
-					this.status = 7;
-					// TODO may gree user (on client)
-				}
+					Map<String, Integer> requiredStats = new LinkedHashMap<String, Integer>(0);
+					for (Entry<String, Stat<?>> e : AbillityNodes.requiredStats.entrySet()) {
+						Stat<?> v = e.getValue();
+						requiredStats.put(e.getKey(), caster.getStats().getValue(v));
+					}
+					Map<String, Object> requiredData = new LinkedHashMap<String, Object>(0);
+					for (Entry<String, Class<?>> e : AbillityNodes.requiredData.entrySet()) {
+						writeRequiredDataEntry(requiredData, e.getKey(), e.getValue(), cap);
+					}
+					// Sending packet
+					LOG.info("Opening meditation gui");
+					WingxPacketHandler.INSTANCE.send(
+							PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer),
+							new MeditationGuiMessage(cap, requiredStats, requiredData));
+					if (!basicData.getStageFlags(BasicData.MEDITATED_IN_END_FLAG)) {
+						basicData.setStageFlags(BasicData.MEDITATED_IN_END_FLAG, true);
+						// TODO user's first meditation
+						LOG.warn("{}'s first  meditation! [Insert greet message here]",
+								caster.getGameProfile().getName());
+					}
+				});
+			} else {
+				LOG.warn("Caster does not have a wings capability");
 			}
 		}
-		super.onCastEnd(side);
+		super.onTrickEndServer();
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void onTrickEndClient() throws NoCasterException {
+		// We are on client
+		if (this.amICaster()) {
+			if (!this.castEndedNaturally()) {
+				FadingScreenOverlay overlay = FadingScreenOverlay.instance;
+				if (overlay == null) {
+					LOG.warn("There is no overlay, but meditation cast ended unnaturaly");
+				} else {
+					overlay.deactivate();
+					boolean res = new FadingScreenOverlay(overlay.getCurrentColor(), FadingScreenOverlay.Color.ZERO,
+							Math.max(1, this.duration / 10)).activate();
+					if (!res) {
+						LOG.warn("Could not activate fail overlay");
+					}
+				}
+				this.status = 6;
+			} else {
+				this.status = 7;
+				// TODO may greet user (on client)
+			}
+		}
+		super.onTrickEndClient();
 	}
 
 	private static <T extends SerializedData> void writeRequiredDataEntry(Map<String, Object> requiredData,

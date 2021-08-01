@@ -27,7 +27,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.LogicalSide;
 
 public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCastedTrick
 		implements IInterruptableTrick {
@@ -129,7 +128,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	protected long endTime = 0;
 
 	@Override
-	public void execute(LogicalSide side) {
+	public void executeCommon() {
 		if (!this.hasCasterPlayer()) {
 			throw new NoCasterException(this);
 		}
@@ -138,19 +137,32 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		if (this.status == 0) {
 			this.beginCast();
 			LOG.warn("Begining cast of {}", this);
-			// this.interrupt();
-			if (side == LogicalSide.SERVER) {
-				this.casterWorld.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent(cap -> {
-					cap.addActiveTrick(this);
-				});
-			} else {
-				synchronized (CLIENT_INSTANCES_LOCK) {
-					clientInstances.add(this);
-				}
-			}
 		} else {
 			LOG.warn("Trick's not succesfull, not executing");
 		}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void executeClient() {
+		super.executeClient();
+		if (this.status != 0) {
+			return;
+		}
+		synchronized (CLIENT_INSTANCES_LOCK) {
+			clientInstances.add(this);
+		}
+	}
+
+	@Override
+	public void executeServer() {
+		super.executeServer();
+		if (this.status != 0) {
+			return;
+		}
+		this.casterWorld.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent(cap -> {
+			cap.addActiveTrick(this);
+		});
 	}
 
 	@Deprecated
@@ -182,15 +194,22 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		}
 	}
 
-	// TODO doc
 	@Override
-	public void onCastEnd(LogicalSide side) {
+	public void onTrickEndCommon() throws NoCasterException {
 		assertHasCaster(this);
-		if (side == LogicalSide.CLIENT) {
-			removeSimilar(this);
-		} else {
-			LOG.debug("Ending cast on server");
-		}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void onTrickEndClient() throws NoCasterException {
+		IInterruptableTrick.super.onTrickEndClient();
+		removeSimilar(this);
+	}
+
+	@Override
+	public void onTrickEndServer() throws NoCasterException {
+		IInterruptableTrick.super.onTrickEndServer();
+		LOG.debug("Ending cast on server");
 	}
 
 	/**

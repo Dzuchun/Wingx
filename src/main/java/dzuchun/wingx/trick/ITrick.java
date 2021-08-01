@@ -1,7 +1,6 @@
 package dzuchun.wingx.trick;
 
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
@@ -22,14 +21,16 @@ public interface ITrick extends IForgeRegistryEntry<AbstractTrick> {
 	 */
 	ITrick writeToBuf(PacketBuffer buf);
 
-	/**
-	 * 1-time executed code on logical side.
-	 *
-	 * @param side    Side should executed on.
-	 * @param worldIn World should be executed in.
-	 */
-	// TODO REDEFINE! THIS MAKES NO SENCE!
-	void execute(LogicalSide side);
+	default void executeCommon() {
+	}
+
+	default void executeClient() {
+		this.executeCommon();
+	}
+
+	default void executeServer() {
+		this.executeCommon();
+	}
 
 	int getStatus();
 

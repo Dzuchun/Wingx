@@ -14,7 +14,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
@@ -54,7 +53,7 @@ public class TrickPerformedMessage {
 						if (trick instanceof ITargetedTrick) {
 							((ITargetedTrick) trick).setTargetWorld(world);
 						}
-						trick.execute(LogicalSide.CLIENT);
+						trick.executeClient();
 						trick.showMessage();
 					} else if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_SERVER) {
 						ServerWorld world = ctx.get().getSender().getServerWorld();
@@ -64,7 +63,7 @@ public class TrickPerformedMessage {
 						if (trick instanceof ITargetedTrick) {
 							((ITargetedTrick) trick).setTargetWorld(world);
 						}
-						trick.execute(LogicalSide.SERVER);
+						trick.executeServer();
 						PacketTarget target = trick.getBackPacketTarget();
 						if (target != null) {
 							WingxPacketHandler.INSTANCE.send(target, msg);

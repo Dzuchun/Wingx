@@ -10,7 +10,6 @@ import dzuchun.wingx.net.TrickFinishMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.IInterruptableTrick;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.LogicalSide;
 
 public class ActiveTricksCapability implements IActiveTricksCapability {
 	private static final Logger LOG = LogManager.getLogger();
@@ -53,7 +52,7 @@ public class ActiveTricksCapability implements IActiveTricksCapability {
 		}
 		synchronized (this.ACTIVE_TRICKS_LOCK) {
 			tricks.forEach(trick -> {
-				trick.onCastEnd(LogicalSide.SERVER);
+				trick.onTrickEndServer();
 				WingxPacketHandler.INSTANCE.send(trick.getEndPacketTarget(), new TrickFinishMessage(trick));
 			});
 			LOG.info("Removing {} from active tricks", tricks);
@@ -81,6 +80,13 @@ public class ActiveTricksCapability implements IActiveTricksCapability {
 	@Override
 	public Collection<IInterruptableTrick> getActiveTricks() {
 		return this.active_tricks;
+	}
+
+	@Override
+	public void clearActiveTricks() {
+		synchronized (this.ACTIVE_TRICKS_LOCK) {
+			this.active_tricks.clear();
+		}
 	}
 
 }

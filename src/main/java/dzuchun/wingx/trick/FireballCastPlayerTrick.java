@@ -20,7 +20,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -60,50 +61,51 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	}
 
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.SERVER) {
-			// We are on server
-			if (this.hasCasterPlayer() && this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()
-					&& (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) == 0)) {
-				IWingsCapability cap = this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
-				// Cap is nonnul
-				FireballData data = cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER);
-				this.interruptCondition = data.interruptCondition;
-				this.duration = data.castDuration;
-				this.interruptCondition.reset();
-				this.status = 0;
-			} else {
-				LOG.warn("Caster does not exist, has no capability or caster is busy");
-				if (!this.hasCasterPlayer()) {
-					this.status = 1;
-				} else if (!this.getCasterPlayer().getCapability(WingsProvider.WINGS).isPresent()) {
-					this.status = 2;
-				} else if (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) != 0) {
-					this.status = 3;
-				}
+	public void executeServer() {
+		// We are on server
+		if (this.hasCasterPlayer() && this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()
+				&& (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) == 0)) {
+			IWingsCapability cap = this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
+			// Cap is nonnul
+			FireballData data = cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER);
+			this.interruptCondition = data.interruptCondition;
+			this.duration = data.castDuration;
+			this.interruptCondition.reset();
+			this.status = 0;
+		} else {
+			LOG.warn("Caster does not exist, has no capability or caster is busy");
+			if (!this.hasCasterPlayer()) {
+				this.status = 1;
+			} else if (!this.getCasterPlayer().getCapability(WingsProvider.WINGS).isPresent()) {
+				this.status = 2;
+			} else if (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) != 0) {
+				this.status = 3;
 			}
 		}
-		super.execute(side);
+		super.executeServer();
 	}
 
-	@SuppressWarnings("resource")
 	@Override
-	public void onCastEnd(LogicalSide side) {
-		super.onCastEnd(side);
-		if (side == LogicalSide.SERVER) {
-			// We are on server
-			if (this.castEndedNaturally()) {
-				((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(this.getCasterPlayer()));
-			}
-		} else {
-			// We are on client
-			if (this.amICaster() && (this.status == 0)) {
-				ClientPlayerEntity player = Minecraft.getInstance().player;
-				player.resetCooldown();
-				player.swingArm(Hand.MAIN_HAND);
-				this.status = 4;
-				// TODO play sound
-			}
+	public void onTrickEndServer() throws NoCasterException {
+		super.onTrickEndServer();
+		// We are on server
+		if (this.castEndedNaturally()) {
+			((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(this.getCasterPlayer()));
+		}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void onTrickEndClient() throws NoCasterException {
+		super.onTrickEndClient();
+		// We are on client
+		if (this.amICaster() && (this.status == 0)) {
+			@SuppressWarnings("resource")
+			ClientPlayerEntity player = Minecraft.getInstance().player;
+			player.resetCooldown();
+			player.swingArm(Hand.MAIN_HAND);
+			this.status = 4;
+			// TODO play sound
 		}
 	}
 

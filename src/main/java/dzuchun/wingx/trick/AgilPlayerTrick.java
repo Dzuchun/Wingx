@@ -22,7 +22,8 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.vector.Vector4f;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public class AgilPlayerTrick extends AbstractTargetedPlayerTrick {
@@ -40,28 +41,27 @@ public class AgilPlayerTrick extends AbstractTargetedPlayerTrick {
 		this.data = data;
 	}
 
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void execute(LogicalSide side) {
+	public void executeClient() {
+		super.executeClient();
+		// We are on client
 		Minecraft minecraft = Minecraft.getInstance();
-		if (side == LogicalSide.CLIENT) {
-			// We are on client
-			ClientPlayerEntity caster = (ClientPlayerEntity) this.getCasterPlayer();
-			Entity target = this.getTarget();
-			caster.ticksSinceLastSwing = 1000;
-			if (target != null) {
-				target.hurtResistantTime = 0;
-			}
-			// Playing sound
-			minecraft.world.playSound(minecraft.player, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
-					SoundEvents.AGIL_PROC.get(), SoundCategory.PLAYERS, 1.0f, 1.0f);
-			if (this.amICaster()) {
-				// Adding animation
-				new RadiantFadingScreenOverlay(new Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
-						new Vector4f(0.0f, 0.0f, 0.0f, 0.0f), 100, FadingScreenOverlay.DO_NOTHING, FadeFunction.LINEAR)
-								.activate();
-			}
-			LOG.warn("Agil proced!!");
+		ClientPlayerEntity caster = (ClientPlayerEntity) this.getCasterPlayer();
+		Entity target = this.getTarget();
+		caster.ticksSinceLastSwing = 1000;
+		if (target != null) {
+			target.hurtResistantTime = 0;
 		}
+		// Playing sound
+		minecraft.world.playSound(minecraft.player, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
+				SoundEvents.AGIL_PROC.get(), SoundCategory.PLAYERS, 1.0f, 1.0f);
+		if (this.amICaster()) {
+			// Adding animation
+			new RadiantFadingScreenOverlay(new Vector4f(0.0f, 1.0f, 0.0f, 1.0f), new Vector4f(0.0f, 0.0f, 0.0f, 0.0f),
+					100, FadingScreenOverlay.DO_NOTHING, FadeFunction.LINEAR).activate();
+		}
+		LOG.warn("Agil proced!!");
 	}
 
 	@Override

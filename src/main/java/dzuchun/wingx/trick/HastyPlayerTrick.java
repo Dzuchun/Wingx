@@ -21,7 +21,8 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
@@ -41,29 +42,29 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 		this.blocksPos = blockPos;
 	}
 
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.CLIENT) {
-			// We are on client
-			// TODO fix block not-dropping
-			Entity caster = this.getCaster();
-			if (caster instanceof ClientPlayerEntity) {
-				Minecraft minecraft = Minecraft.getInstance();
-				PlayerController controller = minecraft.playerController;
-				if (controller.isHittingBlock) {
-					if (this.amICaster()) {
-						if ((1.0f - controller.curBlockDamageMP) > this.data.jump) {
-							LOG.info("Executing hasty trick on client. Is hitting block={}, current damage={}",
-									controller.isHittingBlock, controller.curBlockDamageMP);
-							controller.curBlockDamageMP += this.data.jump;
-						}
+	public void executeClient() {
+		super.executeClient();
+		// We are on client
+		// TODO fix block not-dropping
+		Entity caster = this.getCaster();
+		if (caster instanceof ClientPlayerEntity) {
+			Minecraft minecraft = Minecraft.getInstance();
+			PlayerController controller = minecraft.playerController;
+			if (controller.isHittingBlock) {
+				if (this.amICaster()) {
+					if ((1.0f - controller.curBlockDamageMP) > this.data.jump) {
+						LOG.info("Executing hasty trick on client. Is hitting block={}, current damage={}",
+								controller.isHittingBlock, controller.curBlockDamageMP);
+						controller.curBlockDamageMP += this.data.jump;
 					}
-					// Performing animation
-					new HastyPostAnimationOverlay(this.blocksPos, this.data).activate();
-					// Playing sound
-					minecraft.world.playSound(minecraft.player, this.blocksPos, SoundEvents.HASTY_PROC.get(),
-							SoundCategory.PLAYERS, 1.0f, 1.0f);
 				}
+				// Performing animation
+				new HastyPostAnimationOverlay(this.blocksPos, this.data).activate();
+				// Playing sound
+				minecraft.world.playSound(minecraft.player, this.blocksPos, SoundEvents.HASTY_PROC.get(),
+						SoundCategory.PLAYERS, 1.0f, 1.0f);
 			}
 		}
 	}

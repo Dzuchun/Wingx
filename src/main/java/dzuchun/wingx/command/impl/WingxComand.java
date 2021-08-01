@@ -11,6 +11,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 
 import dzuchun.wingx.capability.entity.wings.storage.WingsDataManager;
+import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.client.abillity.AbillityNodes;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.config.ServerConfig;
@@ -31,6 +32,8 @@ public class WingxComand {
 
 	public static final Style SUCCEESS_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFF00BB22));
 	public static final Style ERROR_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFFFF0000));
+
+	public static final int ADMIN_PERMISSION = 2;
 
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {
 		LiteralArgumentBuilder<CommandSource> res = Commands.literal("wingx");
@@ -69,7 +72,7 @@ public class WingxComand {
 					return 0;
 				}).then(Commands.literal("clear").executes((CommandContext<CommandSource> source) -> {
 					AbstractOverlay.getActiveOverlays().clear();
-					source.getSource().sendFeedback(new StringTextComponent("Cleared"), true);
+					source.getSource().sendFeedback(new StringTextComponent("Active overalays cleared"), true);
 					return 0;
 				}))).then(Commands.literal("loadnodes").executes((CommandContext<CommandSource> source) -> {
 					// TODO doesn't work
@@ -81,7 +84,16 @@ public class WingxComand {
 								new StringTextComponent("Command must be performed by a client player"), true);
 					}
 					return 0;
-				}));
+				})).then(Commands.literal("active_tricks").then(Commands.literal("clear")
+						.requires(source -> source.hasPermissionLevel(ADMIN_PERMISSION)).executes(source -> {
+							source.getSource().getWorld().getCapability(ActiveTricksProvider.ACTIVE_TRICKS)
+									.ifPresent(cap -> {
+										cap.clearActiveTricks();
+										source.getSource()
+												.sendFeedback(new StringTextComponent("Active tricks cleared"), true);
+									});
+							return 0;
+						})));
 	}
 
 	private static ArgumentBuilder<CommandSource, ?> config() {

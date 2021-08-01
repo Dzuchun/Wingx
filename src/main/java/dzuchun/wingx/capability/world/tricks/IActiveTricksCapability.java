@@ -15,6 +15,8 @@ public interface IActiveTricksCapability {
 
 	boolean removeActiveTricks(Collection<IInterruptableTrick> tricks);
 
+	void clearActiveTricks();
+
 	void onWorldTick(World worldIn);
 
 	Collection<IInterruptableTrick> getActiveTricks();

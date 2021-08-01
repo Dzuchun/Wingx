@@ -25,7 +25,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -92,38 +91,44 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 		return true;
 	}
 
-	@SuppressWarnings("deprecation")
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void onCastEnd(LogicalSide side) {
-		super.onCastEnd(side);
-		if (side == LogicalSide.SERVER) {
-			if ((this.status == 0) && (this.interrupted == false)) {
-				((ServerWorld) this.casterWorld)
-						.summonEntity(new HomingFireballEntity(this.getCasterPlayer(), this.getTarget()));
-				LOG.warn("Summoning homing fireball of {} to {}", this.getCasterPlayer(), this.getTarget());
-			} else {
-				LOG.warn("Unknown error happened");
-			}
-		} else {
-			LivingEntityTargetOverlay overlay = LivingEntityTargetOverlay.getOverlayForTarget(this.getTarget());
-			if (overlay != null) {
-				overlay.deactivate();
-			}
+	public void onTrickEndClient() throws NoCasterException {
+		super.onTrickEndClient();
+		LivingEntityTargetOverlay overlay = LivingEntityTargetOverlay.getOverlayForTarget(this.getTarget());
+		if (overlay != null) {
+			overlay.deactivate();
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.SERVER) {
-			// TODO check for conditions(caster exist, target exist, caster free, homing
-			// unlocked, enough mana), set parameters
-			this.status = 0; // Executing
+	public void onTrickEndServer() throws NoCasterException {
+		super.onTrickEndServer();
+		if ((this.status == 0) && (this.interrupted == false)) {
+			((ServerWorld) this.casterWorld)
+					.summonEntity(new HomingFireballEntity(this.getCasterPlayer(), this.getTarget()));
+			LOG.warn("Summoning homing fireball of {} to {}", this.getCasterPlayer(), this.getTarget());
 		} else {
-			LOG.warn("Executing on client, status - {}", this.status);
-			new LivingEntityTargetOverlay((LivingEntity) this.getTarget()).activate();
-			// TODO check if activated (usually it will)
+			LOG.warn("Unknown error happened");
 		}
-		super.execute(side);
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void executeClient() {
+		super.executeClient();
+		LOG.warn("Executing on client, status - {}", this.status);
+		new LivingEntityTargetOverlay((LivingEntity) this.getTarget()).activate();
+		// TODO check if activated (usually it will)
+	}
+
+	@Override
+	public void executeServer() {
+		// TODO check for conditions(caster exist, target exist, caster free, homing
+		// unlocked, enough mana), set parameters
+		this.status = 0; // Executing
+		super.executeServer();
 	}
 
 	protected World targetWorld;

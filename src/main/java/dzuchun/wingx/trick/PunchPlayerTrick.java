@@ -22,7 +22,6 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -59,24 +58,28 @@ public class PunchPlayerTrick extends AbstractTargetedPlayerTrick {
 	}
 
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.SERVER) {
-			Entity target = this.getTarget();
-			// TODO add caster check
-			if (target == null) {
-				LOG.warn("No target found");
-				this.status = 1;
-				return;
-			}
-			target.setMotion(target.getMotion().add(this.direction.scale(this.force)));
-			target.velocityChanged = true;
-			this.status = 0;
-		} else {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (this.amICaster() && (this.status == 0)) {
-				minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.punch.success")
-						.setStyle(Style.EMPTY.setFormatting(TextFormatting.YELLOW)), true);
-			}
+	public void executeServer() {
+		super.executeServer();
+		Entity target = this.getTarget();
+		// TODO add caster check
+		if (target == null) {
+			LOG.warn("No target found");
+			this.status = 1;
+			return;
+		}
+		target.setMotion(target.getMotion().add(this.direction.scale(this.force)));
+		target.velocityChanged = true;
+		this.status = 0;
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void executeClient() {
+		super.executeClient();
+		Minecraft minecraft = Minecraft.getInstance();
+		if (this.amICaster() && (this.status == 0)) {
+			minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.punch.success")
+					.setStyle(Style.EMPTY.setFormatting(TextFormatting.YELLOW)), true);
 		}
 	}
 

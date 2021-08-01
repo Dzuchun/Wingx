@@ -17,7 +17,6 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -51,26 +50,25 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 	}
 
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.SERVER) {
-			// We are on server
-			assertHasCaster(this);
-			if (this.hasCasterPlayer()) {
-				PlayerEntity caster = this.getCasterPlayer();
-				caster.fallDistance = 0.0f;
-				Vector3d motionChange = caster.getForward().scale(this.strength);
-				motionChange = this.facing.transform(motionChange);
-				if (!this.nullifiesSpeed) {
-					motionChange = motionChange.add(caster.getMotion());
-				}
-				caster.velocityChanged = true;
-				caster.setMotion(motionChange.x, motionChange.y, motionChange.z);
-				this.casterWorld.playSound(caster, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
-						SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 1.0f, 1.0f);
-			} else {
-				LOG.warn("No caster found");
-				this.status = 1;
+	public void executeServer() {
+		super.executeServer();
+		// We are on server
+		assertHasCaster(this);
+		if (this.hasCasterPlayer()) {
+			PlayerEntity caster = this.getCasterPlayer();
+			caster.fallDistance = 0.0f;
+			Vector3d motionChange = caster.getForward().scale(this.strength);
+			motionChange = this.facing.transform(motionChange);
+			if (!this.nullifiesSpeed) {
+				motionChange = motionChange.add(caster.getMotion());
 			}
+			caster.velocityChanged = true;
+			caster.setMotion(motionChange.x, motionChange.y, motionChange.z);
+			this.casterWorld.playSound(caster, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
+					SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 1.0f, 1.0f);
+		} else {
+			LOG.warn("No caster found");
+			this.status = 1;
 		}
 	}
 

@@ -21,7 +21,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -47,36 +46,40 @@ public class SwapPlayerTrick extends AbstractTargetedPlayerTrick {
 		}
 	}
 
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.CLIENT) {
-			// We are on client
-			Minecraft minecraft = Minecraft.getInstance();
-			if ((this.status == 0) && this.amICaster()) {
-				Vector2f look = minecraft.player.getPitchYaw();
-				// TODO do something with pitch
-				minecraft.player.prevRotationYaw = look.y + 180f;
-				minecraft.player.rotationYaw = look.y + 180f;
-			}
-		} else {
-			// We are on server
-			if (!this.hasCasterPlayer() || !this.hasTarget()) {
-				this.status = this.hasCasterPlayer() ? 2 : 1;
-				return;
-			}
-			PlayerEntity caster = this.getCasterPlayer();
-			Entity target = this.getTarget();
-			Vector3d casterPos = caster.getPositionVec();
-			Vector3d targetPos = target.getPositionVec();
-			LOG.debug("Performing swap: caster at {}, target at: {}", casterPos, targetPos);
-			caster.setPositionAndUpdate(targetPos.x, targetPos.y, targetPos.z);
-			target.setPositionAndUpdate(casterPos.x, casterPos.y, casterPos.z);
-			// TODO Check if swap negation is unlocked
-			caster.fallDistance = 0;
-			// TODO check if safeswap enabled
-//			target.fallDistance = 0;
-			this.status = 0;
+	public void executeClient() {
+		super.executeClient();
+		// We are on client
+		Minecraft minecraft = Minecraft.getInstance();
+		if ((this.status == 0) && this.amICaster()) {
+			Vector2f look = minecraft.player.getPitchYaw();
+			// TODO do something with pitch
+			minecraft.player.prevRotationYaw = look.y + 180f;
+			minecraft.player.rotationYaw = look.y + 180f;
 		}
+	}
+
+	@Override
+	public void executeServer() {
+		super.executeServer();
+		// We are on server
+		if (!this.hasCasterPlayer() || !this.hasTarget()) {
+			this.status = this.hasCasterPlayer() ? 2 : 1;
+			return;
+		}
+		PlayerEntity caster = this.getCasterPlayer();
+		Entity target = this.getTarget();
+		Vector3d casterPos = caster.getPositionVec();
+		Vector3d targetPos = target.getPositionVec();
+		LOG.debug("Performing swap: caster at {}, target at: {}", casterPos, targetPos);
+		caster.setPositionAndUpdate(targetPos.x, targetPos.y, targetPos.z);
+		target.setPositionAndUpdate(casterPos.x, casterPos.y, casterPos.z);
+		// TODO Check if swap negation is unlocked
+		caster.fallDistance = 0;
+		// TODO check if safeswap enabled
+//		target.fallDistance = 0;
+		this.status = 0;
 	}
 
 	@Override

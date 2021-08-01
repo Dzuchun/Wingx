@@ -12,6 +12,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
+import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.client.abillity.AbillityNode;
 import dzuchun.wingx.client.abillity.AbillityNodes;
 import dzuchun.wingx.client.render.gui.SeparateRenderers;
@@ -59,7 +60,8 @@ public class MeditationScreen extends Screen {
 	private static long openTime = 0;
 	private static long openGuiTime = 0;
 
-	@SuppressWarnings("unused")
+	// TODO actually, we can avoid passing capability via including sesessary data
+	// into a requiredData list unconditionaly
 	private IWingsCapability capability;
 	private Map<String, Integer> requiredStats;
 	private Map<String, Object> requiredData;
@@ -257,7 +259,9 @@ public class MeditationScreen extends Screen {
 
 	@Override
 	public void onClose() {
-		new FadingScreenOverlay(FadingScreenOverlay.Color.BLACK, FadingScreenOverlay.Color.ZERO, 10).activate();
+		new FadingScreenOverlay(FadingScreenOverlay.Color.BLACK, FadingScreenOverlay.Color.ZERO,
+				this.capability.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER).meditationLength / 10)
+						.activate();
 		super.onClose();
 	}
 

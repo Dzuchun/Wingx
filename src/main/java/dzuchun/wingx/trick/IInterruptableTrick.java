@@ -1,6 +1,5 @@
 package dzuchun.wingx.trick;
 
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public interface IInterruptableTrick extends ICastedTrick {
@@ -31,12 +30,21 @@ public interface IInterruptableTrick extends ICastedTrick {
 	void tick() throws NoCasterException;
 
 	/**
-	 * Invoked once at cast end, for some post-processing. *
+	 * Invoked once at cast end, for some post-processing.
 	 *
 	 * @throws NoCasterException If method needs caster-related information, but
 	 *                           caster not set.
 	 */
-	void onCastEnd(LogicalSide side) throws NoCasterException;
+	default void onTrickEndClient() throws NoCasterException {
+		this.onTrickEndCommon();
+	}
+
+	default void onTrickEndServer() throws NoCasterException {
+		this.onTrickEndCommon();
+	}
+
+	default void onTrickEndCommon() throws NoCasterException {
+	}
 
 	/**
 	 * @return If cast ended normally (actually, reached end)

@@ -23,7 +23,8 @@ import net.minecraft.util.text.Color;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -83,44 +84,47 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 //		return super.getDrawFunction();
 //	}
 
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.SERVER) {
-			if (this.hasCasterPlayer() && this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()) {
-				@SuppressWarnings("unused")
-				IWingsCapability cap = this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
-				// Cap is nonnul
-				PlayerEntity caster = this.getCasterPlayer();
-
-				// TODO check if trick can be used here
-				int busy = AbstractInterruptablePlayerTrick.playerBusyFor(caster);
-				if (busy != 0) {
-					LOG.warn("Found that caster {} is busy for {} more tick, trick {} won't be casted", caster, busy,
-							this);
-					this.status = 2; // Cant be casted - player busy (?)
-					return;
-				}
-				if (!caster.getHeldItemMainhand().isEmpty()) {
-					this.status = 1; // Cant be casted - item held
-					return;
-				}
-				// TODO some visual stuff
-				ItemStack stack = Items.SOULSWORD.get().getDefaultInstance();
-				stack.getOrCreateTag().putBoolean(Soulsword.SUMMONED_TAG, false);
-				caster.setItemStackToSlot(EquipmentSlotType.MAINHAND, stack);
-//				//Trick succesfull
-			}
-		} else {
-			if (this.hasCasterPlayer() && this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()) {
-				ClientPlayerEntity caster = (ClientPlayerEntity) this.getCasterPlayer();
-				SoulswordOverlay overlay = new SoulswordOverlay(caster);
-				if (!overlay.activate()) {
-//					status = 5; // Some unknown shit
-					LOG.warn("Can't activate overlay: {}", overlay);
-				}
+	public void executeClient() {
+		super.executeClient();
+		// We are on client
+		if (this.hasCasterPlayer() && this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()) {
+			ClientPlayerEntity caster = (ClientPlayerEntity) this.getCasterPlayer();
+			SoulswordOverlay overlay = new SoulswordOverlay(caster);
+			if (!overlay.activate()) {
+//				status = 5; // Some unknown shit
+				LOG.warn("Can't activate overlay: {}", overlay);
 			}
 		}
-		super.execute(side);
+	}
+
+	@Override
+	public void executeServer() {
+		if (this.hasCasterPlayer() && this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).isPresent()) {
+			@SuppressWarnings("unused")
+			IWingsCapability cap = this.getCasterPlayer().getCapability(WingsProvider.WINGS, null).orElse(null);
+			// Cap is nonnul
+			PlayerEntity caster = this.getCasterPlayer();
+
+			// TODO check if trick can be used here
+			int busy = AbstractInterruptablePlayerTrick.playerBusyFor(caster);
+			if (busy != 0) {
+				LOG.warn("Found that caster {} is busy for {} more tick, trick {} won't be casted", caster, busy, this);
+				this.status = 2; // Cant be casted - player busy (?)
+				return;
+			}
+			if (!caster.getHeldItemMainhand().isEmpty()) {
+				this.status = 1; // Cant be casted - item held
+				return;
+			}
+			// TODO some visual stuff
+			ItemStack stack = Items.SOULSWORD.get().getDefaultInstance();
+			stack.getOrCreateTag().putBoolean(Soulsword.SUMMONED_TAG, false);
+			caster.setItemStackToSlot(EquipmentSlotType.MAINHAND, stack);
+//			//Trick succesfull
+		}
+		super.executeServer();
 	}
 
 	private static final Style EPIC_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFFAA00AA));
@@ -143,32 +147,34 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 		return MESSAGES;
 	}
 
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void onCastEnd(LogicalSide side) {
-		super.onCastEnd(side);
-		if (side == LogicalSide.SERVER) {
-			PlayerEntity caster = this.getCasterPlayer();
-			if (caster == null) {
-				this.status = 4;
-			}
-			if (!this.castEndedNaturally()) {
-				this.status = 3;
-			} else if (this.status == 0) {
-				ItemStack stack = caster.getHeldItemMainhand();
-				if (stack.isItemEqual(Items.SOULSWORD.get().getDefaultInstance())) {
-					stack.getOrCreateTag().putBoolean(Soulsword.SUMMONED_TAG, true);
-				}
-				this.status = 5;
-			}
-		} else {
-			final ClientPlayerEntity caster = (ClientPlayerEntity) this.getCasterPlayer();
-			AbstractOverlay.getActiveOverlays().stream()
-					.filter(over -> (over instanceof SoulswordOverlay) && (((SoulswordOverlay) over).caster == caster))
-					.forEach(over -> ((SoulswordOverlay) over).markSummoned());
-			if (this.castEndedNaturally()) {
-				// TODO perform some sounds / effects on caster
-			}
+	public void onTrickEndClient() throws NoCasterException {
+		super.onTrickEndClient();
+		final ClientPlayerEntity caster = (ClientPlayerEntity) this.getCasterPlayer();
+		AbstractOverlay.getActiveOverlays().stream()
+				.filter(over -> (over instanceof SoulswordOverlay) && (((SoulswordOverlay) over).caster == caster))
+				.forEach(over -> ((SoulswordOverlay) over).markSummoned());
+		if (this.castEndedNaturally()) {
+			// TODO perform some sounds / effects on caster
+		}
+	}
 
+	@Override
+	public void onTrickEndServer() throws NoCasterException {
+		super.onTrickEndServer();
+		PlayerEntity caster = this.getCasterPlayer();
+		if (caster == null) {
+			this.status = 4;
+		}
+		if (!this.castEndedNaturally()) {
+			this.status = 3;
+		} else if (this.status == 0) {
+			ItemStack stack = caster.getHeldItemMainhand();
+			if (stack.isItemEqual(Items.SOULSWORD.get().getDefaultInstance())) {
+				stack.getOrCreateTag().putBoolean(Soulsword.SUMMONED_TAG, true);
+			}
+			this.status = 5;
 		}
 	}
 

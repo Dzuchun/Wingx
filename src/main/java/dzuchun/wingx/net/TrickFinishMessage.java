@@ -14,7 +14,6 @@ import dzuchun.wingx.util.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.registries.RegistryManager;
 
@@ -50,7 +49,7 @@ public class TrickFinishMessage {
 			if (trick instanceof ITargetedTrick) {
 				((ITargetedTrick) trick).setTargetWorld(world);
 			}
-			msg.trick.onCastEnd(LogicalSide.CLIENT);
+			msg.trick.onTrickEndClient();
 			msg.trick.showMessage();
 		});
 	}

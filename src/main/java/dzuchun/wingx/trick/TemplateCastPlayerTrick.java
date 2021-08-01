@@ -11,7 +11,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -35,30 +36,31 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 		super(caster, duration, InterruptCondition.NO_CONDITION);
 	}
 
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void execute(LogicalSide side) {
-		if (side == LogicalSide.SERVER) {
-			if (this.hasCasterPlayer()
-					&& (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) == 0)) {
-				this.status = 0;
-			} else {
-				this.status = 1;
-			}
-		} else {
-			if (this.status != 0) {
-				Minecraft minecraft = Minecraft.getInstance();
-				minecraft.player
-						.sendStatusMessage(new TranslationTextComponent("wingx.trick.interrubtable.template.fail")
-								.setStyle(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
-			}
+	public void executeClient() {
+		super.executeClient();
+		if (this.status != 0) {
+			Minecraft minecraft = Minecraft.getInstance();
+			minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.interrubtable.template.fail")
+					.setStyle(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
 		}
-		super.execute(side);
 	}
 
 	@Override
-	public void onCastEnd(LogicalSide side) {
+	public void executeServer() {
+		if (this.hasCasterPlayer() && (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) == 0)) {
+			this.status = 0;
+		} else {
+			this.status = 1;
+		}
+		super.executeServer();
+	}
+
+	@Override
+	public void onTrickEndCommon() throws NoCasterException {
 		this.status = 3;
-		super.onCastEnd(side);
+		super.onTrickEndCommon();
 	}
 
 	@Override
