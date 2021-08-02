@@ -12,9 +12,9 @@ import com.mojang.brigadier.context.CommandContext;
 
 import dzuchun.wingx.capability.entity.wings.storage.WingsDataManager;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
-import dzuchun.wingx.client.abillity.AbillityNodes;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.config.ServerConfig;
+import dzuchun.wingx.config.abillity.AbillityNodes;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;

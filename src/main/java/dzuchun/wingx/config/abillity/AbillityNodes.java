@@ -1,4 +1,4 @@
-package dzuchun.wingx.client.abillity;
+package dzuchun.wingx.config.abillity;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -5,8 +5,8 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.client.abillity.AbillityNode;
-import dzuchun.wingx.client.abillity.AbillityNodes;
+import dzuchun.wingx.config.abillity.AbillityNode;
+import dzuchun.wingx.config.abillity.AbillityNodes;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 
