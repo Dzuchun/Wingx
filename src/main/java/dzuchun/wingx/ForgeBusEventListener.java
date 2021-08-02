@@ -117,7 +117,7 @@ public class ForgeBusEventListener {
 					hastyData.lastProc = currentTime;
 					WingxPacketHandler.INSTANCE.send(
 							PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> serverPlayer),
-							new TrickPerformedMessage(
+							new TrickPerformedMessage.Client(
 									new HastyPlayerTrick(serverPlayer, hastyData, interaction.destroyPos)));
 					// TODO add stat (hasty)
 				}
@@ -143,7 +143,7 @@ public class ForgeBusEventListener {
 							target.hurtResistantTime = 0;
 							WingxPacketHandler.INSTANCE.send(
 									PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-									new TrickPerformedMessage(new AgilPlayerTrick(player, target, agilData)));
+									new TrickPerformedMessage.Client(new AgilPlayerTrick(player, target, agilData)));
 							// TODO add stat (agil)
 						}
 					}

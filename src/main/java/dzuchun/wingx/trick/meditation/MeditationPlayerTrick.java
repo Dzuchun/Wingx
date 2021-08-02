@@ -23,8 +23,6 @@ import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.net.MeditationGuiMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
-import dzuchun.wingx.trick.AbstractTargetedPlayerTrick;
-import dzuchun.wingx.trick.AgilPlayerTrick;
 import dzuchun.wingx.trick.ICastedTrick;
 import dzuchun.wingx.trick.NoCasterException;
 import net.minecraft.client.Minecraft;
@@ -253,11 +251,11 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 		return MESSAGES;
 	}
 
-	public static class TrickType extends AbstractTargetedPlayerTrick.TrickType<AgilPlayerTrick> {
+	public static class TrickType extends AbstractInterruptablePlayerTrick.TrickType<MeditationPlayerTrick> {
 
 		@Override
-		public AgilPlayerTrick newEmpty() {
-			return new AgilPlayerTrick(null, null, null);
+		public MeditationPlayerTrick newEmpty() {
+			return new MeditationPlayerTrick(null);
 		}
 
 	}

@@ -66,6 +66,16 @@ public interface IInterruptableTrick extends ICastedTrick {
 	 */
 	boolean keepExecuting();
 
+	/**
+	 * Defines trick's allowed concurrent executions
+	 *
+	 * @param other
+	 * @return Whether passe trick disallowes current execution or not.
+	 */
+	default boolean conflicts(IInterruptableTrick other) {
+		return false;
+	}
+
 	public static interface TrickType<T extends IInterruptableTrick> extends ICastedTrick.TrickType<T> {
 	}
 

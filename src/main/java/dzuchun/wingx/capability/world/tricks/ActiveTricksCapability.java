@@ -14,14 +14,20 @@ import net.minecraft.world.World;
 public class ActiveTricksCapability implements IActiveTricksCapability {
 	private static final Logger LOG = LogManager.getLogger();
 
+	// TODO create own collection class to embed conflicting
 	ArrayList<IInterruptableTrick> active_tricks = new ArrayList<IInterruptableTrick>(0);
 	private final Object ACTIVE_TRICKS_LOCK = new Object();
 
 	@Override
-	public void addActiveTrick(IInterruptableTrick trick) {
+	public boolean addActiveTrick(IInterruptableTrick trickIn) {
 		synchronized (this.ACTIVE_TRICKS_LOCK) {
-			LOG.info("Adding {} to active tricks", trick);
-			this.active_tricks.add(trick);
+			LOG.info("Adding {} to active tricks", trickIn);
+			for (IInterruptableTrick trick : this.active_tricks) {
+				if (trickIn.conflicts(trick)) {
+					return false;
+				}
+			}
+			return this.active_tricks.add(trickIn);
 		}
 	}
 

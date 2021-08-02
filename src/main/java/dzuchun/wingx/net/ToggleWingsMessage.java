@@ -45,9 +45,10 @@ public class ToggleWingsMessage {
 
 	public static synchronized void handle(ToggleWingsMessage msg, Supplier<NetworkEvent.Context> ctx) {
 		NetworkEvent.Context context = ctx.get();
+		// TODO separate methods
 		if (context.getDirection().equals(NetworkDirection.PLAY_TO_SERVER)) {
 			context.enqueueWork(() -> {
-				LOG.warn("Handling on server");
+				LOG.warn("Handling wings toggle on server");
 				ServerPlayerEntity sender = context.getSender();
 				ServerWorld world = (ServerWorld) sender.world;
 				sender.getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wingsCap) -> {

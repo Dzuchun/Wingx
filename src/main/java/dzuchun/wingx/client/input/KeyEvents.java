@@ -89,7 +89,7 @@ public class KeyEvents { // TODO fix pressing issues
 				Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wingx.meditating")
 						.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
 				WingxPacketHandler.INSTANCE.sendToServer(
-						new TrickPerformedMessage(new MeditationPlayerTrick(Minecraft.getInstance().player)));
+						new TrickPerformedMessage.Server(new MeditationPlayerTrick(Minecraft.getInstance().player)));
 			}
 
 			@Override
@@ -104,7 +104,7 @@ public class KeyEvents { // TODO fix pressing issues
 			@SuppressWarnings("resource")
 			@Override
 			public void execute() {
-				WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(
+				WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage.Server(
 						new DashPlayerTrick(Minecraft.getInstance().player, Facing.UP, 1.0d, true)));
 			}
 
@@ -120,9 +120,9 @@ public class KeyEvents { // TODO fix pressing issues
 			@SuppressWarnings("resource")
 			@Override
 			public void execute() {
-				WingxPacketHandler.INSTANCE
-						.sendToServer(new TrickPerformedMessage(new SmashPlayerTrick(Minecraft.getInstance().player, 20,
-								1.0d, 1.0f, 5.0f, Minecraft.getInstance().player.getForward())));
+				WingxPacketHandler.INSTANCE.sendToServer(
+						new TrickPerformedMessage.Server(new SmashPlayerTrick(Minecraft.getInstance().player, 20, 1.0d,
+								1.0f, 5.0f, Minecraft.getInstance().player.getForward())));
 			}
 
 			@Override
@@ -174,11 +174,11 @@ public class KeyEvents { // TODO fix pressing issues
 			public void execute() {
 				if ((this.trick == null) || (this.trick.getStatus() != 1)) {
 					this.trick = new PunchPlayerTrick(Minecraft.getInstance().player);
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage(this.trick));
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage.Server(this.trick));
 				} else {
 					this.trick.endAim();
 					this.trick.showMessage();
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage.Server(this.trick));
 					this.trick = null;
 				}
 			}
@@ -206,11 +206,11 @@ public class KeyEvents { // TODO fix pressing issues
 			public void execute() {
 				if ((this.trick == null) || (this.trick.getStatus() != 1)) {
 					this.trick = new SwapPlayerTrick(Minecraft.getInstance().player);
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage(this.trick));
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage.Server(this.trick));
 				} else {
 					this.trick.endAim();
 					this.trick.showMessage();
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage.Server(this.trick));
 					this.trick = null;
 				}
 			}
@@ -234,8 +234,8 @@ public class KeyEvents { // TODO fix pressing issues
 			@SuppressWarnings("resource")
 			@Override
 			public void execute() {
-				WingxPacketHandler.INSTANCE.sendToServer(
-						new TrickPerformedMessage(new TemplateCastPlayerTrick(Minecraft.getInstance().player, 40)));
+				WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage.Server(
+						new TemplateCastPlayerTrick(Minecraft.getInstance().player, 40)));
 			}
 
 			@Override
@@ -251,7 +251,7 @@ public class KeyEvents { // TODO fix pressing issues
 			@Override
 			public void execute() {
 				WingxPacketHandler.INSTANCE.sendToServer(
-						new TrickPerformedMessage(new FireballCastPlayerTrick(Minecraft.getInstance().player)));
+						new TrickPerformedMessage.Server(new FireballCastPlayerTrick(Minecraft.getInstance().player)));
 			}
 
 			@Override
@@ -269,11 +269,11 @@ public class KeyEvents { // TODO fix pressing issues
 			public void execute() {
 				if ((this.trick == null) || (this.trick.getStatus() != 3)) {
 					this.trick = new HomingFireballCastTargetedPlayerTrick(Minecraft.getInstance().player);
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage(this.trick));
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage.Server(this.trick));
 				} else {
 					this.trick.endAim();
 					this.trick.showMessage();
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage.Server(this.trick));
 					this.trick = null;
 				}
 			}
@@ -317,7 +317,7 @@ public class KeyEvents { // TODO fix pressing issues
 			@Override
 			public void execute() {
 				WingxPacketHandler.INSTANCE.sendToServer(
-						new TrickPerformedMessage(new SummonSwordPlayerTrick(Minecraft.getInstance().player)));
+						new TrickPerformedMessage.Server(new SummonSwordPlayerTrick(Minecraft.getInstance().player)));
 			}
 
 			@Override
@@ -327,7 +327,7 @@ public class KeyEvents { // TODO fix pressing issues
 				super.register();
 			}
 		},
-		TEMPLATE {
+		TEMPLATE_KEY_EVENT {
 
 			@Override
 			public void execute() {

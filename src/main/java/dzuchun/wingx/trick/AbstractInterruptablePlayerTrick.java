@@ -287,6 +287,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 
 	private static int res_int_1;
 
+	// Use conflicting, when possible
 	public static synchronized int playerBusyFor(PlayerEntity casterPlayer) {
 		World world = casterPlayer.world;
 		if (world instanceof ClientWorld) {

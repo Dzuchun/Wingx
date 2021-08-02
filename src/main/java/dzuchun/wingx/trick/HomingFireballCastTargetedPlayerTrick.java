@@ -14,6 +14,7 @@ import dzuchun.wingx.entity.projectile.HomingFireballEntity;
 import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.util.NetworkHelper;
 import dzuchun.wingx.util.WorldHelper;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,7 +29,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
-//TODO add integration with interrupt messages
 public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptablePlayerTrick
 		implements ITargetedTrick, ITimeredTrick, IAimingTrick {
 	private static final Logger LOG = LogManager.getLogger();
@@ -64,7 +64,8 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 		if (LivingEntitySelectOverlay.getInstance() == null) {
 			// TODO rethink overlay system
 			// TODO parametrize aim range
-			new LivingEntitySelectOverlay(10.0f, true, e -> true);
+			new LivingEntitySelectOverlay(10.0f, true,
+					entity -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()));
 			if (!LivingEntitySelectOverlay.getInstance().activate()) {
 				this.status = 1; // Unknown activation error
 			} else {

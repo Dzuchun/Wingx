@@ -14,7 +14,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -25,58 +26,84 @@ public class TrickPerformedMessage {
 
 	public ITrick trick = null;
 
-	public TrickPerformedMessage(ITrick trick) {
+	protected TrickPerformedMessage(ITrick trick) {
 		this.trick = trick;
-	}
-
-	public static TrickPerformedMessage decode(PacketBuffer buf) {
-		IForgeRegistry<ITrick.ITrickType<?>> registry = Tricks.getRegistry();
-		return new TrickPerformedMessage(NetworkHelper.readRegisteredTrick(registry, buf));
 	}
 
 	public void encode(PacketBuffer buf) {
 		NetworkHelper.writeRegisteredTrick(buf, this.trick);
 	}
 
-	public static void handle(TrickPerformedMessage msg, Supplier<NetworkEvent.Context> ctx) {
-		if (msg != null) {
-			ctx.get().enqueueWork(() -> {
-				ITrick trick = msg.trick;
-				if (trick != null) {
-					// TODO SEPARATE MESSAGES
-					if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-						@SuppressWarnings("resource")
-						ClientWorld world = Minecraft.getInstance().world;
-						if (trick instanceof ICastedTrick) {
-							((ICastedTrick) trick).setWorld(world);
-						}
-						if (trick instanceof ITargetedTrick) {
-							((ITargetedTrick) trick).setTargetWorld(world);
-						}
-						trick.executeClient();
-						trick.showMessage();
-					} else if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_SERVER) {
-						ServerWorld world = ctx.get().getSender().getServerWorld();
-						if (trick instanceof ICastedTrick) {
-							((ICastedTrick) trick).setWorld(world);
-						}
-						if (trick instanceof ITargetedTrick) {
-							((ITargetedTrick) trick).setTargetWorld(world);
-						}
-						trick.executeServer();
-						PacketTarget target = trick.getBackPacketTarget();
-						if (target != null) {
-							WingxPacketHandler.INSTANCE.send(target, msg);
-						}
+	public static class Client extends TrickPerformedMessage {
+		public Client(ITrick trick) {
+			super(trick);
+		}
 
-					} else {
-						LOG.warn("Unknown direction, ignoring message");
+		@OnlyIn(Dist.CLIENT)
+		@Override
+		public void handle(Supplier<NetworkEvent.Context> ctx) {
+			ctx.get().enqueueWork(() -> {
+				if (this.trick != null) {
+					@SuppressWarnings("resource")
+					ClientWorld world = Minecraft.getInstance().world;
+					if (this.trick instanceof ICastedTrick) {
+						((ICastedTrick) this.trick).setWorld(world);
+					}
+					if (this.trick instanceof ITargetedTrick) {
+						((ITargetedTrick) this.trick).setTargetWorld(world);
+					}
+					this.trick.executeClient();
+					this.trick.showMessage();
+				} else {
+					LOG.warn("Trick is null, ignoring message");
+				}
+			});
+			super.handle(ctx);
+		}
+
+		public static TrickPerformedMessage.Client decode(PacketBuffer buf) {
+			IForgeRegistry<ITrick.ITrickType<?>> registry = Tricks.getRegistry();
+			return new TrickPerformedMessage.Client(NetworkHelper.readRegisteredTrick(registry, buf));
+		}
+
+	}
+
+	public static class Server extends TrickPerformedMessage {
+		public Server(ITrick trick) {
+			super(trick);
+		}
+
+		@Override
+		public void handle(Supplier<NetworkEvent.Context> ctx) {
+			ctx.get().enqueueWork(() -> {
+				if (this.trick != null) {
+					ServerWorld world = ctx.get().getSender().getServerWorld();
+					if (this.trick instanceof ICastedTrick) {
+						((ICastedTrick) this.trick).setWorld(world);
+					}
+					if (this.trick instanceof ITargetedTrick) {
+						((ITargetedTrick) this.trick).setTargetWorld(world);
+					}
+					this.trick.executeServer();
+					PacketTarget target = this.trick.getBackPacketTarget();
+					if (target != null) {
+						WingxPacketHandler.INSTANCE.send(target, new TrickPerformedMessage.Client(this.trick));
 					}
 				} else {
 					LOG.warn("Trick is null, ignoring message");
 				}
 			});
+			super.handle(ctx);
 		}
+
+		public static TrickPerformedMessage.Server decode(PacketBuffer buf) {
+			IForgeRegistry<ITrick.ITrickType<?>> registry = Tricks.getRegistry();
+			return new TrickPerformedMessage.Server(NetworkHelper.readRegisteredTrick(registry, buf));
+		}
+
+	}
+
+	public void handle(Supplier<NetworkEvent.Context> ctx) {
 		ctx.get().setPacketHandled(true);
 	}
 }

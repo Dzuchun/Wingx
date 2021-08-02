@@ -7,7 +7,7 @@ import net.minecraft.world.World;
 
 public interface IActiveTricksCapability {
 
-	void addActiveTrick(IInterruptableTrick trick);
+	boolean addActiveTrick(IInterruptableTrick trick);
 
 	void addActiveTricks(Collection<IInterruptableTrick> tricks);
 

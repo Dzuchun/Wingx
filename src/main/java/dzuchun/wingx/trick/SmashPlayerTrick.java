@@ -65,6 +65,9 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	@Override
 	public void executeServer() {
 		super.executeServer();
+		if (this.status != 0) {
+			return;
+		}
 		// We are on server
 		if (this.hasCasterPlayer()) {
 			this.status = 0; // Ok
@@ -277,6 +280,11 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	@Override
 	public SmashPlayerTrick.TrickType getType() {
 		return Tricks.SMASH_TRICK.get();
+	}
+
+	@Override
+	public boolean conflicts(IInterruptableTrick other) {
+		return (other.getType().equals(this.getType())) && (other.getCaster().equals(this.getCaster()));
 	}
 
 }

@@ -9,12 +9,14 @@ import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.trick.IAimingTrick;
 import dzuchun.wingx.trick.ICastedTrick;
 import dzuchun.wingx.trick.ITargetedTrick;
+import dzuchun.wingx.trick.ITrick;
 import dzuchun.wingx.util.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -24,60 +26,97 @@ public class TrickAimingMessage {
 
 	public IAimingTrick trick = null;
 
-	public TrickAimingMessage(IAimingTrick trickIn) {
+	protected TrickAimingMessage(IAimingTrick trickIn) {
 		this.trick = trickIn;
-	}
-
-	public static TrickAimingMessage decode(PacketBuffer buf) {
-		// TODO check cast
-		return new TrickAimingMessage((IAimingTrick) NetworkHelper.readRegisteredTrick(Tricks.getRegistry(), buf));
 	}
 
 	public void encode(PacketBuffer buf) {
 		NetworkHelper.writeRegisteredTrick(buf, this.trick);
 	}
 
-	public static void handle(TrickAimingMessage msg, Supplier<NetworkEvent.Context> ctx) {
-		if (msg != null) {
+	public void handle(Supplier<NetworkEvent.Context> ctx) {
+		ctx.get().setPacketHandled(true);
+	}
+
+	public static class Client extends TrickAimingMessage {
+
+		public Client(IAimingTrick trickIn) {
+			super(trickIn);
+		}
+
+		public static TrickAimingMessage.Client decode(PacketBuffer buf) {
+			ITrick trick = NetworkHelper.readRegisteredTrick(Tricks.getRegistry(), buf);
+			if (!(trick instanceof IAimingTrick)) {
+				LOG.warn("Trick readed is not instance of IAimingTrick, resulting message will be empty.");
+				return new TrickAimingMessage.Client(null);
+			}
+			return new TrickAimingMessage.Client((IAimingTrick) trick);
+		}
+
+		@OnlyIn(Dist.CLIENT)
+		@Override
+		public void handle(Supplier<NetworkEvent.Context> ctx) {
 			ctx.get().enqueueWork(() -> {
-				IAimingTrick trick = msg.trick;
-				if (trick != null) {
-					// TODO SEPARATE MESSAGES
-					if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-						@SuppressWarnings("resource")
-						ClientWorld world = Minecraft.getInstance().world;
-						if (trick instanceof ICastedTrick) {
-							((ICastedTrick) trick).setWorld(world);
-						}
-						if (trick instanceof ITargetedTrick) {
-							((ITargetedTrick) trick).setTargetWorld(world);
-						}
-						trick.beginAimClient();
-						trick.showMessage();
-					} else if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_SERVER) {
-						ServerWorld world = ctx.get().getSender().getServerWorld();
-						if (trick instanceof ICastedTrick) {
-							((ICastedTrick) trick).setWorld(world);
-						}
-						if (trick instanceof ITargetedTrick) {
-							((ITargetedTrick) trick).setTargetWorld(world);
-						}
-						trick.beginAimServer();
-						PacketTarget target = trick.getAimBackTarget();
-						if (target != null) {
-							WingxPacketHandler.INSTANCE.send(target, msg);
-						} else {
-							LOG.warn("{} trick returned null back aim target", trick);
-						}
+				if (this.trick != null) {
+					@SuppressWarnings("resource")
+					ClientWorld world = Minecraft.getInstance().world;
+					if (this.trick instanceof ICastedTrick) {
+						((ICastedTrick) this.trick).setWorld(world);
+					}
+					if (this.trick instanceof ITargetedTrick) {
+						((ITargetedTrick) this.trick).setTargetWorld(world);
+					}
+					this.trick.beginAimClient();
+					this.trick.showMessage();
+				} else {
+					LOG.warn("Trick is null, ignoring message");
+				}
+			});
+			super.handle(ctx);
+		}
+
+	}
+
+	public static class Server extends TrickAimingMessage {
+
+		public Server(IAimingTrick trickIn) {
+			super(trickIn);
+		}
+
+		public static TrickAimingMessage.Server decode(PacketBuffer buf) {
+			ITrick trick = NetworkHelper.readRegisteredTrick(Tricks.getRegistry(), buf);
+			if (!(trick instanceof IAimingTrick)) {
+				LOG.warn("Trick readed is not instance of IAimingTrick, resulting message will be empty.");
+				return new TrickAimingMessage.Server(null);
+			}
+			return new TrickAimingMessage.Server((IAimingTrick) trick);
+		}
+
+		@Override
+		public void handle(Supplier<NetworkEvent.Context> ctx) {
+			ctx.get().enqueueWork(() -> {
+				if (this.trick != null) {
+					ServerWorld world = ctx.get().getSender().getServerWorld();
+					if (this.trick instanceof ICastedTrick) {
+						((ICastedTrick) this.trick).setWorld(world);
+					}
+					if (this.trick instanceof ITargetedTrick) {
+						((ITargetedTrick) this.trick).setTargetWorld(world);
+					}
+					this.trick.beginAimServer();
+					PacketTarget target = this.trick.getAimBackTarget();
+					if (target != null) {
+						WingxPacketHandler.INSTANCE.send(target, new TrickAimingMessage.Client(this.trick));
 					} else {
-						LOG.warn("Unknown direction, ignoring message");
+						LOG.warn("{} trick returned null back aim target", this.trick);
 					}
 				} else {
 					LOG.warn("Trick is null, ignoring message");
 				}
 			});
+			super.handle(ctx);
 		}
-		ctx.get().setPacketHandled(true);
+
 	}
 
 }
