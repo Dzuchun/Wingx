@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
@@ -13,12 +12,14 @@ import dzuchun.wingx.capability.entity.wings.storage.SoulswordData;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.client.render.overlay.SoulswordOverlay;
 import dzuchun.wingx.init.Items;
+import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.item.Soulsword;
+import dzuchun.wingx.util.NetworkHelper;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.Color;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
@@ -29,21 +30,17 @@ import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick implements ITimeredTrick {
-	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID,
-			"summon_sword_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
-
-	public SummonSwordPlayerTrick() {
-		super();
-	}
+	private SoulswordData data;
 
 	public SummonSwordPlayerTrick(PlayerEntity caster) {
 		super(caster, 0, InterruptCondition.CHANGED_ITEM_CONDITION);
-		caster.getCapability(WingsProvider.WINGS, null).ifPresent((IWingsCapability wings) -> {
-			SoulswordData data = wings.getDataManager().getOrAddDefault(Serializers.SOULSWORD_SERIALIZER);
-			this.duration = data.summonDurationTicks;
-			this.status = 0;
-		});
+		if (caster != null) {
+			caster.getCapability(WingsProvider.WINGS).ifPresent((IWingsCapability wings) -> {
+				SoulswordData data = wings.getDataManager().getOrAddDefault(Serializers.SOULSWORD_SERIALIZER);
+				this.duration = data.summonDurationTicks;
+			});
+		}
 	}
 
 	@Override
@@ -57,11 +54,6 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 	}
 
 	@Override
-	public ITrick newEmpty() {
-		return new SummonSwordPlayerTrick();
-	}
-
-	@Override
 	public int timeFull() throws NoCasterException {
 		return this.duration;
 	}
@@ -71,11 +63,6 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 		assertHasCaster(this);
 		long time = this.casterWorld.getGameTime();
 		return ((double) (this.endTime - time)) / (this.duration);
-	}
-
-	@Override
-	protected void setRegistryName() {
-		this.registryName = REGISTRY_NAME;
 	}
 
 //	@Override
@@ -131,7 +118,7 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 
 	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
 //			new TranslationTextComponent("wingx.trick.default_success").setStyle(SUCCESS_STYLE),
-			new TranslationTextComponent("wingx.trick.summon_soulsword.start").setStyle(PROC_STYLE),
+			new TranslationTextComponent("wingx.trick.summon_soulsword.start").setStyle(NEUTRAL_STYLE),
 			new TranslationTextComponent("wingx.trick.summon_soulsword.error",
 					new TranslationTextComponent("wingx.trick.error_reason.hand_busy")).setStyle(ERROR_STYLE),
 			new TranslationTextComponent("wingx.trick.summon_soulsword.error",
@@ -176,6 +163,33 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 			}
 			this.status = 5;
 		}
+	}
+
+	public static class TrickType extends AbstractInterruptablePlayerTrick.TrickType<SummonSwordPlayerTrick> {
+
+		@Override
+		public SummonSwordPlayerTrick writeToBuf(SummonSwordPlayerTrick trick, PacketBuffer buf) {
+			NetworkHelper.writeChecked(buf, trick.data, Serializers.SOULSWORD_SERIALIZER::write);
+			return super.writeToBuf(trick, buf);
+		}
+
+		@Override
+		protected SummonSwordPlayerTrick readFromBufInternal(SummonSwordPlayerTrick trick, PacketBuffer buf) {
+			trick.data = NetworkHelper.readChecked(buf, Serializers.SOULSWORD_SERIALIZER::read);
+			return super.readFromBufInternal(trick, buf);
+		}
+
+		@Override
+		public SummonSwordPlayerTrick newEmpty() {
+			return new SummonSwordPlayerTrick(null);
+		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SummonSwordPlayerTrick.TrickType getType() {
+		return Tricks.SUMMON_SOULSWORD_TRICK.get();
 	}
 
 }

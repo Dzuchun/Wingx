@@ -9,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.BasicData;
@@ -20,18 +19,19 @@ import dzuchun.wingx.capability.entity.wings.storage.WingsDataManager;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.client.abillity.AbillityNodes;
 import dzuchun.wingx.client.render.overlay.FadingScreenOverlay;
+import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.net.MeditationGuiMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
+import dzuchun.wingx.trick.AbstractTargetedPlayerTrick;
+import dzuchun.wingx.trick.AgilPlayerTrick;
 import dzuchun.wingx.trick.ICastedTrick;
-import dzuchun.wingx.trick.ITrick;
 import dzuchun.wingx.trick.NoCasterException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.stats.Stat;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
@@ -45,12 +45,6 @@ import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	private static final Logger LOG = LogManager.getLogger();
-
-	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "meditation_player_trick");
-
-	public MeditationPlayerTrick() {
-		super();
-	}
 
 	public MeditationPlayerTrick(PlayerEntity caster) {
 		super(caster, 0, InterruptCondition.MOVED_CONDITION);
@@ -69,16 +63,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				: null;
 	}
 
-	@Override
-	public ITrick newEmpty() {
-		return new MeditationPlayerTrick();
-	}
-
-	@Override
-	protected void setRegistryName() {
-		this.registryName = REGISTRY_NAME;
-	}
-
+	// Not syncronized
 	private boolean tmp_boolean_1;
 
 	@Override
@@ -247,7 +232,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 		requiredData.put(entry, dataValue);
 	}
 
-	private static ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
+	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
 			new TranslationTextComponent("wingx.trick.meditation.start").setStyle(SUCCESS_STYLE),
 			new TranslationTextComponent("wingx.trick.meditation.error",
 					new TranslationTextComponent("wingx.trick.error_reason.not_in_end")).setStyle(ERROR_STYLE),
@@ -266,5 +251,20 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	@Override
 	protected ImmutableList<ITextComponent> getMessages() {
 		return MESSAGES;
+	}
+
+	public static class TrickType extends AbstractTargetedPlayerTrick.TrickType<AgilPlayerTrick> {
+
+		@Override
+		public AgilPlayerTrick newEmpty() {
+			return new AgilPlayerTrick(null, null, null);
+		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public MeditationPlayerTrick.TrickType getType() {
+		return Tricks.MEDITATION_TRICK.get();
 	}
 }

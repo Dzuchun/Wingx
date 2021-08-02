@@ -49,6 +49,7 @@ public class LivingEntitySelectOverlay extends AbstractOverlay {
 		if (other != null) {
 			this.additionalCondition = other;
 		}
+		// TODO REWRITE, THIS MAKES NO SENCE!
 		if ((instance == null) || (instance.active == false)) {
 			instance = this;
 		}

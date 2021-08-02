@@ -66,10 +66,6 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		}
 	}
 
-	public AbstractInterruptablePlayerTrick() {
-		super();
-	}
-
 	protected int duration;
 	protected InterruptCondition interruptCondition;
 
@@ -81,29 +77,6 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 			this.interruptCondition = interruptCondition;
 			interruptCondition.reset();
 		}
-	}
-
-	@Override
-	public ITrick readFromBuf(PacketBuffer buf) {
-		this.duration = buf.readInt();
-		InterruptCondition tmp = InterruptCondition.getFromInt(buf.readInt());
-		if (tmp != null) {
-			this.interruptCondition = tmp;
-		} else {
-			this.interruptCondition = InterruptCondition.NO_CONDITION;
-		}
-		this.beginTime = buf.readLong();
-		this.endTime = buf.readLong();
-		return super.readFromBuf(buf);
-	}
-
-	@Override
-	public ITrick writeToBuf(PacketBuffer buf) {
-		buf.writeInt(this.duration);
-		buf.writeInt(this.interruptCondition.toInt());
-		buf.writeLong(this.beginTime);
-		buf.writeLong(this.endTime);
-		return super.writeToBuf(buf);
 	}
 
 	@Override
@@ -375,5 +348,32 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	public String toString() {
 		return String.format("AbstractInterruptablePlayerTrick[type = %s, end time = %s, caster uuid = %s]",
 				this.getClass().getName(), this.endTime, this.casterUniqueId);
+	}
+
+	public abstract static class TrickType<T extends AbstractInterruptablePlayerTrick>
+			extends AbstractPlayerCastedTrick.TrickType<T> {
+
+		@Override
+		protected T readFromBufInternal(T trick, PacketBuffer buf) {
+			trick.duration = buf.readInt();
+			InterruptCondition tmp = InterruptCondition.getFromInt(buf.readInt());
+			if (tmp != null) {
+				trick.interruptCondition = tmp;
+			} else {
+				trick.interruptCondition = InterruptCondition.NO_CONDITION;
+			}
+			trick.beginTime = buf.readLong();
+			trick.endTime = buf.readLong();
+			return super.readFromBufInternal(trick, buf);
+		}
+
+		@Override
+		public T writeToBuf(T trick, PacketBuffer buf) {
+			buf.writeInt(trick.duration);
+			buf.writeInt(trick.interruptCondition.toInt());
+			buf.writeLong(trick.beginTime);
+			buf.writeLong(trick.endTime);
+			return super.writeToBuf(trick, buf);
+		}
 	}
 }

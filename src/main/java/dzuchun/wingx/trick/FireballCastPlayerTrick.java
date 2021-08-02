@@ -5,18 +5,17 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.FireballData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.entity.projectile.FireballEntity;
+import dzuchun.wingx.init.Tricks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
@@ -26,13 +25,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick implements ITimeredTrick {
-	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID,
-			"fireball_cast_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
-
-	public FireballCastPlayerTrick() {
-		super();
-	}
 
 	public FireballCastPlayerTrick(PlayerEntity caster) {
 		super(caster, 1, InterruptCondition.NO_CONDITION);
@@ -48,16 +41,6 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	public PacketTarget getBackPacketTarget() {
 		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
 				: null;
-	}
-
-	@Override
-	public ITrick newEmpty() {
-		return new FireballCastPlayerTrick();
-	}
-
-	@Override
-	protected void setRegistryName() {
-		this.registryName = REGISTRY_NAME;
 	}
 
 	@Override
@@ -133,6 +116,22 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	@Override
 	protected ImmutableList<ITextComponent> getMessages() {
 		return MESSAGES;
+	}
+
+	public static class TrickType extends AbstractInterruptablePlayerTrick.TrickType<FireballCastPlayerTrick>
+			implements ITimeredTrick.TrickType<FireballCastPlayerTrick> {
+
+		@Override
+		public FireballCastPlayerTrick newEmpty() {
+			return new FireballCastPlayerTrick(null);
+		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public FireballCastPlayerTrick.TrickType getType() {
+		return Tricks.FIREBALL_CAST_TRICK.get();
 	}
 
 }

@@ -6,9 +6,10 @@ import java.util.Collections;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.trick.AbstractTrick;
+import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.trick.IInterruptableTrick;
 import dzuchun.wingx.trick.IPersistableTrick;
+import dzuchun.wingx.trick.ITrick;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.util.Direction;
@@ -16,7 +17,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryManager;
 
 public class CapabilityActiveTricks { // TOOD move to capability class
 
@@ -40,11 +40,14 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 						compound.putInt(AMOUNT_TAG, active_tricks.size());
 						this.i = 0;
 						active_tricks.forEach(trick -> {
-							if ((trick.getRegistryName() != null) && (trick instanceof IPersistableTrick)) {
-								String registryName = trick.getRegistryName().toString();
+							ITrick.ITrickType<?> type = trick.getType();
+							if ((type.getRegistryName() != null) && (trick instanceof IPersistableTrick)) {
+								String registryName = type.getRegistryName().toString();
 								CompoundNBT tmp = new CompoundNBT();
 								tmp.putString(REGISTRY_NAME_TAG, registryName);
-								tmp.put(TRICK_TAG, ((IPersistableTrick) trick).writeToNBT());
+								@SuppressWarnings({ "unused", "rawtypes", "unchecked" })
+								INBT dummy = tmp.put(TRICK_TAG,
+										((IPersistableTrick.TrickType) type).writeToNBT((IPersistableTrick) trick));
 								compound.put(this.i + "", tmp);
 								this.i++;
 							}
@@ -58,9 +61,8 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 						CompoundNBT compound = (CompoundNBT) nbt;
 						Collection<IInterruptableTrick> active_tricks = Collections.emptyList();
 
-						IForgeRegistry<AbstractTrick> registry = RegistryManager.ACTIVE
-								.getRegistry(AbstractTrick.class); // TODO
-																	// optimize
+						IForgeRegistry<ITrick.ITrickType<?>> registry = Tricks.getRegistry(); // TODO
+						// optimize
 						if (registry == null) {
 							LOG.error("Tricks registry does not exist!");
 							return;
@@ -73,20 +75,21 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 										String registryName = tmp.getString(REGISTRY_NAME_TAG);
 										ResourceLocation resLoc = new ResourceLocation(registryName);
 										if (registry.containsKey(resLoc)) {
-											AbstractTrick trick = registry.getValue(resLoc);
-											if (trick instanceof IPersistableTrick) {
-												if (trick instanceof IInterruptableTrick) {
-													((IPersistableTrick) trick.newEmpty())
+											ITrick.ITrickType<?> type = registry.getValue(resLoc);
+											if (type instanceof IPersistableTrick.TrickType) {
+												if (type instanceof IInterruptableTrick.TrickType) {
+													@SuppressWarnings("unchecked")
+													IInterruptableTrick persistableTrick = (IInterruptableTrick) ((IPersistableTrick.TrickType<? extends IPersistableTrick>) type)
 															.readFromNBT(tmp.get(TRICK_TAG));
-													active_tricks.add((IInterruptableTrick) trick);
+													active_tricks.add(persistableTrick);
 												} else { // TODO despagetify
 													LOG.info(
 															"Found not interruptable trick in NBT. Looks like developer's stupidity (trick will not persist)");
 												}
 											} else {
 												LOG.warn(
-														"{} registry name should be for IPersistabeTrick, but it is for {}",
-														resLoc, trick.getClass().getName());
+														"{} registry name should be for IPersistabeTrick-implemented type, but it is for {}",
+														resLoc, type.getClass().getName());
 											}
 										} else {
 											LOG.warn("Can't find registry object for {}", registryName);

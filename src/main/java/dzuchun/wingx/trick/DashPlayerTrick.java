@@ -7,11 +7,10 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.Wingx;
+import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.util.Facing;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
@@ -21,16 +20,11 @@ import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public class DashPlayerTrick extends AbstractPlayerCastedTrick {
-	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "dash_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
 
 	private Facing facing = null;
 	private double strength = 0.0d;
 	private boolean nullifiesSpeed = false;
-
-	public DashPlayerTrick() {
-		super();
-	}
 
 	/**
 	 * @param caster         Player that casts dash.
@@ -73,34 +67,8 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 	}
 
 	@Override
-	public ITrick readFromBuf(PacketBuffer buf) {
-		this.facing = Facing.getByInt(buf.readInt());
-		this.strength = buf.readDouble();
-		this.nullifiesSpeed = buf.readBoolean();
-		return super.readFromBuf(buf);
-	}
-
-	@Override
-	public ITrick writeToBuf(PacketBuffer buf) {
-		buf.writeInt(this.facing.toInt());
-		buf.writeDouble(this.strength);
-		buf.writeBoolean(this.nullifiesSpeed);
-		return super.writeToBuf(buf);
-	}
-
-	@Override
 	public PacketTarget getBackPacketTarget() {
 		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer) : null;
-	}
-
-	@Override
-	public ITrick newEmpty() {
-		return new DashPlayerTrick();
-	}
-
-	@Override
-	protected void setRegistryName() {
-		this.registryName = REGISTRY_NAME;
 	}
 
 	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
@@ -111,6 +79,36 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 	@Override
 	protected ImmutableList<ITextComponent> getMessages() {
 		return MESSAGES;
+	}
+
+	public static class TrickType extends AbstractPlayerCastedTrick.TrickType<DashPlayerTrick> {
+
+		@Override
+		protected DashPlayerTrick readFromBufInternal(DashPlayerTrick trick, PacketBuffer buf) {
+			trick.facing = Facing.getByInt(buf.readInt());
+			trick.strength = buf.readDouble();
+			trick.nullifiesSpeed = buf.readBoolean();
+			return super.readFromBufInternal(trick, buf);
+		}
+
+		@Override
+		public DashPlayerTrick writeToBuf(DashPlayerTrick trick, PacketBuffer buf) {
+			buf.writeInt(trick.facing.toInt());
+			buf.writeDouble(trick.strength);
+			buf.writeBoolean(trick.nullifiesSpeed);
+			return super.writeToBuf(trick, buf);
+		}
+
+		@Override
+		public DashPlayerTrick newEmpty() {
+			return new DashPlayerTrick(null, null, 0.0d, false);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public DashPlayerTrick.TrickType getType() {
+		return Tricks.DASH_TRICK.get();
 	}
 
 }

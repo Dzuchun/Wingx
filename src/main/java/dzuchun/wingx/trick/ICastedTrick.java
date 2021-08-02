@@ -31,4 +31,7 @@ public interface ICastedTrick extends ITrick {
 	 * @return If caster present in set caster world.
 	 */
 	boolean hasCaster();
+
+	public static interface TrickType<T extends ICastedTrick> extends ITrick.ITrickType<T> {
+	}
 }

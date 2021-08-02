@@ -7,10 +7,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.Wingx;
+import dzuchun.wingx.client.input.KeyEvents.WingxKey;
 import dzuchun.wingx.client.render.overlay.LivingEntitySelectOverlay;
 import dzuchun.wingx.client.render.overlay.LivingEntityTargetOverlay;
 import dzuchun.wingx.entity.projectile.HomingFireballEntity;
+import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.util.NetworkHelper;
 import dzuchun.wingx.util.WorldHelper;
 import net.minecraft.entity.Entity;
@@ -18,7 +19,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -30,26 +30,18 @@ import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 //TODO add integration with interrupt messages
 public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptablePlayerTrick
-		implements ITargetedTrick, ITimeredTrick {
+		implements ITargetedTrick, ITimeredTrick, IAimingTrick {
 	private static final Logger LOG = LogManager.getLogger();
-
-	public HomingFireballCastTargetedPlayerTrick() {
-		super();
-	}
 
 	@OnlyIn(value = Dist.CLIENT)
 	public HomingFireballCastTargetedPlayerTrick(PlayerEntity caster) {
-		super(caster, 10, InterruptCondition.NO_CONDITION); // Dummy
-		if (LivingEntitySelectOverlay.getInstance() == null) {
-			new LivingEntitySelectOverlay(10.0f, true, e -> true);
-			if (!LivingEntitySelectOverlay.getInstance().activate()) {
-				this.status = 1; // Unknown activation error
-			} else {
-				this.status = 3; // Aiming
-			}
-		} else {
-			this.status = 2; // Overlay conflict
-		}
+		super(caster, 0, InterruptCondition.NO_CONDITION); // Dummy
+	}
+
+	@Override
+	public PacketTarget getAimBackTarget() {
+		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
+				: null;
 	}
 
 	@Override
@@ -59,16 +51,47 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 	}
 
 	@Override
-	public ITrick newEmpty() {
-		return new HomingFireballCastTargetedPlayerTrick();
-	}
-
-	@Override
 	public PacketTarget getEndPacketTarget() {
 		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer) : null;
 	}
 
-	public boolean aimed() {
+	@OnlyIn(Dist.CLIENT)
+	@Override
+	public void beginAimClient() {
+		if (this.status != 0) {
+			return;
+		}
+		if (LivingEntitySelectOverlay.getInstance() == null) {
+			// TODO rethink overlay system
+			// TODO parametrize aim range
+			new LivingEntitySelectOverlay(10.0f, true, e -> true);
+			if (!LivingEntitySelectOverlay.getInstance().activate()) {
+				this.status = 1; // Unknown activation error
+			} else {
+				this.status = 3; // Aiming
+				WingxKey.FIREBALL_HOMING.setTrick(this);
+			}
+		} else {
+			this.status = 2; // Overlay conflict
+		}
+	}
+
+	@Override
+	public void beginAimServer() {
+		// TODO check for conditions(caster exist, target exist, caster free, homing
+		// unlocked, enough mana), set parameters
+		PlayerEntity caster = this.getCasterPlayer();
+		if ((caster == null) || (AbstractInterruptablePlayerTrick.playerBusyFor(caster) != 0)) {
+			this.status = 6; // Caster busy
+			return;
+		}
+		this.duration = 10;
+		this.status = 0;// Ok
+	}
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void endAim() {
 		if ((LivingEntitySelectOverlay.getInstance() == null) || !LivingEntitySelectOverlay.getInstance().isActive()) {
 			LOG.warn("Can't aim: overlay is not active.");
 			this.status = 1; // Unknown activation error
@@ -77,18 +100,18 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 		if (overlay == null) {
 			LOG.warn("Can't aim: overlay not active");
 			this.status = 1; // Unknown activation error
-			return false;
+			return;
 		}
 		overlay.deactivate();
 		LivingEntity target = overlay.getSelectedEnttity();
 		if (target == null) {
 			LOG.debug("No entity aimed");
 			this.status = 4; // No target
-			return false;
+			return;
 		}
 		this.setTarget(target);
 		this.status = 5; // Aimed
-		return true;
+		return;
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -159,26 +182,6 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 		}
 	}
 
-	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID,
-			"homing_firefall_player_trick");
-
-	@Override
-	protected void setRegistryName() {
-		this.registryName = REGISTRY_NAME;
-	}
-
-	@Override
-	public ITrick writeToBuf(PacketBuffer buf) {
-		NetworkHelper.writeChecked(buf, this.targetUniqueId, PacketBuffer::writeUniqueId);
-		return super.writeToBuf(buf);
-	}
-
-	@Override
-	public ITrick readFromBuf(PacketBuffer buf) {
-		this.targetUniqueId = NetworkHelper.readChecked(buf, PacketBuffer::readUniqueId);
-		return super.readFromBuf(buf);
-	}
-
 	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
 			new TranslationTextComponent("wingx.trick.fireball.start").setStyle(SUCCESS_STYLE),
 			new TranslationTextComponent("wingx.trick.fireball.error",
@@ -188,7 +191,9 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 			new TranslationTextComponent("wingx.trick.default_aiming").setStyle(SUCCESS_STYLE),
 			new TranslationTextComponent("wingx.trick.fireball.error",
 					new TranslationTextComponent("wingx.trick.error_reason.no_target")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.default_aimed").setStyle(SUCCESS_STYLE));
+			new TranslationTextComponent("wingx.trick.default_aimed").setStyle(SUCCESS_STYLE),
+			new TranslationTextComponent("wingx.trick.fireball.error",
+					new TranslationTextComponent("wingx.trick.error_reason.caster_busy")).setStyle(ERROR_STYLE));
 
 	@Override
 	protected ImmutableList<ITextComponent> getMessages() {
@@ -205,5 +210,37 @@ public class HomingFireballCastTargetedPlayerTrick extends AbstractInterruptable
 		assertHasCaster(this);
 		long time = this.casterWorld.getGameTime();
 		return ((double) (time - this.beginTime)) / (this.duration);
+	}
+
+	public static class TrickType
+			extends AbstractInterruptablePlayerTrick.TrickType<HomingFireballCastTargetedPlayerTrick>
+			implements IAimingTrick.TrickType<HomingFireballCastTargetedPlayerTrick>,
+			ITimeredTrick.TrickType<HomingFireballCastTargetedPlayerTrick>,
+			ITargetedTrick.TrickType<HomingFireballCastTargetedPlayerTrick> {
+
+		@Override
+		protected HomingFireballCastTargetedPlayerTrick readFromBufInternal(HomingFireballCastTargetedPlayerTrick trick,
+				PacketBuffer buf) {
+			trick.targetUniqueId = NetworkHelper.readChecked(buf, PacketBuffer::readUniqueId);
+			return super.readFromBufInternal(trick, buf);
+		}
+
+		@Override
+		public HomingFireballCastTargetedPlayerTrick writeToBuf(HomingFireballCastTargetedPlayerTrick trick,
+				PacketBuffer buf) {
+			NetworkHelper.writeChecked(buf, trick.targetUniqueId, PacketBuffer::writeUniqueId);
+			return super.writeToBuf(trick, buf);
+		}
+
+		@Override
+		public HomingFireballCastTargetedPlayerTrick newEmpty() {
+			return new HomingFireballCastTargetedPlayerTrick(null);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public HomingFireballCastTargetedPlayerTrick.TrickType getType() {
+		return Tricks.HOMING_FIREBALL_CAST_TRICK.get();
 	}
 }

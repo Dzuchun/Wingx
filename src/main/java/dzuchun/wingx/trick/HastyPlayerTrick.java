@@ -5,18 +5,17 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.Wingx;
 import dzuchun.wingx.capability.entity.wings.storage.HastyData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.client.render.overlay.HastyPostAnimationOverlay;
 import dzuchun.wingx.init.SoundEvents;
+import dzuchun.wingx.init.Tricks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.multiplayer.PlayerController;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -26,12 +25,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
-	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "hasty_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
-
-	public HastyPlayerTrick() {
-		super();
-	}
 
 	private HastyData data;
 	private BlockPos blocksPos;
@@ -74,36 +68,41 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 		return null;
 	}
 
-	@Override
-	public ITrick newEmpty() {
-		return new HastyPlayerTrick();
-	}
-
-	@Override
-	protected void setRegistryName() {
-		this.registryName = REGISTRY_NAME;
-	}
-
-	@Override
-	public ITrick readFromBuf(PacketBuffer buf) {
-		this.data = Serializers.HASTY_SERIALIZER.read(buf);
-		this.blocksPos = buf.readBlockPos();
-		return super.readFromBuf(buf);
-	}
-
-	@Override
-	public ITrick writeToBuf(PacketBuffer buf) {
-		Serializers.HASTY_SERIALIZER.write(buf, this.data);
-		buf.writeBlockPos(this.blocksPos);
-		return super.writeToBuf(buf);
-	}
-
 	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList
-			.of(new TranslationTextComponent("wingx.trick.hasty.proc").setStyle(PROC_STYLE));
+			.of(new TranslationTextComponent("wingx.trick.hasty.proc").setStyle(NEUTRAL_STYLE));
 
 	@Override
 	protected ImmutableList<ITextComponent> getMessages() {
 		return MESSAGES;
+	}
+
+	public static class TrickType extends AbstractPlayerCastedTrick.TrickType<HastyPlayerTrick> {
+
+		@Override
+		protected HastyPlayerTrick readFromBufInternal(HastyPlayerTrick trick, PacketBuffer buf) {
+			trick.data = Serializers.HASTY_SERIALIZER.read(buf);
+			trick.blocksPos = buf.readBlockPos();
+			return super.readFromBufInternal(trick, buf);
+		}
+
+		@Override
+		public HastyPlayerTrick writeToBuf(HastyPlayerTrick trick, PacketBuffer buf) {
+			Serializers.HASTY_SERIALIZER.write(buf, trick.data);
+			buf.writeBlockPos(trick.blocksPos);
+			return super.writeToBuf(trick, buf);
+		}
+
+		@Override
+		public HastyPlayerTrick newEmpty() {
+			return new HastyPlayerTrick(null, null, null);
+		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public HastyPlayerTrick.TrickType getType() {
+		return Tricks.HASTY_TRICK.get();
 	}
 
 }

@@ -11,11 +11,13 @@ import org.lwjgl.glfw.GLFW;
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.overlay.GearSkyOverlay;
 import dzuchun.wingx.net.ToggleWingsMessage;
+import dzuchun.wingx.net.TrickAimingMessage;
 import dzuchun.wingx.net.TrickPerformedMessage;
 import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.DashPlayerTrick;
 import dzuchun.wingx.trick.FireballCastPlayerTrick;
 import dzuchun.wingx.trick.HomingFireballCastTargetedPlayerTrick;
+import dzuchun.wingx.trick.ITrick;
 import dzuchun.wingx.trick.PunchPlayerTrick;
 import dzuchun.wingx.trick.SmashPlayerTrick;
 import dzuchun.wingx.trick.SummonSwordPlayerTrick;
@@ -62,299 +64,309 @@ public class KeyEvents { // TODO fix pressing issues
 			}
 		}
 	}
-}
 
-@OnlyIn(value = Dist.CLIENT)
-enum WingxKey {
-	SUMMON_WINGS {
+	@OnlyIn(value = Dist.CLIENT)
+	public static enum WingxKey {
+		SUMMON_WINGS {
 
-		@Override
-		public void execute() {
-			WingxPacketHandler.INSTANCE.sendToServer(new ToggleWingsMessage(true));
-		}
-
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.summon_wings", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	MEDITATE {
-
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wingx.meditating")
-					.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
-			WingxPacketHandler.INSTANCE
-					.sendToServer(new TrickPerformedMessage(new MeditationPlayerTrick(Minecraft.getInstance().player)));
-		}
-
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	DASH {
-
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(
-					new DashPlayerTrick(Minecraft.getInstance().player, Facing.UP, 1.0d, true)));
-		}
-
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.dash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	SMASH {
-
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			WingxPacketHandler.INSTANCE
-					.sendToServer(new TrickPerformedMessage(new SmashPlayerTrick(Minecraft.getInstance().player, 20,
-							1.0d, 1.0f, 5.0f, Minecraft.getInstance().player.getForward())));
-		}
-
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.smash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	TMP {
-
-		@Override
-		public void execute() {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (!minecraft.getRenderViewEntity().getUniqueID().equals(minecraft.player.getUniqueID())) {
-				minecraft.setRenderViewEntity(minecraft.player);
-				return;
+			@Override
+			public void execute() {
+				WingxPacketHandler.INSTANCE.sendToServer(new ToggleWingsMessage(true));
 			}
-			List<LivingEntity> livingEntities = new ArrayList<LivingEntity>(0);
-			minecraft.world.getAllEntities().forEach(entity -> {
-				if (entity instanceof LivingEntity) {
-					livingEntities.add((LivingEntity) entity);
-				}
-			});
-			LivingEntity newEntity = minecraft.world.getClosestEntity(livingEntities,
-					new EntityPredicate().setCustomPredicate(
-							entity -> !entity.getUniqueID().equals(minecraft.player.getUniqueID())),
-					minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
-					minecraft.player.getPosZ());
-			if (newEntity != null) {
-				minecraft.setRenderViewEntity(newEntity);
-			} else {
-				LOG.warn("No living entity found to switch");
+
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.summon_wings", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
 			}
-		}
+		},
+		MEDITATE {
 
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.tmp", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	PUNCH {
-		private PunchPlayerTrick trick = null;
-
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			if (this.trick == null) {
-				this.trick = new PunchPlayerTrick(Minecraft.getInstance().player, 10.0d,
-						entity -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()), 10.0d);
-				if (this.trick.getState() == PunchPlayerTrick.State.FAILED) {
-					this.trick = null;
-				}
-			} else {
-				if (this.trick.getState() == PunchPlayerTrick.State.AIMING) {
-					this.trick.aimed();
-					this.trick.showMessage();
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
-				}
-				this.trick = null;
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("wingx.meditating")
+						.setStyle(Style.EMPTY.setFormatting(TextFormatting.DARK_GREEN)), true);
+				WingxPacketHandler.INSTANCE.sendToServer(
+						new TrickPerformedMessage(new MeditationPlayerTrick(Minecraft.getInstance().player)));
 			}
-		}
 
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.punch", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	SWAP {
-		private SwapPlayerTrick trick = null;
-
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			if (this.trick == null) {
-				this.trick = new SwapPlayerTrick(Minecraft.getInstance().player, 10.0d,
-						entity -> !entity.getUniqueID().equals(Minecraft.getInstance().player.getUniqueID()));
-				if (this.trick.getState() == SwapPlayerTrick.State.FAILED) {
-					this.trick = null;
-				}
-			} else {
-				if (this.trick.getState() == SwapPlayerTrick.State.AIMING) {
-					this.trick.aimed();
-					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
-				}
-				this.trick = null;
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
 			}
-		}
+		},
+		DASH {
 
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.swap", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	CASTING_TEMPLATE {
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(
+						new DashPlayerTrick(Minecraft.getInstance().player, Facing.UP, 1.0d, true)));
+			}
 
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			WingxPacketHandler.INSTANCE.sendToServer(
-					new TrickPerformedMessage(new TemplateCastPlayerTrick(Minecraft.getInstance().player, 40)));
-		}
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.dash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
+		},
+		SMASH {
 
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.casting.template", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	FIREBALL {
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				WingxPacketHandler.INSTANCE
+						.sendToServer(new TrickPerformedMessage(new SmashPlayerTrick(Minecraft.getInstance().player, 20,
+								1.0d, 1.0f, 5.0f, Minecraft.getInstance().player.getForward())));
+			}
 
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			WingxPacketHandler.INSTANCE.sendToServer(
-					new TrickPerformedMessage(new FireballCastPlayerTrick(Minecraft.getInstance().player)));
-		}
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.smash", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
+		},
+		TMP {
 
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.fireball", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	FIREBALL_HOMING {
-		private HomingFireballCastTargetedPlayerTrick trick = null;
-
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			if (this.trick == null) {
-				this.trick = new HomingFireballCastTargetedPlayerTrick(Minecraft.getInstance().player);
-				if (this.trick.getStatus() != 3) {
-					this.trick.showMessage();
-					this.trick = null;
+			@Override
+			public void execute() {
+				Minecraft minecraft = Minecraft.getInstance();
+				if (!minecraft.getRenderViewEntity().getUniqueID().equals(minecraft.player.getUniqueID())) {
+					minecraft.setRenderViewEntity(minecraft.player);
+					return;
 				}
-			} else {
-				if (this.trick.getStatus() == 3) {
-					if (this.trick.aimed()) {
-						WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+				List<LivingEntity> livingEntities = new ArrayList<LivingEntity>(0);
+				minecraft.world.getAllEntities().forEach(entity -> {
+					if (entity instanceof LivingEntity) {
+						livingEntities.add((LivingEntity) entity);
 					}
+				});
+				LivingEntity newEntity = minecraft.world.getClosestEntity(livingEntities,
+						new EntityPredicate().setCustomPredicate(
+								entity -> !entity.getUniqueID().equals(minecraft.player.getUniqueID())),
+						minecraft.player, minecraft.player.getPosX(), minecraft.player.getPosY(),
+						minecraft.player.getPosZ());
+				if (newEntity != null) {
+					minecraft.setRenderViewEntity(newEntity);
+				} else {
+					LOG.warn("No living entity found to switch");
 				}
-				this.trick.showMessage();
-				this.trick = null;
 			}
-		}
 
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.fireball_homing", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	SKY {
-
-		@Override
-		public void execute() {
-			GearSkyOverlay instance = GearSkyOverlay.instance;
-			if (instance != null) {
-				instance.deactivate();
-			} else {
-				new GearSkyOverlay().activate();
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.tmp", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
 			}
-		}
+		},
+		PUNCH {
+			private PunchPlayerTrick trick = null;
 
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.toggle_sky", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	SUMMON_SWORD {
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				if ((this.trick == null) || (this.trick.getStatus() != 1)) {
+					this.trick = new PunchPlayerTrick(Minecraft.getInstance().player);
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage(this.trick));
+				} else {
+					this.trick.endAim();
+					this.trick.showMessage();
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+					this.trick = null;
+				}
+			}
 
-		@SuppressWarnings("resource")
-		@Override
-		public void execute() {
-			WingxPacketHandler.INSTANCE.sendToServer(
-					new TrickPerformedMessage(new SummonSwordPlayerTrick(Minecraft.getInstance().player)));
-		}
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.punch", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
 
-		@Override
-		public void register() {
-			this.key = new KeyBinding("key.wingx.summon_sword", KeyConflictContext.IN_GAME, KeyModifier.NONE,
-					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
-		}
-	},
-	TEMPLATE {
+			@Override
+			public void setTrick(ITrick trickIn) {
+				if (trickIn instanceof PunchPlayerTrick) {
+					this.trick = (PunchPlayerTrick) trickIn;
+				}
+			}
 
-		@Override
-		public void execute() {
-			// TODO specify execute
-		}
+		},
+		SWAP {
+			private SwapPlayerTrick trick = null;
 
-		@Override
-		public void register() {
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				if ((this.trick == null) || (this.trick.getStatus() != 1)) {
+					this.trick = new SwapPlayerTrick(Minecraft.getInstance().player);
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage(this.trick));
+				} else {
+					this.trick.endAim();
+					this.trick.showMessage();
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+					this.trick = null;
+				}
+			}
+
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.swap", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
+
+			@Override
+			public void setTrick(ITrick trickIn) {
+				if (trickIn instanceof SwapPlayerTrick) {
+					this.trick = (SwapPlayerTrick) trickIn;
+				}
+			}
+		},
+		CASTING_TEMPLATE {
+
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				WingxPacketHandler.INSTANCE.sendToServer(
+						new TrickPerformedMessage(new TemplateCastPlayerTrick(Minecraft.getInstance().player, 40)));
+			}
+
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.casting.template", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
+		},
+		FIREBALL {
+
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				WingxPacketHandler.INSTANCE.sendToServer(
+						new TrickPerformedMessage(new FireballCastPlayerTrick(Minecraft.getInstance().player)));
+			}
+
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.fireball", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
+		},
+		FIREBALL_HOMING {
+			private HomingFireballCastTargetedPlayerTrick trick = null;
+
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				if ((this.trick == null) || (this.trick.getStatus() != 3)) {
+					this.trick = new HomingFireballCastTargetedPlayerTrick(Minecraft.getInstance().player);
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage(this.trick));
+				} else {
+					this.trick.endAim();
+					this.trick.showMessage();
+					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage(this.trick));
+					this.trick = null;
+				}
+			}
+
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.fireball_homing", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
+
+			@Override
+			public void setTrick(ITrick trickIn) {
+				if (trickIn instanceof HomingFireballCastTargetedPlayerTrick) {
+					this.trick = (HomingFireballCastTargetedPlayerTrick) trickIn;
+				}
+			}
+		},
+		SKY {
+
+			@Override
+			public void execute() {
+				GearSkyOverlay instance = GearSkyOverlay.instance;
+				if (instance != null) {
+					instance.deactivate();
+				} else {
+					new GearSkyOverlay().activate();
+				}
+			}
+
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.toggle_sky", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
+		},
+		SUMMON_SWORD {
+
+			@SuppressWarnings("resource")
+			@Override
+			public void execute() {
+				WingxPacketHandler.INSTANCE.sendToServer(
+						new TrickPerformedMessage(new SummonSwordPlayerTrick(Minecraft.getInstance().player)));
+			}
+
+			@Override
+			public void register() {
+				this.key = new KeyBinding("key.wingx.summon_sword", KeyConflictContext.IN_GAME, KeyModifier.NONE,
+						InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
+				super.register();
+			}
+		},
+		TEMPLATE {
+
+			@Override
+			public void execute() {
+				// TODO specify execute
+			}
+
+			@Override
+			public void register() {
 //			this.key = new KeyBinding("key.wingx.meditate", KeyConflictContext.IN_GAME, KeyModifier.NONE,
 //					InputMappings.Type.KEYSYM.getOrMakeInput(-1), SECTION_NAME.get());
-			super.register();
+				super.register();
+			}
+		};
+
+		private static final Logger LOG = LogManager.getLogger();
+		private static final Supplier<String> SECTION_NAME = () -> new TranslationTextComponent(
+				"key.wingx.section_name").getString(); // TODO divide into two sections
+
+		protected KeyBinding key = null;
+
+		public void register() {
+			if (this.key != null) {
+				ClientRegistry.registerKeyBinding(this.key);
+			} else {
+				LOG.warn("Tried to register null keybinding for {} wingx key", this.toString());
+			}
 		}
-	};
 
-	private static final Logger LOG = LogManager.getLogger();
-	private static final Supplier<String> SECTION_NAME = () -> new TranslationTextComponent("key.wingx.section_name")
-			.getString(); // TODO divide into two sections
+		public boolean isPressed() {
+			if (this.key != null) {
+				return this.key.isPressed();
+			} else {
+				return false;
+			}
+		}
 
-	protected KeyBinding key = null;
+		public abstract void execute();
 
-	public void register() {
-		if (this.key != null) {
-			ClientRegistry.registerKeyBinding(this.key);
-		} else {
-			LOG.warn("Tried to register null keybinding for {} wingx key", this.toString());
+		public void setTrick(ITrick trickIn) {
 		}
 	}
-
-	public boolean isPressed() {
-		if (this.key != null) {
-			return this.key.isPressed();
-		} else {
-			return false;
-		}
-	}
-
-	public abstract void execute();
 }

@@ -4,8 +4,11 @@ import net.minecraft.nbt.INBT;
 
 public interface IPersistableTrick extends ITrick {
 
-	void readFromNBT(INBT nbt);
+	public static interface TrickType<T extends IPersistableTrick> extends ITrick.ITrickType<T> {
 
-	INBT writeToNBT();
+		T readFromNBT(INBT nbt);
+
+		INBT writeToNBT(T trick);
+	}
 
 }

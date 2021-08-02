@@ -21,24 +21,23 @@ import net.minecraftforge.registries.IForgeRegistry;
 public class NetworkHelper {
 	private static final Logger LOG = LogManager.getLogger();
 
-	public static <T extends ITrick> ITrick readRegisteredTrick(IForgeRegistry<AbstractTrick> registry,
-			PacketBuffer buf) {
+	public static ITrick readRegisteredTrick(IForgeRegistry<ITrick.ITrickType<?>> registry, PacketBuffer buf) {
 		if (buf.readBoolean()) {
 			if (registry != null) {
-				String registryName = buf.readString(buf.readInt());
-				ITrick trick = registry.getValue(new ResourceLocation(registryName)).newEmpty();
-				if (trick != null) {
-					LOG.debug("While decoding found trick from {} class", trick.getClass().getName());
-					trick.readFromBuf(buf);
-					return trick;
+				String registryName = NetworkHelper.readString(buf);
+				ITrick.ITrickType<?> trickType = registry.getValue(new ResourceLocation(registryName));
+				if (trickType != null) {
+					LOG.debug("While decoding found trick type of {} class", trickType.getClass().getName());
+					return trickType.readFromBuf(buf);
 				} else {
-					LOG.warn("While decoding found no registered trick with registry name {}, setting trick to null",
+					LOG.warn(
+							"While decoding found no registered trick type with registry name {}, setting trick to null",
 							registryName);
 					return null;
 				}
 
 			} else {
-				LOG.warn("No registry found for {}, setting trick to null", AbstractTrick.class.getName());
+				LOG.warn("No registry found for {}, setting trick to null", AbstractTrick.TrickType.class.getName());
 				return null;
 			}
 		} else {
@@ -47,20 +46,22 @@ public class NetworkHelper {
 		}
 	}
 
-	public static void writeRegisteredTrick(PacketBuffer buf, ITrick trick) {
+	public static <T extends ITrick, U extends ITrick.ITrickType<T>> void writeRegisteredTrick(PacketBuffer buf,
+			T trick) {
 		if (trick != null) {
-			if (trick.getRegistryName() != null) {
+			U type = trick.getType();
+			ResourceLocation loc = type.getRegistryName();
+			if (loc != null) {
 				buf.writeBoolean(true);
-				String trickRegistryName = trick.getRegistryName().toString();
-				buf.writeInt(trickRegistryName.length());
-				buf.writeString(trickRegistryName);
-				trick.writeToBuf(buf);
+				String trickRegistryName = loc.toString();
+				NetworkHelper.writeString(buf, trickRegistryName);
+				type.writeToBuf(trick, buf);
 			} else {
 				LOG.warn("No registry name found for {} class. Message will be empty", trick.getClass().getName());
 				buf.writeBoolean(false);
 			}
 		} else {
-			LOG.warn("Trick is null, so message will be empty");
+			LOG.warn("Trick is null, so buffer will be empty");
 			buf.writeBoolean(false);
 		}
 	}

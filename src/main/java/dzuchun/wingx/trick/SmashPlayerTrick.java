@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
 
-import dzuchun.wingx.Wingx;
+import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.util.NBTHelper;
 import dzuchun.wingx.util.NBTReadingException;
 import net.minecraft.client.Minecraft;
@@ -20,7 +20,6 @@ import net.minecraft.nbt.INBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
@@ -32,12 +31,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
 public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implements IPersistableTrick {
-	private static final ResourceLocation REGISTRY_NAME = new ResourceLocation(Wingx.MOD_ID, "smash_player_trick");
 	private static final Logger LOG = LogManager.getLogger();
-
-	public SmashPlayerTrick() {
-		super();
-	}
 
 	// Parameters:
 	private int duration;
@@ -65,7 +59,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		this.speed = speed;
 		this.sideDamage = sideDamage;
 		this.mainDamage = mainDamage;
-		this.direction = direction.normalize();
+		this.direction = (direction != null) ? direction.normalize() : null;
 	}
 
 	@Override
@@ -169,79 +163,6 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	private static final String DIRECTION_TAG = "direction";
 
 	@Override
-	public void readFromNBT(INBT nbt) {
-		CompoundNBT compound = (CompoundNBT) nbt;
-		if (!compound.contains(HAS_CASTER_TAG) || !compound.contains(DURATION_TAG) || !compound.contains(SPEED_TAG)
-				|| !compound.contains(SIDE_DAMAGE_TAG) || !compound.contains(MAIN_DAMAGE_TAG)
-				|| !compound.contains(STATUS_TAG) || !compound.contains(END_TIME_TAG)
-				|| !compound.contains(DIRECTION_TAG)) {
-			LOG.warn("NBT data is corrupted or lost, contact someone who understand what NBT is.");
-			return;
-		}
-		try {
-			this.direction = NBTHelper.readVector3d(compound.getCompound(DIRECTION_TAG));
-		} catch (NBTReadingException e) {
-			LOG.warn("NBT data is corrupted or lost, contact someone who understand what NBT is.");
-			return;
-		}
-		if (compound.getBoolean(HAS_CASTER_TAG)) {
-			this.casterUniqueId = compound.getUniqueId(CASTER_UUID_TAG);
-		}
-		this.duration = compound.getInt(DURATION_TAG);
-		this.speed = compound.getDouble(SPEED_TAG);
-		this.sideDamage = compound.getFloat(SIDE_DAMAGE_TAG);
-		this.mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
-		this.status = compound.getInt(STATUS_TAG);
-		this.endTime = compound.getLong(END_TIME_TAG);
-	}
-
-	@Override
-	public INBT writeToNBT() {
-		CompoundNBT res = new CompoundNBT();
-		if (this.hasCasterPlayer()) {
-			res.putBoolean(HAS_CASTER_TAG, true);
-			res.putUniqueId(CASTER_UUID_TAG, this.casterUniqueId);
-		} else {
-			res.putBoolean(HAS_CASTER_TAG, false);
-		}
-		res.putInt(DURATION_TAG, this.duration);
-		res.putDouble(SPEED_TAG, this.speed);
-		res.putFloat(SIDE_DAMAGE_TAG, this.sideDamage);
-		res.putFloat(MAIN_DAMAGE_TAG, this.mainDamage);
-		res.putInt(STATUS_TAG, this.status);
-		res.putLong(END_TIME_TAG, this.endTime);
-		res.put(DIRECTION_TAG, NBTHelper.writeVector3d(this.direction));
-
-		return res;
-	}
-
-	@Override
-	public ITrick readFromBuf(PacketBuffer buf) {
-		this.duration = buf.readInt();
-		this.speed = buf.readDouble();
-		this.sideDamage = buf.readFloat();
-		this.mainDamage = buf.readFloat();
-		this.direction = new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
-		this.endTime = buf.readLong();
-
-		return super.readFromBuf(buf);
-	}
-
-	@Override
-	public ITrick writeToBuf(PacketBuffer buf) {
-		buf.writeInt(this.duration);
-		buf.writeDouble(this.speed);
-		buf.writeFloat(this.sideDamage);
-		buf.writeFloat(this.mainDamage);
-		buf.writeDouble(this.direction.x);
-		buf.writeDouble(this.direction.y);
-		buf.writeDouble(this.direction.z);
-		buf.writeLong(this.endTime);
-
-		return super.writeToBuf(buf);
-	}
-
-	@Override
 	public PacketTarget getBackPacketTarget() {
 		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer) : null;
 	}
@@ -250,16 +171,6 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	public PacketTarget getEndPacketTarget() {
 		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
 				: null;
-	}
-
-	@Override
-	public ITrick newEmpty() {
-		return new SmashPlayerTrick();
-	}
-
-	@Override
-	protected void setRegistryName() {
-		this.registryName = REGISTRY_NAME;
 	}
 
 	@Override
@@ -279,6 +190,93 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	@Override
 	protected ImmutableList<ITextComponent> getMessages() {
 		return MESSAGES;
+	}
+
+	public static class TrickType extends AbstractInterruptablePlayerTrick.TrickType<SmashPlayerTrick>
+			implements IPersistableTrick.TrickType<SmashPlayerTrick> {
+
+		@Override
+		public SmashPlayerTrick writeToBuf(SmashPlayerTrick trick, PacketBuffer buf) {
+			buf.writeInt(trick.duration);
+			buf.writeDouble(trick.speed);
+			buf.writeFloat(trick.sideDamage);
+			buf.writeFloat(trick.mainDamage);
+			buf.writeDouble(trick.direction.x);
+			buf.writeDouble(trick.direction.y);
+			buf.writeDouble(trick.direction.z);
+			buf.writeLong(trick.endTime);
+			return super.writeToBuf(trick, buf);
+		}
+
+		@Override
+		protected SmashPlayerTrick readFromBufInternal(SmashPlayerTrick trick, PacketBuffer buf) {
+			trick.duration = buf.readInt();
+			trick.speed = buf.readDouble();
+			trick.sideDamage = buf.readFloat();
+			trick.mainDamage = buf.readFloat();
+			trick.direction = new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+			trick.endTime = buf.readLong();
+			return super.readFromBufInternal(trick, buf);
+		}
+
+		@Override
+		public SmashPlayerTrick readFromNBT(INBT nbt) {
+			CompoundNBT compound = (CompoundNBT) nbt;
+			if (!compound.contains(HAS_CASTER_TAG) || !compound.contains(DURATION_TAG) || !compound.contains(SPEED_TAG)
+					|| !compound.contains(SIDE_DAMAGE_TAG) || !compound.contains(MAIN_DAMAGE_TAG)
+					|| !compound.contains(STATUS_TAG) || !compound.contains(END_TIME_TAG)
+					|| !compound.contains(DIRECTION_TAG)) {
+				LOG.warn("NBT data is corrupted or lost, so trick will be readed.");
+				return null;
+			}
+			SmashPlayerTrick res = this.newEmpty();
+			try {
+				res.direction = NBTHelper.readVector3d(compound.getCompound(DIRECTION_TAG));
+			} catch (NBTReadingException e) {
+				LOG.warn("NBT data is corrupted or lost, so trick will be readed.");
+				return null;
+			}
+			if (compound.getBoolean(HAS_CASTER_TAG)) {
+				res.casterUniqueId = compound.getUniqueId(CASTER_UUID_TAG);
+			}
+			res.duration = compound.getInt(DURATION_TAG);
+			res.speed = compound.getDouble(SPEED_TAG);
+			res.sideDamage = compound.getFloat(SIDE_DAMAGE_TAG);
+			res.mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
+			res.status = compound.getInt(STATUS_TAG);
+			res.endTime = compound.getLong(END_TIME_TAG);
+			return res;
+		}
+
+		@Override
+		public INBT writeToNBT(SmashPlayerTrick trick) {
+			CompoundNBT res = new CompoundNBT();
+			if (trick.hasCasterPlayer()) {
+				res.putBoolean(HAS_CASTER_TAG, true);
+				res.putUniqueId(CASTER_UUID_TAG, trick.casterUniqueId);
+			} else {
+				res.putBoolean(HAS_CASTER_TAG, false);
+			}
+			res.putInt(DURATION_TAG, trick.duration);
+			res.putDouble(SPEED_TAG, trick.speed);
+			res.putFloat(SIDE_DAMAGE_TAG, trick.sideDamage);
+			res.putFloat(MAIN_DAMAGE_TAG, trick.mainDamage);
+			res.putInt(STATUS_TAG, trick.status);
+			res.putLong(END_TIME_TAG, trick.endTime);
+			res.put(DIRECTION_TAG, NBTHelper.writeVector3d(trick.direction));
+			return null;
+		}
+
+		@Override
+		public SmashPlayerTrick newEmpty() {
+			return new SmashPlayerTrick(null, 0, 0.0d, 0.0f, 0.0f, null);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SmashPlayerTrick.TrickType getType() {
+		return Tricks.SMASH_TRICK.get();
 	}
 
 }

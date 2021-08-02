@@ -51,6 +51,7 @@ public interface IInterruptableTrick extends ICastedTrick {
 	 * @throws NoCasterException If method needs caster-related information, but
 	 *                           caster not set.
 	 */
+	@Deprecated // use status instead
 	boolean castEndedNaturally();
 
 	/**
@@ -64,4 +65,8 @@ public interface IInterruptableTrick extends ICastedTrick {
 	 * @return If trick should be keep till next tick.
 	 */
 	boolean keepExecuting();
+
+	public static interface TrickType<T extends IInterruptableTrick> extends ICastedTrick.TrickType<T> {
+	}
+
 }

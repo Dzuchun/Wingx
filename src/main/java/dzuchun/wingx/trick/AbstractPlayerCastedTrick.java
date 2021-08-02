@@ -22,11 +22,7 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 	private static final Logger LOG = LogManager.getLogger();
 	protected static final Style ERROR_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFFFF0000));
 	protected static final Style SUCCESS_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFF22BB00));
-	protected static final Style PROC_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFF888888));
-
-	public AbstractPlayerCastedTrick() {
-		super();
-	}
+	protected static final Style NEUTRAL_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFF888888));
 
 	public AbstractPlayerCastedTrick(@Nullable PlayerEntity caster) {
 		super(caster);
@@ -39,7 +35,7 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 	}
 
 	/**
-	 * @return Caster that is guaranteed to be a player.
+	 * @return Caster that is guaranteed to be a PlayerEntity or null.
 	 */
 	@Nullable
 	public PlayerEntity getCasterPlayer() {
@@ -58,7 +54,7 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
 			new TranslationTextComponent("wingx.trick.default_success").setStyle(SUCCESS_STYLE),
 			new TranslationTextComponent("wingx.trick.default_error").setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.default_proc").setStyle(PROC_STYLE),
+			new TranslationTextComponent("wingx.trick.default_proc").setStyle(NEUTRAL_STYLE),
 			new TranslationTextComponent("wingx.trick.default_cast_end").setStyle(SUCCESS_STYLE));
 
 	protected ImmutableList<ITextComponent> getMessages() {
@@ -80,5 +76,9 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 				this.getCasterPlayer().sendStatusMessage(ERROR_UNKNOWN, true);
 			}
 		}
+	}
+
+	public abstract static class TrickType<T extends AbstractPlayerCastedTrick>
+			extends AbstractCastedTrick.TrickType<T> {
 	}
 }

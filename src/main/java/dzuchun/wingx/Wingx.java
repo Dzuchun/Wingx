@@ -22,13 +22,11 @@ import dzuchun.wingx.init.SoundEvents;
 import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.item.Soulsword;
 import dzuchun.wingx.net.WingxPacketHandler;
-import dzuchun.wingx.trick.AbstractTrick;
 import dzuchun.wingx.util.animation.FadeFunction;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemModelsProperties;
 import net.minecraft.stats.StatType;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.MinecraftForge;
@@ -45,7 +43,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.ParallelDispatchEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryBuilder;
 
 @Mod(value = Wingx.MOD_ID)
 @Mod.EventBusSubscriber(bus = Bus.MOD, modid = Wingx.MOD_ID)
@@ -54,7 +51,6 @@ public class Wingx {
 	private static final Logger LOG = LogManager.getLogger();
 
 	public static final String MOD_ID = "wingx";
-	public static final ResourceLocation TRICKS_REGISTRY_NAME = new ResourceLocation(MOD_ID, "trick");
 
 	private static IEventBus MOD_EVENT_BUS;
 	private static IEventBus FORGE_EVENT_BUS;
@@ -64,7 +60,7 @@ public class Wingx {
 		MOD_EVENT_BUS = FMLJavaModLoadingContext.get().getModEventBus();
 		FORGE_EVENT_BUS = MinecraftForge.EVENT_BUS;
 
-		MOD_EVENT_BUS.addListener(Wingx::createResistries);
+		MOD_EVENT_BUS.addListener(Wingx::createRegistries);
 		MOD_EVENT_BUS.addListener(Wingx::registerModelOverrides);
 
 		LOG.debug("Initing");
@@ -146,11 +142,9 @@ public class Wingx {
 		LOG.debug("Finished client setup");
 	}
 
-	public static void createResistries(RegistryEvent.NewRegistry event) {
+	public static void createRegistries(RegistryEvent.NewRegistry event) {
 		LOG.debug("Creating tricks registry");
-		(new RegistryBuilder<AbstractTrick>()).setType(AbstractTrick.class).setName(Wingx.TRICKS_REGISTRY_NAME)
-				.create();
-//		Tricks.registerTricks(FMLJavaModLoadingContext.get().getModEventBus());
+		Tricks.createTricksRegistry(event);
 	}
 
 	public static void onTextureStitchPre(TextureStitchEvent.Pre event) {

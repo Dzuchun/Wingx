@@ -12,9 +12,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public abstract class AbstractTargetedPlayerTrick extends AbstractPlayerCastedTrick implements ITargetedTrick {
-	public AbstractTargetedPlayerTrick() {
-		super();
-	}
 
 	public AbstractTargetedPlayerTrick(Entity target, PlayerEntity caster) {
 		super(caster);
@@ -46,27 +43,6 @@ public abstract class AbstractTargetedPlayerTrick extends AbstractPlayerCastedTr
 		}
 	}
 
-	@Override
-	public ITrick readFromBuf(PacketBuffer buf) {
-		if (buf.readBoolean()) {
-			this.targetUniqueId = buf.readUniqueId();
-		} else {
-			this.targetUniqueId = null;
-		}
-		return super.readFromBuf(buf);
-	}
-
-	@Override
-	public ITrick writeToBuf(PacketBuffer buf) {
-		if (this.targetUniqueId == null) {
-			buf.writeBoolean(false);
-		} else {
-			buf.writeBoolean(true);
-			buf.writeUniqueId(this.targetUniqueId);
-		}
-		return super.writeToBuf(buf);
-	}
-
 	@OnlyIn(Dist.CLIENT)
 	public boolean amITarget() {
 		return (this.targetUniqueId != null)
@@ -76,5 +52,29 @@ public abstract class AbstractTargetedPlayerTrick extends AbstractPlayerCastedTr
 	@Override
 	public void setTargetWorld(World worldIn) {
 		this.targetWorld = worldIn;
+	}
+
+	public abstract static class TrickType<T extends AbstractTargetedPlayerTrick>
+			extends AbstractPlayerCastedTrick.TrickType<T> {
+		@Override
+		protected T readFromBufInternal(T trick, PacketBuffer buf) {
+			if (buf.readBoolean()) {
+				trick.targetUniqueId = buf.readUniqueId();
+			} else {
+				trick.targetUniqueId = null;
+			}
+			return super.readFromBufInternal(trick, buf);
+		}
+
+		@Override
+		public T writeToBuf(T trick, PacketBuffer buf) {
+			if (trick.targetUniqueId == null) {
+				buf.writeBoolean(false);
+			} else {
+				buf.writeBoolean(true);
+				buf.writeUniqueId(trick.targetUniqueId);
+			}
+			return super.writeToBuf(trick, buf);
+		}
 	}
 }

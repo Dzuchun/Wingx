@@ -29,12 +29,7 @@ public abstract class AbstractCastedTrick extends AbstractTrick implements ICast
 		}
 	}
 
-	public AbstractCastedTrick() {
-		super();
-	}
-
 	public AbstractCastedTrick(@Nullable Entity caster) {
-		super();
 		if (caster != null) {
 			this.setCaster(caster);
 		}
@@ -57,7 +52,7 @@ public abstract class AbstractCastedTrick extends AbstractTrick implements ICast
 	// TODO optimize (cache caster)
 	public Entity getCaster() {
 //		LOG.info("Getting trick caster: word {}, uuid {}", casterWorld, casterUniqueId);
-		return (this.casterUniqueId == null) || (this.casterWorld == null) ? null
+		return ((this.casterUniqueId == null) || (this.casterWorld == null)) ? null
 				: WorldHelper.getEntityFromWorldByUniqueId(this.casterWorld, this.casterUniqueId);
 	}
 
@@ -66,25 +61,29 @@ public abstract class AbstractCastedTrick extends AbstractTrick implements ICast
 		return (this.casterUniqueId == null) || (this.casterWorld == null) ? false : this.getCaster() != null;
 	}
 
-	@Override
-	public ITrick readFromBuf(PacketBuffer buf) {
-		if (buf.readBoolean()) {
-			this.casterUniqueId = buf.readUniqueId();
-		} else {
-			LOG.warn("No caster found");
-			this.casterUniqueId = null;
-		}
-		return super.readFromBuf(buf);
-	}
+	public abstract static class TrickType<T extends AbstractCastedTrick> extends AbstractTrick.TrickType<T> {
 
-	@Override
-	public ITrick writeToBuf(PacketBuffer buf) {
-		if (!this.hasCaster()) {
-			buf.writeBoolean(false);
-		} else {
-			buf.writeBoolean(true);
-			buf.writeUniqueId(this.casterUniqueId);
+		@Override
+		protected T readFromBufInternal(T trick, PacketBuffer buf) {
+			if (buf.readBoolean()) {
+				trick.casterUniqueId = buf.readUniqueId();
+			} else {
+				LOG.warn("No caster found");
+				trick.casterUniqueId = null;
+			}
+			return super.readFromBufInternal(trick, buf);
 		}
-		return super.writeToBuf(buf);
+
+		@Override
+		public T writeToBuf(T trick, PacketBuffer buf) {
+			if (!trick.hasCaster()) {
+				buf.writeBoolean(false);
+			} else {
+				buf.writeBoolean(true);
+				buf.writeUniqueId(trick.casterUniqueId);
+			}
+			return super.writeToBuf(trick, buf);
+		}
+
 	}
 }

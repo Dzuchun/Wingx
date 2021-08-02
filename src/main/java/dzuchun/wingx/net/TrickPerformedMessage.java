@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.trick.AbstractTrick;
+import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.trick.ICastedTrick;
 import dzuchun.wingx.trick.ITargetedTrick;
 import dzuchun.wingx.trick.ITrick;
@@ -18,7 +18,6 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryManager;
 
 public class TrickPerformedMessage {
 
@@ -31,7 +30,7 @@ public class TrickPerformedMessage {
 	}
 
 	public static TrickPerformedMessage decode(PacketBuffer buf) {
-		IForgeRegistry<AbstractTrick> registry = RegistryManager.ACTIVE.getRegistry(AbstractTrick.class);
+		IForgeRegistry<ITrick.ITrickType<?>> registry = Tricks.getRegistry();
 		return new TrickPerformedMessage(NetworkHelper.readRegisteredTrick(registry, buf));
 	}
 
@@ -44,6 +43,7 @@ public class TrickPerformedMessage {
 			ctx.get().enqueueWork(() -> {
 				ITrick trick = msg.trick;
 				if (trick != null) {
+					// TODO SEPARATE MESSAGES
 					if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
 						@SuppressWarnings("resource")
 						ClientWorld world = Minecraft.getInstance().world;

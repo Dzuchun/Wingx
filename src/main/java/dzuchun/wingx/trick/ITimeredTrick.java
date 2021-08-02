@@ -15,4 +15,7 @@ public interface ITimeredTrick extends IInterruptableTrick {
 	 *                           caster not set.
 	 */
 	double partLeft() throws NoCasterException;
+
+	public static interface TrickType<T extends ITimeredTrick> extends IInterruptableTrick.TrickType<T> {
+	}
 }

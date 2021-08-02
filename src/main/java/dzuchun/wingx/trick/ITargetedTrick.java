@@ -12,4 +12,7 @@ public interface ITargetedTrick extends ITrick {
 	void setTarget(Entity entityIn);
 
 	boolean hasTarget();
+
+	public static interface TrickType<T extends ITargetedTrick> extends ITrick.ITrickType<T> {
+	}
 }

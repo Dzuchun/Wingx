@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsCapability;
 import dzuchun.wingx.client.gui.MeditationScreen;
+import dzuchun.wingx.util.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ITextComponent;
@@ -43,7 +44,7 @@ public class MeditationGuiMessage {
 		Map<String, Integer> stats = new LinkedHashMap<String, Integer>(0);
 		int size = buf.readInt();
 		for (int i = 0; i < size; i++) {
-			stats.put(buf.readString(), buf.readInt());
+			stats.put(NetworkHelper.readString(buf), buf.readInt());
 		}
 		LOG.debug("Readed {} stat entries", size);
 		// Reading data
@@ -77,7 +78,7 @@ public class MeditationGuiMessage {
 		this.capability.writeToBuffer(buf);
 		buf.writeInt(this.stats.size());
 		for (Entry<String, Integer> e : this.stats.entrySet()) {
-			buf.writeString(e.getKey());
+			NetworkHelper.writeString(buf, e.getKey());
 			buf.writeInt(e.getValue());
 		}
 		buf.writeInt(this.data.size());

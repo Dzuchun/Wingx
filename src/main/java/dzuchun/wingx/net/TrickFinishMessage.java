@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dzuchun.wingx.trick.AbstractTrick;
+import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.trick.ICastedTrick;
 import dzuchun.wingx.trick.IInterruptableTrick;
 import dzuchun.wingx.trick.ITargetedTrick;
@@ -15,7 +15,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.registries.RegistryManager;
 
 public class TrickFinishMessage {
 
@@ -29,8 +28,8 @@ public class TrickFinishMessage {
 	}
 
 	public static TrickFinishMessage decode(PacketBuffer buf) {
-		return new TrickFinishMessage((IInterruptableTrick) NetworkHelper
-				.readRegisteredTrick(RegistryManager.ACTIVE.getRegistry(AbstractTrick.class), buf));
+		return new TrickFinishMessage(
+				(IInterruptableTrick) NetworkHelper.readRegisteredTrick(Tricks.getRegistry(), buf));
 	}
 
 	public void encode(PacketBuffer buf) {
