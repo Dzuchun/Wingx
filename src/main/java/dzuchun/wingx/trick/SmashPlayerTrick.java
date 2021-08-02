@@ -6,9 +6,9 @@ import java.util.Collection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-
 import dzuchun.wingx.init.Tricks;
+import dzuchun.wingx.trick.state.TrickState;
+import dzuchun.wingx.trick.state.TrickStates;
 import dzuchun.wingx.util.NBTHelper;
 import dzuchun.wingx.util.NBTReadingException;
 import net.minecraft.client.Minecraft;
@@ -23,8 +23,6 @@ import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -65,15 +63,15 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	@Override
 	public void executeServer() {
 		super.executeServer();
-		if (this.status != 0) {
+		if (this.state.isError()) {
 			return;
 		}
 		// We are on server
 		if (this.hasCasterPlayer()) {
-			this.status = 0; // Ok
+			this.state = TrickStates.OK; // Ok
 			this.damagedEntities = new ArrayList<Entity>(0);
 		} else {
-			this.status = 1; // No caster
+			this.state = TrickStates.NO_CASTER; // No caster
 		}
 	}
 
@@ -82,11 +80,17 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		AbstractCastedTrick.assertHasCasterInfo(this);
 
 		if ((this.casterWorld.getGameTime() >= this.endTime) || !this.hasCasterPlayer()) {
-			LOG.info("End term expired or no caster exists. Stopping execute.");
+			LOG.info("End term expired or no caster exists. Stopping execution.");
+			this.state = TrickStates.RUN_ENDED;
 			return false;
 		}
 		PlayerEntity caster = this.getCasterPlayer();
-		return caster.collidedHorizontally || caster.collidedVertically ? false : true; // TODO repair collision checks
+		if (caster.collidedHorizontally || caster.collidedVertically) {
+			this.state = TrickStates.FAST_FORWARD;
+			return false; // Trick was interrupted (which is ok for this one))
+		} else {
+			return true; // Keep excecuting
+		}
 	}
 
 	@Override
@@ -95,6 +99,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		AbstractCastedTrick.assertHasCasterInfo(this);
 		if (!this.hasCasterPlayer()) {
 			LOG.warn("No caster found");
+			this.state = TrickStates.NO_CASTER;
 			return;
 		}
 	}
@@ -115,19 +120,17 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		super.onTrickEndServer(); // We are on server
 		if (this.hasCasterPlayer()) {
 			PlayerEntity caster = this.getCasterPlayer();
-			if (!this.castEndedNaturally()) {
-				this.status = 2;// Interrupted
+			if (this.state != TrickStates.RUN_ENDED) {
 				// TODO parametrize radius
 				this.casterWorld
 						.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(4.0d), (Entity entity) -> true)
 						.forEach((Entity entity) -> {
 							entity.attackEntityFrom(this.getDamageSource(), this.mainDamage);
 						});
-			} else {
-				this.status = 3; // Cast ended naturally
 			}
 		} else {
 			LOG.warn("No caster found, can't perform onCastEnd");
+			this.state = TrickStates.NO_CASTER;
 		}
 	}
 
@@ -161,7 +164,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	private static final String SPEED_TAG = "speed";
 	private static final String SIDE_DAMAGE_TAG = "side_damage";
 	private static final String MAIN_DAMAGE_TAG = "main_damage";
-	private static final String STATUS_TAG = "status";
+	private static final String STATE_TAG = "state";
 	private static final String END_TIME_TAG = "end_time";
 	private static final String DIRECTION_TAG = "direction";
 
@@ -174,25 +177,6 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	public PacketTarget getEndPacketTarget() {
 		return this.hasCasterPlayer() ? PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) this.getCasterPlayer())
 				: null;
-	}
-
-	@Override
-	public boolean castEndedNaturally() {
-		assertHasCaster(this);
-		PlayerEntity caster = this.getCasterPlayer();
-		return !caster.collidedHorizontally && !caster.collidedVertically;
-	}
-
-	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
-			new TranslationTextComponent("wingx.trick.smash.start").setStyle(SUCCESS_STYLE),
-			new TranslationTextComponent("wingx.trick.smash.error",
-					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.smash.interrupt").setStyle(SUCCESS_STYLE),
-			new TranslationTextComponent("wingx.trick.smash.success").setStyle(SUCCESS_STYLE));
-
-	@Override
-	protected ImmutableList<ITextComponent> getMessages() {
-		return MESSAGES;
 	}
 
 	public static class TrickType extends AbstractInterruptablePlayerTrick.TrickType<SmashPlayerTrick>
@@ -227,7 +211,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 			CompoundNBT compound = (CompoundNBT) nbt;
 			if (!compound.contains(HAS_CASTER_TAG) || !compound.contains(DURATION_TAG) || !compound.contains(SPEED_TAG)
 					|| !compound.contains(SIDE_DAMAGE_TAG) || !compound.contains(MAIN_DAMAGE_TAG)
-					|| !compound.contains(STATUS_TAG) || !compound.contains(END_TIME_TAG)
+					|| !compound.contains(STATE_TAG) || !compound.contains(END_TIME_TAG)
 					|| !compound.contains(DIRECTION_TAG)) {
 				LOG.warn("NBT data is corrupted or lost, so trick will be readed.");
 				return null;
@@ -246,7 +230,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 			res.speed = compound.getDouble(SPEED_TAG);
 			res.sideDamage = compound.getFloat(SIDE_DAMAGE_TAG);
 			res.mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
-			res.status = compound.getInt(STATUS_TAG);
+			res.state = TrickState.readState(compound.getCompound(STATE_TAG));
 			res.endTime = compound.getLong(END_TIME_TAG);
 			return res;
 		}
@@ -264,10 +248,10 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 			res.putDouble(SPEED_TAG, trick.speed);
 			res.putFloat(SIDE_DAMAGE_TAG, trick.sideDamage);
 			res.putFloat(MAIN_DAMAGE_TAG, trick.mainDamage);
-			res.putInt(STATUS_TAG, trick.status);
+			res.put(STATE_TAG, trick.state.writeState());
 			res.putLong(END_TIME_TAG, trick.endTime);
 			res.put(DIRECTION_TAG, NBTHelper.writeVector3d(trick.direction));
-			return null;
+			return res;
 		}
 
 		@Override

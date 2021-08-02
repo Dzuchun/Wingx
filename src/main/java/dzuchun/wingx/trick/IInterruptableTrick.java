@@ -19,8 +19,6 @@ public interface IInterruptableTrick extends ICastedTrick {
 	 */
 	int timeLeft() throws NoCasterException;
 
-	void interrupt() throws NoCasterException;
-
 	/**
 	 * Invoked every tick, used for any sort of processing.
 	 *
@@ -45,14 +43,6 @@ public interface IInterruptableTrick extends ICastedTrick {
 
 	default void onTrickEndCommon() throws NoCasterException {
 	}
-
-	/**
-	 * @return If cast ended normally (actually, reached end)
-	 * @throws NoCasterException If method needs caster-related information, but
-	 *                           caster not set.
-	 */
-	@Deprecated // use status instead
-	boolean castEndedNaturally();
 
 	/**
 	 * @return PacketTarget to send TrickFinished message.

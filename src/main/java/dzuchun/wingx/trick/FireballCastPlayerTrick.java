@@ -3,21 +3,18 @@ package dzuchun.wingx.trick;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.FireballData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.entity.projectile.FireballEntity;
 import dzuchun.wingx.init.Tricks;
+import dzuchun.wingx.trick.state.TrickStates;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.Hand;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -54,15 +51,15 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 			this.interruptCondition = data.interruptCondition;
 			this.duration = data.castDuration;
 			this.interruptCondition.reset();
-			this.status = 0;
+			this.state = TrickStates.RUN;
 		} else {
 			LOG.warn("Caster does not exist, has no capability or caster is busy");
 			if (!this.hasCasterPlayer()) {
-				this.status = 1;
+				this.state = TrickStates.NO_CASTER;
 			} else if (!this.getCasterPlayer().getCapability(WingsProvider.WINGS).isPresent()) {
-				this.status = 2;
+				this.state = TrickStates.NO_WINGS;
 			} else if (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) != 0) {
-				this.status = 3;
+				this.state = TrickStates.CASTER_BUSY;
 			}
 		}
 		super.executeServer();
@@ -72,7 +69,7 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	public void onTrickEndServer() throws NoCasterException {
 		super.onTrickEndServer();
 		// We are on server
-		if (this.castEndedNaturally()) {
+		if (!this.state.isError()) {
 			((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(this.getCasterPlayer()));
 		}
 	}
@@ -82,12 +79,12 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	public void onTrickEndClient() throws NoCasterException {
 		super.onTrickEndClient();
 		// We are on client
-		if (this.amICaster() && (this.status == 0)) {
+		if (this.iAmCaster() && !this.state.isError()) {
 			@SuppressWarnings("resource")
 			ClientPlayerEntity player = Minecraft.getInstance().player;
 			player.resetCooldown();
 			player.swingArm(Hand.MAIN_HAND);
-			this.status = 4;
+			this.state = TrickStates.SUCCESS;
 			// TODO play sound
 		}
 	}
@@ -101,21 +98,6 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	public double partLeft() throws NoCasterException {
 		long current = this.casterWorld.getGameTime();
 		return (this.endTime - current) / (float) this.duration;
-	}
-
-	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
-			new TranslationTextComponent("wingx.trick.fireball.start").setStyle(SUCCESS_STYLE),
-			new TranslationTextComponent("wingx.trick.fireball.error",
-					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.fireball.error",
-					new TranslationTextComponent("wingx.trick.error_reason.no_wings")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.fireball.error",
-					new TranslationTextComponent("wingx.trick.error_reason.caster_busy")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.fireball.success").setStyle(SUCCESS_STYLE));
-
-	@Override
-	protected ImmutableList<ITextComponent> getMessages() {
-		return MESSAGES;
 	}
 
 	public static class TrickType extends AbstractInterruptablePlayerTrick.TrickType<FireballCastPlayerTrick>

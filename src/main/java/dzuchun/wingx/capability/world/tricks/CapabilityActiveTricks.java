@@ -79,12 +79,13 @@ public class CapabilityActiveTricks { // TOOD move to capability class
 											if (type instanceof IPersistableTrick.TrickType) {
 												if (type instanceof IInterruptableTrick.TrickType) {
 													@SuppressWarnings("unchecked")
-													IInterruptableTrick persistableTrick = (IInterruptableTrick) ((IPersistableTrick.TrickType<? extends IPersistableTrick>) type)
+													IInterruptableTrick persistableTrick = ((IPersistableTrick.TrickType<? extends IPersistableTrick>) type)
 															.readFromNBT(tmp.get(TRICK_TAG));
 													active_tricks.add(persistableTrick);
-												} else { // TODO despagetify
+													// TODO FIX!!! doesn't work at all!
+												} else { // TODO de-spagetify
 													LOG.info(
-															"Found not interruptable trick in NBT. Looks like developer's stupidity (trick will not persist)");
+															"Found not interruptable trick in NBT. Looks like developer's stupidity (trick will be lost)");
 												}
 											} else {
 												LOG.warn(

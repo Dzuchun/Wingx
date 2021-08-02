@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import dzuchun.wingx.init.Tricks;
+import dzuchun.wingx.trick.state.TrickStates;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -33,7 +34,7 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	@Override
 	public void executeClient() {
 		super.executeClient();
-		if (this.status != 0) {
+		if (this.state.isError()) {
 			Minecraft minecraft = Minecraft.getInstance();
 			minecraft.player.sendStatusMessage(new TranslationTextComponent("wingx.trick.interrubtable.template.fail")
 					.setStyle(Style.EMPTY.setFormatting(TextFormatting.GRAY)), true);
@@ -43,16 +44,16 @@ public class TemplateCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 	@Override
 	public void executeServer() {
 		if (this.hasCasterPlayer() && (AbstractInterruptablePlayerTrick.playerBusyFor(this.getCasterPlayer()) == 0)) {
-			this.status = 0;
+			this.state = TrickStates.RUN;
 		} else {
-			this.status = 1;
+			this.state = this.hasCasterPlayer() ? TrickStates.CASTER_BUSY : TrickStates.NO_CASTER;
 		}
 		super.executeServer();
 	}
 
 	@Override
 	public void onTrickEndCommon() throws NoCasterException {
-		this.status = 3;
+		this.state = TrickStates.RUN_ENDED;
 		super.onTrickEndCommon();
 	}
 

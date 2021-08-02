@@ -27,8 +27,11 @@ public class MeditationUtil {
 	public static final long MEDITATION_MINIMUM_CALCULATION_INTERVAL = 200l;
 	public static final double MEDITATION_MAX_DISTANCE = 20.0f;
 	public static final double MEDITATION_MAX_DISTANCE_SR = MEDITATION_MAX_DISTANCE * MEDITATION_MAX_DISTANCE;
+	// TODO parametrize
 	public static final Function<Double, Double> MEDITATION_DISTANCE_WEIGHT = d -> d;
+	// TODO parametrize
 	public static final Function<BlockState, Double> MEDITATION_BLOCK_WEIGHT = blockstate -> 1.0d;
+	// TODO parametrize
 	public static final Function<FluidState, Double> MEDITATION_FLUID_WEIGHT = fluidstate -> 1.0d;
 
 	public static final float MEDITATION_MAX_YAW_DEGREES = 15f;
@@ -49,7 +52,7 @@ public class MeditationUtil {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LogManager.getLogger();
 
-	public static double getMeditationScore(Entity entity) {
+	public static double getMeditationPoints(Entity entity) {
 		UUID uuid = entity.getUniqueID();
 		World world = entity.world;
 		Long currentTime = world.getGameTime();
@@ -62,24 +65,24 @@ public class MeditationUtil {
 		}
 		double res = data.second;
 		if ((currentTime - data.first) >= MEDITATION_MINIMUM_CALCULATION_INTERVAL) {
-			res = getMeditationScoreInner(entity);
+			res = getMeditationPointsInner(entity);
 			meditationLastCalculations.replace(uuid, Pair.of(currentTime, res));
 		}
 		return res;
 	}
 
-	private static double getMeditationScoreInner(Entity entity) {
+	private static double getMeditationPointsInner(Entity entity) {
 		double res = 0d;
 		for (float yaw = 0f; yaw <= MEDITATION_MAX_YAW_DEGREES; yaw += MEDITATION_YAW_STEP_DEGREES) {
 			for (float pitch = 0f; pitch <= MEDITATION_MAX_PITCH_DEGREES; pitch += MEDITATION_PITCH_STEP_DEGREES) {
-				res += getMeditationScoreInner(entity, yaw, pitch);
+				res += getMeditationPointsInner(entity, yaw, pitch);
 				if (yaw != 0) {
-					res += getMeditationScoreInner(entity, -yaw, pitch);
+					res += getMeditationPointsInner(entity, -yaw, pitch);
 				}
 				if (pitch != 0) {
-					res += getMeditationScoreInner(entity, yaw, -pitch);
+					res += getMeditationPointsInner(entity, yaw, -pitch);
 					if (yaw != 0) {
-						res += getMeditationScoreInner(entity, -yaw, -pitch);
+						res += getMeditationPointsInner(entity, -yaw, -pitch);
 					}
 				}
 			}
@@ -88,7 +91,7 @@ public class MeditationUtil {
 				/ (((double) MEDITATION_PITCH_ITERATIONS * 2) + 1));
 	}
 
-	private static double getMeditationScoreInner(Entity entity, float yawDelta, float pitchDelta) {
+	private static double getMeditationPointsInner(Entity entity, float yawDelta, float pitchDelta) {
 		float yaw = entity.rotationYaw + yawDelta;
 		float pitch = entity.rotationPitch + pitchDelta;
 		Vector3d begin = entity.getEyePosition(0);

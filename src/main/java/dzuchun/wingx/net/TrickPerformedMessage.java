@@ -53,7 +53,7 @@ public class TrickPerformedMessage {
 						((ITargetedTrick) this.trick).setTargetWorld(world);
 					}
 					this.trick.executeClient();
-					this.trick.showMessage();
+					this.trick.reportState();
 				} else {
 					LOG.warn("Trick is null, ignoring message");
 				}

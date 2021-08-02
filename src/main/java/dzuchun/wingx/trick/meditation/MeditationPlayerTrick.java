@@ -7,8 +7,6 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.BasicData;
@@ -25,12 +23,12 @@ import dzuchun.wingx.net.WingxPacketHandler;
 import dzuchun.wingx.trick.AbstractInterruptablePlayerTrick;
 import dzuchun.wingx.trick.ICastedTrick;
 import dzuchun.wingx.trick.NoCasterException;
+import dzuchun.wingx.trick.state.TrickStates;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.stats.Stat;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -61,7 +59,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 				: null;
 	}
 
-	// Not syncronized
+	// Don't syncronize
 	private boolean tmp_boolean_1;
 
 	@Override
@@ -74,12 +72,12 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 					BasicData data = cap.getDataManager().getOrAddDefault(Serializers.BASIC_SERIALIZER);
 					if (data.needsEnd && (caster.world.getDimensionKey() != World.THE_END)) {
 						LOG.debug("Player requires end to meditate, but is not in end now.");
-						this.status = 1;
+						this.state = TrickStates.NOT_IN_END;
 						return;
 					}
 
-					if (MeditationUtil.getMeditationScore(caster) <= data.requiredMeditationScore) {
-						this.status = 2;
+					if (MeditationUtil.getMeditationPoints(caster) <= data.requiredMeditationScore) {
+						this.state = TrickStates.NOT_ENOUGH_MEDITATION_POINTS;
 						LOG.debug("Player has not enough meditation points to perform meditation.");
 						return;
 					}
@@ -96,18 +94,18 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 						});
 					});
 					if (!this.tmp_boolean_1) {
-						this.status = 3;
+						this.state = TrickStates.CASTER_BUSY;
 						return;
 					}
-					this.status = 0;
+					this.state = TrickStates.OK;
 				});
 			} else {
 				LOG.warn("Caster doesn't have wings capability. Meditation won't be performed.");
-				this.status = 4;
+				this.state = TrickStates.NO_WINGS;
 			}
 		} else {
 			LOG.warn("No caster found. Meditation won't be performed.");
-			this.status = 5;
+			this.state = TrickStates.NO_CASTER;
 		}
 		super.executeServer();
 	}
@@ -116,7 +114,7 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	@Override
 	public void executeClient() {
 		Minecraft minecraft = Minecraft.getInstance();
-		if (this.status == 0) {
+		if (!this.state.isError()) {
 			if (FadingScreenOverlay.instance != null) {
 				FadingScreenOverlay.instance.deactivate();
 			}
@@ -133,9 +131,12 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 
 	@Override
 	public void onTrickEndServer() throws NoCasterException {
+		if (this.state.isError()) {
+			return;
+		}
 		// We are on server
 		assertHasCaster(this);
-		if (this.castEndedNaturally()) {
+		if (this.state == TrickStates.RUN_ENDED) {
 			LazyOptional<IWingsCapability> optionalCap = this.getCasterPlayer().getCapability(WingsProvider.WINGS,
 					null);
 			if (optionalCap.isPresent()) {
@@ -178,22 +179,23 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 	@Override
 	public void onTrickEndClient() throws NoCasterException {
 		// We are on client
-		if (this.amICaster()) {
-			if (!this.castEndedNaturally()) {
+		if (this.iAmCaster()) {
+			if (this.state != TrickStates.RUN_ENDED) {
 				FadingScreenOverlay overlay = FadingScreenOverlay.instance;
 				if (overlay == null) {
 					LOG.warn("There is no overlay, but meditation cast ended unnaturaly");
+					this.state = TrickStates.OVERLAY_ERROR;
 				} else {
 					overlay.deactivate();
 					boolean res = new FadingScreenOverlay(overlay.getCurrentColor(), FadingScreenOverlay.Color.ZERO,
 							Math.max(1, this.duration / 10)).activate();
 					if (!res) {
 						LOG.warn("Could not activate fail overlay");
+						this.state = TrickStates.OVERLAY_ERROR;
 					}
 				}
-				this.status = 6;
 			} else {
-				this.status = 7;
+				this.state = TrickStates.SUCCESS;
 				// TODO may greet user (on client)
 			}
 		}
@@ -228,27 +230,6 @@ public class MeditationPlayerTrick extends AbstractInterruptablePlayerTrick {
 		}
 //		LOG.debug("For input ({}, {}, {}, {}) got result {}", requiredData, entry, dataType, cap, dataValue);
 		requiredData.put(entry, dataValue);
-	}
-
-	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
-			new TranslationTextComponent("wingx.trick.meditation.start").setStyle(SUCCESS_STYLE),
-			new TranslationTextComponent("wingx.trick.meditation.error",
-					new TranslationTextComponent("wingx.trick.error_reason.not_in_end")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.meditation.error",
-					new TranslationTextComponent("wingx.trick.error_reason.not_enough_meditation_points"))
-							.setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.meditation.error",
-					new TranslationTextComponent("wingx.trick.error_reason.already_meditating")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.meditation.error",
-					new TranslationTextComponent("wingx.trick.error_reason.no_wings")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.meditation.error",
-					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.meditation.interrupt").setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wings.trick.meditation.success").setStyle(SUCCESS_STYLE));
-
-	@Override
-	protected ImmutableList<ITextComponent> getMessages() {
-		return MESSAGES;
 	}
 
 	public static class TrickType extends AbstractInterruptablePlayerTrick.TrickType<MeditationPlayerTrick> {

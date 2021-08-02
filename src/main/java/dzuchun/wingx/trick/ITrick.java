@@ -1,5 +1,6 @@
 package dzuchun.wingx.trick;
 
+import dzuchun.wingx.trick.state.TrickState;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 import net.minecraftforge.registries.IForgeRegistryEntry;
@@ -17,11 +18,11 @@ public interface ITrick {
 		this.executeCommon();
 	}
 
-	int getStatus();
+	TrickState getState();
 
 	PacketTarget getBackPacketTarget();
 
-	default void showMessage() {
+	default void reportState() {
 	}
 
 	public abstract <U extends ITrick, T extends ITrickType<U>> T getType();

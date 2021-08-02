@@ -15,6 +15,8 @@ import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.config.ServerConfig;
 import dzuchun.wingx.config.abillity.AbillityNodes;
+import dzuchun.wingx.trick.state.TrickState;
+import dzuchun.wingx.util.Util;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
@@ -93,7 +95,12 @@ public class WingxComand {
 												.sendFeedback(new StringTextComponent("Active tricks cleared"), true);
 									});
 							return 0;
-						})));
+						})))
+				.then(Commands.literal("trick_states").then(Commands.literal("list").executes(source -> {
+					String res = Util.iterableToString(TrickState.getStates());
+					source.getSource().sendFeedback(new StringTextComponent(res), true);
+					return 0;
+				})));
 	}
 
 	private static ArgumentBuilder<CommandSource, ?> config() {

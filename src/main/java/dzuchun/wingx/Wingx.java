@@ -22,6 +22,7 @@ import dzuchun.wingx.init.SoundEvents;
 import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.item.Soulsword;
 import dzuchun.wingx.net.WingxPacketHandler;
+import dzuchun.wingx.trick.state.TrickStates;
 import dzuchun.wingx.util.animation.FadeFunction;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemModelsProperties;
@@ -56,7 +57,8 @@ public class Wingx {
 	private static IEventBus FORGE_EVENT_BUS;
 
 	public Wingx() {
-		LOG.debug("Wingx awakened!");
+		LOG.debug("A wild Wingx appeared!"); // Credits to brandon3055 {@link
+												// https://www.curseforge.com/members/brandon3055/} for this idea
 		MOD_EVENT_BUS = FMLJavaModLoadingContext.get().getModEventBus();
 		FORGE_EVENT_BUS = MinecraftForge.EVENT_BUS;
 
@@ -91,6 +93,10 @@ public class Wingx {
 		ActiveTricksProvider.init();
 		Serializers.init();
 		LOG.debug("Inited capabilities");
+
+		LOG.info("Initing trick states");
+		TrickStates.init();
+		LOG.info("Inited trick states");
 
 		LOG.info("Initing animation stuff");
 		FadeFunction.init();

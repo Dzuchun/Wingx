@@ -3,13 +3,12 @@ package dzuchun.wingx.trick;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-
 import dzuchun.wingx.capability.entity.wings.storage.HastyData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
 import dzuchun.wingx.client.render.overlay.HastyPostAnimationOverlay;
 import dzuchun.wingx.init.SoundEvents;
 import dzuchun.wingx.init.Tricks;
+import dzuchun.wingx.trick.state.TrickStates;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.multiplayer.PlayerController;
@@ -18,8 +17,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
@@ -40,6 +37,9 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 	@Override
 	public void executeClient() {
 		super.executeClient();
+		if (this.state.isError()) {
+			return;
+		}
 		// We are on client
 		// TODO fix block not-dropping
 		Entity caster = this.getCaster();
@@ -47,11 +47,11 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 			Minecraft minecraft = Minecraft.getInstance();
 			PlayerController controller = minecraft.playerController;
 			if (controller.isHittingBlock) {
-				if (this.amICaster()) {
+				if (this.iAmCaster()) {
 					if ((1.0f - controller.curBlockDamageMP) > this.data.jump) {
 						LOG.info("Executing hasty trick on client. Is hitting block={}, current damage={}",
 								controller.isHittingBlock, controller.curBlockDamageMP);
-						controller.curBlockDamageMP += this.data.jump;
+						controller.curBlockDamageMP += Math.min(this.data.jump, 1.0f - controller.curBlockDamageMP);
 					}
 				}
 				// Performing animation
@@ -59,6 +59,8 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 				// Playing sound
 				minecraft.world.playSound(minecraft.player, this.blocksPos, SoundEvents.HASTY_PROC.get(),
 						SoundCategory.PLAYERS, 1.0f, 1.0f);
+				// Setting state
+				this.state = TrickStates.PROCED;
 			}
 		}
 	}
@@ -66,14 +68,6 @@ public class HastyPlayerTrick extends AbstractPlayerCastedTrick {
 	@Override
 	public PacketTarget getBackPacketTarget() {
 		return null;
-	}
-
-	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList
-			.of(new TranslationTextComponent("wingx.trick.hasty.proc").setStyle(NEUTRAL_STYLE));
-
-	@Override
-	protected ImmutableList<ITextComponent> getMessages() {
-		return MESSAGES;
 	}
 
 	public static class TrickType extends AbstractPlayerCastedTrick.TrickType<HastyPlayerTrick> {

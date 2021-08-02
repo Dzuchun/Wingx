@@ -1,14 +1,20 @@
 package dzuchun.wingx.trick;
 
+import dzuchun.wingx.trick.state.TrickState;
+import dzuchun.wingx.trick.state.TrickStates;
+import dzuchun.wingx.util.NetworkHelper;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 public abstract class AbstractTrick implements ITrick {
-	protected int status = 0;
+	protected TrickState state = TrickStates.OK;
 
+	/**
+	 * Returns {@link TrickState} objectm representing current execution state
+	 */
 	@Override
-	public int getStatus() {
-		return this.status;
+	public TrickState getState() {
+		return this.state;
 	}
 
 	public abstract static class TrickType<T extends AbstractTrick> extends ForgeRegistryEntry<ITrickType<T>>
@@ -26,7 +32,8 @@ public abstract class AbstractTrick implements ITrick {
 		}
 
 		protected T readFromBufInternal(T trick, PacketBuffer buf) {
-			trick.status = buf.readInt();
+			// TODO remove?
+			trick.state = NetworkHelper.readChecked(buf, TrickState::readState);
 			return trick;
 		}
 
@@ -38,7 +45,8 @@ public abstract class AbstractTrick implements ITrick {
 		 */
 		@Override
 		public T writeToBuf(T trick, PacketBuffer buf) {
-			buf.writeInt(trick.getStatus());
+			// TODO remove?
+			NetworkHelper.writeChecked(buf, trick.state, (b, st) -> st.writeState(b));
 			return trick;
 		}
 

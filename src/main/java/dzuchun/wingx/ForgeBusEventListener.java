@@ -223,8 +223,8 @@ public class ForgeBusEventListener {
 	public static void onRenderGameOverlayText(RenderGameOverlayEvent.Text event) {
 		if (Minecraft.getInstance().gameSettings.showDebugInfo) { // Otherwise string is displayed all the time
 			event.getLeft().add("");
-			event.getLeft().add(String.format("Meditation points available: %s",
-					MeditationUtil.getMeditationScore(Minecraft.getInstance().player)));
+			event.getLeft().add(String.format("Meditation points available: %.2f",
+					MeditationUtil.getMeditationPoints(Minecraft.getInstance().player)));
 		}
 	}
 

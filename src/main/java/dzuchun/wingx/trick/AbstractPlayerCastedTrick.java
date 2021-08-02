@@ -5,15 +5,12 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.Color;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -29,7 +26,7 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	public boolean amICaster() {
+	public boolean iAmCaster() {
 		return (this.casterUniqueId != null)
 				&& this.casterUniqueId.equals(Minecraft.getInstance().player.getUniqueID());
 	}
@@ -51,30 +48,15 @@ public abstract class AbstractPlayerCastedTrick extends AbstractCastedTrick {
 		return this.getCasterPlayer() != null;
 	}
 
-	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
-			new TranslationTextComponent("wingx.trick.default_success").setStyle(SUCCESS_STYLE),
-			new TranslationTextComponent("wingx.trick.default_error").setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.default_proc").setStyle(NEUTRAL_STYLE),
-			new TranslationTextComponent("wingx.trick.default_cast_end").setStyle(SUCCESS_STYLE));
-
-	protected ImmutableList<ITextComponent> getMessages() {
-		return MESSAGES;
+	public ITextComponent getStateMessage() {
+		return this.state.getStateMessage(this);
 	}
 
-	private static final ITextComponent ERROR_UNKNOWN = new TranslationTextComponent("wingx.trick.error.unknown")
-			.setStyle(ERROR_STYLE);
-
-	@OnlyIn(value = Dist.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void showMessage() {
-		if (this.amICaster()) {
-			if (this.status >= 0) {
-				// TODO add check for valid status
-				ITextComponent message = this.getMessages().get(this.status);
-				this.getCasterPlayer().sendStatusMessage(message, true);
-			} else {
-				this.getCasterPlayer().sendStatusMessage(ERROR_UNKNOWN, true);
-			}
+	public void reportState() {
+		if (this.iAmCaster()) {
+			this.getCasterPlayer().sendStatusMessage(this.getStateMessage(), true);
 		}
 	}
 

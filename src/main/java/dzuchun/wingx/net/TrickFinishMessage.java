@@ -49,7 +49,7 @@ public class TrickFinishMessage {
 				((ITargetedTrick) trick).setTargetWorld(world);
 			}
 			msg.trick.onTrickEndClient();
-			msg.trick.showMessage();
+			msg.trick.reportState();
 		});
 	}
 }

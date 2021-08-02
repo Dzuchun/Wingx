@@ -67,7 +67,7 @@ public class TrickAimingMessage {
 						((ITargetedTrick) this.trick).setTargetWorld(world);
 					}
 					this.trick.beginAimClient();
-					this.trick.showMessage();
+					this.trick.reportState();
 				} else {
 					LOG.warn("Trick is null, ignoring message");
 				}

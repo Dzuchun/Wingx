@@ -172,12 +172,12 @@ public class KeyEvents { // TODO fix pressing issues
 			@SuppressWarnings("resource")
 			@Override
 			public void execute() {
-				if ((this.trick == null) || (this.trick.getStatus() != 1)) {
+				if ((this.trick == null) || (this.trick.getState().isError())) {
 					this.trick = new PunchPlayerTrick(Minecraft.getInstance().player);
 					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage.Server(this.trick));
 				} else {
 					this.trick.endAim();
-					this.trick.showMessage();
+					this.trick.reportState();
 					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage.Server(this.trick));
 					this.trick = null;
 				}
@@ -204,12 +204,12 @@ public class KeyEvents { // TODO fix pressing issues
 			@SuppressWarnings("resource")
 			@Override
 			public void execute() {
-				if ((this.trick == null) || (this.trick.getStatus() != 1)) {
+				if ((this.trick == null) || (this.trick.getState().isError())) {
 					this.trick = new SwapPlayerTrick(Minecraft.getInstance().player);
 					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage.Server(this.trick));
 				} else {
 					this.trick.endAim();
-					this.trick.showMessage();
+					this.trick.reportState();
 					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage.Server(this.trick));
 					this.trick = null;
 				}
@@ -267,12 +267,12 @@ public class KeyEvents { // TODO fix pressing issues
 			@SuppressWarnings("resource")
 			@Override
 			public void execute() {
-				if ((this.trick == null) || (this.trick.getStatus() != 3)) {
+				if ((this.trick == null) || (this.trick.getState().isError())) {
 					this.trick = new HomingFireballCastTargetedPlayerTrick(Minecraft.getInstance().player);
 					WingxPacketHandler.INSTANCE.sendToServer(new TrickAimingMessage.Server(this.trick));
 				} else {
 					this.trick.endAim();
-					this.trick.showMessage();
+					this.trick.reportState();
 					WingxPacketHandler.INSTANCE.sendToServer(new TrickPerformedMessage.Server(this.trick));
 					this.trick = null;
 				}

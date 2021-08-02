@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.capability.world.tricks.IActiveTricksCapability;
 import dzuchun.wingx.client.render.gui.SeparateRenderers;
+import dzuchun.wingx.trick.state.TrickStates;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
@@ -84,7 +85,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		PlayerEntity caster = this.getCasterPlayer();
 		if (this.hasCasterPlayer()) {
 			if (this.interruptCondition.condition().test(caster)) {
-				this.interrupt();
+				this.state = TrickStates.CAST_INTERRUPTED;
 				LOG.debug("Interrupting cast: condition failed");
 				if (!this.hasCasterPlayer()) {
 					LOG.warn("Caster disappeared!");
@@ -92,8 +93,8 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 				return;
 			}
 		} else {
-			this.interrupt();
 			LOG.warn("No player caster for trick.");
+			this.state = TrickStates.NO_CASTER;
 		}
 	}
 
@@ -107,7 +108,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		}
 		@SuppressWarnings("unused")
 		PlayerEntity caster = this.getCasterPlayer();
-		if (this.status == 0) {
+		if (!this.state.isError()) {
 			this.beginCast();
 			LOG.warn("Begining cast of {}", this);
 		} else {
@@ -119,7 +120,7 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	@Override
 	public void executeClient() {
 		super.executeClient();
-		if (this.status != 0) {
+		if (this.state.isError()) {
 			return;
 		}
 		synchronized (CLIENT_INSTANCES_LOCK) {
@@ -130,21 +131,14 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	@Override
 	public void executeServer() {
 		super.executeServer();
-		if (this.status != 0) {
+		if (this.state.isError()) {
 			return;
 		}
 		this.casterWorld.getCapability(ActiveTricksProvider.ACTIVE_TRICKS, null).ifPresent(cap -> {
-			cap.addActiveTrick(this);
+			if (!cap.addActiveTrick(this)) {
+				this.state = TrickStates.CASTER_BUSY;
+			}
 		});
-	}
-
-	@Deprecated
-	protected boolean interrupted = false; // TODO replace with status
-
-	// TODO doc
-	@Override
-	public void interrupt() {
-		this.interrupted = true;
 	}
 
 	private static List<AbstractInterruptablePlayerTrick> toRemove_1 = new ArrayList<AbstractInterruptablePlayerTrick>(
@@ -313,14 +307,6 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 	}
 
 	@Override
-	public boolean castEndedNaturally() {
-		assertHasCasterInfo(this);
-//		LOG.debug("Now {}, endTime {}, returning {}", this.casterWorld.getGameTime(), this.endTime,
-//				this.casterWorld.getGameTime() >= this.endTime);
-		return this.casterWorld.getGameTime() >= this.endTime;
-	}
-
-	@Override
 	public void beginCast() throws NoCasterException {
 		assertHasCasterInfo(this);
 		this.beginTime = this.casterWorld.getGameTime();
@@ -328,15 +314,24 @@ public abstract class AbstractInterruptablePlayerTrick extends AbstractPlayerCas
 		LOG.debug("Beginning cast of {} trick with hashcode {}. Duration: {}, end time: {}, now: {}",
 				this.getClass().getName(), this.hashCode(), this.duration, this.endTime,
 				this.casterWorld.getGameTime());
+		this.state = TrickStates.RUN;
 	}
 
 	@Override
 	public boolean keepExecuting() {
-		if (this.interrupted) {
+		if (this.state.isError()) {
+			return false;
+		}
+		if (this.state == TrickStates.FAST_FORWARD) {
 			return false;
 		}
 		assertHasCasterInfo(this);
-		return this.endTime >= this.casterWorld.getGameTime();
+		if (this.endTime >= this.casterWorld.getGameTime()) {
+			return true;
+		} else {
+			this.state = TrickStates.RUN_ENDED;
+			return false;
+		}
 	}
 
 	@Override

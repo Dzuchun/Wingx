@@ -3,8 +3,6 @@ package dzuchun.wingx.trick;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-
 import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
@@ -14,6 +12,7 @@ import dzuchun.wingx.client.render.overlay.SoulswordOverlay;
 import dzuchun.wingx.init.Items;
 import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.item.Soulsword;
+import dzuchun.wingx.trick.state.TrickStates;
 import dzuchun.wingx.util.NetworkHelper;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -21,9 +20,9 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.Color;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -98,11 +97,11 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 			int busy = AbstractInterruptablePlayerTrick.playerBusyFor(caster);
 			if (busy != 0) {
 				LOG.warn("Found that caster {} is busy for {} more tick, trick {} won't be casted", caster, busy, this);
-				this.status = 2; // Cant be casted - player busy (?)
+				this.state = TrickStates.CASTER_BUSY; // Cant be casted - player busy
 				return;
 			}
 			if (!caster.getHeldItemMainhand().isEmpty()) {
-				this.status = 1; // Cant be casted - item held
+				this.state = TrickStates.HAND_BUSY; // Cant be casted - item held
 				return;
 			}
 			// TODO some visual stuff
@@ -116,22 +115,14 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 
 	private static final Style EPIC_STYLE = Style.EMPTY.setColor(Color.fromInt(0xFFAA00AA));
 
-	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
-//			new TranslationTextComponent("wingx.trick.default_success").setStyle(SUCCESS_STYLE),
-			new TranslationTextComponent("wingx.trick.summon_soulsword.start").setStyle(NEUTRAL_STYLE),
-			new TranslationTextComponent("wingx.trick.summon_soulsword.error",
-					new TranslationTextComponent("wingx.trick.error_reason.hand_busy")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.summon_soulsword.error",
-					new TranslationTextComponent("wingx.trick.error_reason.caster_busy")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.summon_soulsword.error",
-					new TranslationTextComponent("wingx.trick.error_reason.interrupt_cast")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.summon_soulsword.error",
-					new TranslationTextComponent("wingx.trick.error_reason.overlay_unknown")).setStyle(ERROR_STYLE),
-			new TranslationTextComponent("wingx.trick.summon_soulsword.success").setStyle(EPIC_STYLE));
-
 	@Override
-	protected ImmutableList<ITextComponent> getMessages() {
-		return MESSAGES;
+	public ITextComponent getStateMessage() {
+		if (this.state == TrickStates.SUCCESS) {
+			IFormattableTextComponent mes = (IFormattableTextComponent) super.getStateMessage();
+			return mes.setStyle(EPIC_STYLE);
+		} else {
+			return super.getStateMessage();
+		}
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -142,7 +133,7 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 		AbstractOverlay.getActiveOverlays().stream()
 				.filter(over -> (over instanceof SoulswordOverlay) && (((SoulswordOverlay) over).caster == caster))
 				.forEach(over -> ((SoulswordOverlay) over).markSummoned());
-		if (this.castEndedNaturally()) {
+		if (this.state == TrickStates.SUCCESS) {
 			// TODO perform some sounds / effects on caster
 		}
 	}
@@ -152,16 +143,14 @@ public class SummonSwordPlayerTrick extends AbstractInterruptablePlayerTrick imp
 		super.onTrickEndServer();
 		PlayerEntity caster = this.getCasterPlayer();
 		if (caster == null) {
-			this.status = 4;
+			this.state = TrickStates.NO_CASTER;
 		}
-		if (!this.castEndedNaturally()) {
-			this.status = 3;
-		} else if (this.status == 0) {
+		if (!this.state.isError()) {
 			ItemStack stack = caster.getHeldItemMainhand();
 			if (stack.isItemEqual(Items.SOULSWORD.get().getDefaultInstance())) {
 				stack.getOrCreateTag().putBoolean(Soulsword.SUMMONED_TAG, true);
 			}
-			this.status = 5;
+			this.state = TrickStates.SUCCESS;
 		}
 	}
 

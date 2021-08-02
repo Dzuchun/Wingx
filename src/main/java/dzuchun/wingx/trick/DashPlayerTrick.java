@@ -5,17 +5,14 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-
 import dzuchun.wingx.init.Tricks;
+import dzuchun.wingx.trick.state.TrickStates;
 import dzuchun.wingx.util.Facing;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
 
@@ -47,6 +44,9 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 	public void executeServer() {
 		super.executeServer();
 		// We are on server
+		if (this.state.isError()) {
+			return;
+		}
 		assertHasCaster(this);
 		if (this.hasCasterPlayer()) {
 			PlayerEntity caster = this.getCasterPlayer();
@@ -60,25 +60,16 @@ public class DashPlayerTrick extends AbstractPlayerCastedTrick {
 			caster.setMotion(motionChange.x, motionChange.y, motionChange.z);
 			this.casterWorld.playSound(caster, caster.getPosX(), caster.getPosY(), caster.getPosZ(),
 					SoundEvents.ENTITY_ENDER_DRAGON_FLAP, SoundCategory.PLAYERS, 1.0f, 1.0f);
+			this.state = TrickStates.SUCCESS;
 		} else {
 			LOG.warn("No caster found");
-			this.status = 1;
+			this.state = TrickStates.NO_CASTER;
 		}
 	}
 
 	@Override
 	public PacketTarget getBackPacketTarget() {
 		return this.hasCasterPlayer() ? PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getCasterPlayer) : null;
-	}
-
-	private static final ImmutableList<ITextComponent> MESSAGES = ImmutableList.of(
-			new TranslationTextComponent("wingx.trick.dash.success").setStyle(SUCCESS_STYLE),
-			new TranslationTextComponent("wingx.trick.dash.error",
-					new TranslationTextComponent("wingx.trick.error_reason.no_caster")).setStyle(ERROR_STYLE));
-
-	@Override
-	protected ImmutableList<ITextComponent> getMessages() {
-		return MESSAGES;
 	}
 
 	public static class TrickType extends AbstractPlayerCastedTrick.TrickType<DashPlayerTrick> {
