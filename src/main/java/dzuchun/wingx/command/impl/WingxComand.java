@@ -15,15 +15,19 @@ import dzuchun.wingx.capability.world.tricks.ActiveTricksProvider;
 import dzuchun.wingx.client.render.overlay.AbstractOverlay;
 import dzuchun.wingx.config.ServerConfig;
 import dzuchun.wingx.config.abillity.AbillityNodes;
+import dzuchun.wingx.entity.projectile.FireballEntity;
 import dzuchun.wingx.trick.state.TrickState;
 import dzuchun.wingx.util.Util;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.Color;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
+import net.minecraft.world.server.ServerWorld;
 
 public class WingxComand {
 
@@ -100,7 +104,16 @@ public class WingxComand {
 					String res = Util.iterableToString(TrickState.getStates());
 					source.getSource().sendFeedback(new StringTextComponent(res), true);
 					return 0;
-				})));
+				}))).then(Commands.literal("test_fireball")
+						.requires(source -> source.hasPermissionLevel(ADMIN_PERMISSION)).executes(source -> {
+							PlayerEntity player = source.getSource().asPlayer();
+							FireballEntity fireball = new FireballEntity(player, false, true);
+							Vector3d pos = player.getPositionVec();
+							fireball.moveForced(pos.x, pos.y + 3.0f, pos.z);
+							fireball.setMotion(Vector3d.ZERO);
+							((ServerWorld) player.world).summonEntity(fireball);
+							return 0;
+						}));
 	}
 
 	private static ArgumentBuilder<CommandSource, ?> config() {

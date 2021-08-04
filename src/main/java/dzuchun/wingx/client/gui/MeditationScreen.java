@@ -75,7 +75,7 @@ public class MeditationScreen extends Screen {
 		LOG.debug("Passed stats: {}", Util.iterableToString(this.requiredStats.entrySet(),
 				e -> String.format("(%s, %d)", e.getKey(), e.getValue())));
 		LOG.debug("Passed data: {}", Util.iterableToString(this.requiredData.entrySet(),
-				e -> String.format("(%s, %d)", e.getKey(), e.getValue())));
+				e -> String.format("(%s, %s)", e.getKey(), e.getValue())));
 		this.minecraft = Minecraft.getInstance();
 		openTime = System.currentTimeMillis();
 		openGuiTime = System.currentTimeMillis();

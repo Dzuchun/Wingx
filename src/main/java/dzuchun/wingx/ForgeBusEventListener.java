@@ -242,7 +242,7 @@ public class ForgeBusEventListener {
 
 	@SubscribeEvent
 	public static void onAttackEntityEvent(final AttackEntityEvent event) {
-
+		// TODO
 	}
 
 	private static void processAttackEntityEvent(AttackEntityEvent event, WingsCapability cap) {

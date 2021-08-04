@@ -10,6 +10,8 @@ import org.lwjgl.glfw.GLFW;
 
 import dzuchun.wingx.Wingx;
 import dzuchun.wingx.client.render.overlay.GearSkyOverlay;
+import dzuchun.wingx.damage.WingxDamageMap;
+import dzuchun.wingx.damage.WingxDamageType;
 import dzuchun.wingx.net.ToggleWingsMessage;
 import dzuchun.wingx.net.TrickAimingMessage;
 import dzuchun.wingx.net.TrickPerformedMessage;
@@ -117,12 +119,25 @@ public class KeyEvents { // TODO fix pressing issues
 		},
 		SMASH {
 
+			// TODO paramertize
+			private final WingxDamageMap mainDamage = new WingxDamageMap() {
+				{
+					this.add(WingxDamageType.G, 10.0d);
+				}
+			};
+
+			private final WingxDamageMap sideDamage = new WingxDamageMap() {
+				{
+					this.add(WingxDamageType.H, 5.0d);
+				}
+			};
+
 			@SuppressWarnings("resource")
 			@Override
 			public void execute() {
 				WingxPacketHandler.INSTANCE.sendToServer(
 						new TrickPerformedMessage.Server(new SmashPlayerTrick(Minecraft.getInstance().player, 20, 1.0d,
-								1.0f, 5.0f, Minecraft.getInstance().player.getForward())));
+								this.sideDamage, this.mainDamage, Minecraft.getInstance().player.getForward())));
 			}
 
 			@Override

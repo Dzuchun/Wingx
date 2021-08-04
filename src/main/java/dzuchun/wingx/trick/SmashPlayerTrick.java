@@ -6,6 +6,7 @@ import java.util.Collection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dzuchun.wingx.damage.WingxDamageMap;
 import dzuchun.wingx.init.Tricks;
 import dzuchun.wingx.trick.state.TrickState;
 import dzuchun.wingx.trick.state.TrickStates;
@@ -34,9 +35,9 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 	// Parameters:
 	private int duration;
 	private double speed;
-	private float sideDamage;
-	private float mainDamage;
 	private Vector3d direction;
+	WingxDamageMap sideDamage;
+	WingxDamageMap mainDamage;
 	/**
 	 * Set on server. Stores damaged entities.
 	 */
@@ -50,8 +51,8 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		return this.damagedEntities.contains(entityIn);
 	}
 
-	public SmashPlayerTrick(PlayerEntity caster, int duration, double speed, float sideDamage, float mainDamage,
-			Vector3d direction) {
+	public SmashPlayerTrick(PlayerEntity caster, int duration, double speed, WingxDamageMap sideDamage,
+			WingxDamageMap mainDamage, Vector3d direction) {
 		super(caster, duration, InterruptCondition.NO_CONDITION);
 		this.duration = duration;
 		this.speed = speed;
@@ -125,7 +126,8 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 				this.casterWorld
 						.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(4.0d), (Entity entity) -> true)
 						.forEach((Entity entity) -> {
-							entity.attackEntityFrom(this.getDamageSource(), this.mainDamage);
+							entity.attackEntityFrom(this.getDamageSource(),
+									(float) this.mainDamage.getDamageTo(entity));
 						});
 			}
 		} else {
@@ -146,7 +148,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		caster.fallDistance = 0;
 		this.casterWorld.getEntitiesInAABBexcluding(caster, caster.getBoundingBox().grow(0.5d),
 				(Entity entity) -> !this.damagedEntities.contains(entity)).forEach((Entity entity) -> {
-					if (entity.attackEntityFrom(this.getDamageSource(), this.sideDamage)) {
+					if (entity.attackEntityFrom(this.getDamageSource(), (float) this.sideDamage.getDamageTo(entity))) {
 						this.damagedEntities.add(entity);
 					}
 				});
@@ -186,8 +188,8 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		public SmashPlayerTrick writeToBuf(SmashPlayerTrick trick, PacketBuffer buf) {
 			buf.writeInt(trick.duration);
 			buf.writeDouble(trick.speed);
-			buf.writeFloat(trick.sideDamage);
-			buf.writeFloat(trick.mainDamage);
+			buf.writeCompoundTag(trick.sideDamage.writeToNBT());
+			buf.writeCompoundTag(trick.mainDamage.writeToNBT());
 			buf.writeDouble(trick.direction.x);
 			buf.writeDouble(trick.direction.y);
 			buf.writeDouble(trick.direction.z);
@@ -199,8 +201,10 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 		protected SmashPlayerTrick readFromBufInternal(SmashPlayerTrick trick, PacketBuffer buf) {
 			trick.duration = buf.readInt();
 			trick.speed = buf.readDouble();
-			trick.sideDamage = buf.readFloat();
-			trick.mainDamage = buf.readFloat();
+			trick.sideDamage = new WingxDamageMap();
+			trick.sideDamage.readDataFromNBT(buf.readCompoundTag());
+			trick.mainDamage = new WingxDamageMap();
+			trick.mainDamage.readDataFromNBT(buf.readCompoundTag());
 			trick.direction = new Vector3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
 			trick.endTime = buf.readLong();
 			return super.readFromBufInternal(trick, buf);
@@ -228,8 +232,10 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 			}
 			res.duration = compound.getInt(DURATION_TAG);
 			res.speed = compound.getDouble(SPEED_TAG);
-			res.sideDamage = compound.getFloat(SIDE_DAMAGE_TAG);
-			res.mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
+			res.sideDamage = new WingxDamageMap();
+			res.sideDamage.readDataFromNBT((CompoundNBT) compound.get(SIDE_DAMAGE_TAG));
+			res.mainDamage = new WingxDamageMap();
+			res.mainDamage.readDataFromNBT((CompoundNBT) compound.get(MAIN_DAMAGE_TAG));
 			res.state = TrickState.readState(compound.getCompound(STATE_TAG));
 			res.endTime = compound.getLong(END_TIME_TAG);
 			return res;
@@ -246,8 +252,8 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 			}
 			res.putInt(DURATION_TAG, trick.duration);
 			res.putDouble(SPEED_TAG, trick.speed);
-			res.putFloat(SIDE_DAMAGE_TAG, trick.sideDamage);
-			res.putFloat(MAIN_DAMAGE_TAG, trick.mainDamage);
+			res.put(SIDE_DAMAGE_TAG, trick.sideDamage.writeToNBT());
+			res.put(MAIN_DAMAGE_TAG, trick.mainDamage.writeToNBT());
 			res.put(STATE_TAG, trick.state.writeState());
 			res.putLong(END_TIME_TAG, trick.endTime);
 			res.put(DIRECTION_TAG, NBTHelper.writeVector3d(trick.direction));
@@ -256,7 +262,7 @@ public class SmashPlayerTrick extends AbstractInterruptablePlayerTrick implement
 
 		@Override
 		public SmashPlayerTrick newEmpty() {
-			return new SmashPlayerTrick(null, 0, 0.0d, 0.0f, 0.0f, null);
+			return new SmashPlayerTrick(null, 0, 0.0d, null, null, null);
 		}
 	}
 

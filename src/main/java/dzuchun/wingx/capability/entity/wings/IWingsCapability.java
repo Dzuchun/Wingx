@@ -25,4 +25,6 @@ public interface IWingsCapability {
 	void writeToBuffer(PacketBuffer buf);
 
 	WingsDataManager getDataManager();
+
+	void copyFrom(IWingsCapability another);
 }

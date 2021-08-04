@@ -70,7 +70,12 @@ public class FireballCastPlayerTrick extends AbstractInterruptablePlayerTrick im
 		super.onTrickEndServer();
 		// We are on server
 		if (!this.state.isError()) {
-			((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(this.getCasterPlayer()));
+			PlayerEntity caster = this.getCasterPlayer();
+			((ServerWorld) this.casterWorld).summonEntity(new FireballEntity(caster, false, false));
+			caster.getCapability(WingsProvider.WINGS).ifPresent(cap -> {
+				// Increment times casted
+				cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER).timesCasted++;
+			});
 		}
 	}
 

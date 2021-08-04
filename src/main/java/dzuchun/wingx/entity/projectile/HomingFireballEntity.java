@@ -23,7 +23,7 @@ public class HomingFireballEntity extends FireballEntity {
 	protected Entity target;
 
 	public HomingFireballEntity(PlayerEntity caster, Entity target) throws NoWingsException {
-		super(caster);
+		super(caster, false, false);
 		this.target = target;
 		LazyOptional<IWingsCapability> wingsOptional = caster.getCapability(WingsProvider.WINGS, null);
 		if (!wingsOptional.isPresent()) {

@@ -101,7 +101,7 @@ public class AbillityNodes {
 		for (AbillityNode node : nodes) {
 			node.unlockedDirty = true;
 		}
-		LOG.debug("Marcked abillity nodes dirty");
+		LOG.debug("Marked abillity nodes dirty");
 	}
 
 	public static ArrayList<AbillityNode> DEFAULT_NODES = new ArrayList<AbillityNode>(0) {
@@ -116,12 +116,12 @@ public class AbillityNodes {
 			this.add(createForName("fireball_distance", 2, 50, 10, 3, 1, -1,
 					"node~1 stat_minecraft:custom~minecraft:jump~230"));
 			this.add(createForName("fireball_homing", 3, -50, 10, 6, 1, -1,
-					"node~1 data_integer-bit_0000000000000001~basic-stage_flags"));
+					"node~1 data_integer~fireball-times_casted~100"));
 			this.add(createForName("fireball_ionization_1", 8, -10, -40, 8, 1, -1,
 					"node~1 data_double~fireball-damage~10"));
-			this.add(createForName("fireball", 4, -40, -10, 2, 0, 1, "node~0"));
-			this.add(createForName("hasty", 5, 35, 0, 4, 0, -1, "node~0"));
-			this.add(createForName("agil", 6, 0, 60, 5, 0, -1, "node~0"));
+			this.add(createForName("fireball", 4, -40, -10, 2, 0, 1, "node~0 data_boolean~fireball-unlocked~true"));
+			this.add(createForName("hasty", 5, 35, 0, 4, 0, -1, "node~0 data_boolean~hasty-unlocked~true"));
+			this.add(createForName("agil", 6, 0, 60, 5, 0, -1, "node~0 data_boolean~agil-unlocked~true"));
 			this.add(createForName("soulsword", 7, 50, 70, 7, 6, -1, "node~6"));
 			// Last id: 8, last sprite: 9 (0 - node background)
 		}

@@ -22,4 +22,9 @@ public class WingsCapability implements IWingsCapability {
 		return this.dataManager;
 	}
 
+	@Override
+	public void copyFrom(IWingsCapability another) {
+		this.dataManager = another.getDataManager().clone();
+	}
+
 }

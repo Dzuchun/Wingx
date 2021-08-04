@@ -9,6 +9,8 @@ import dzuchun.wingx.capability.entity.wings.IWingsCapability;
 import dzuchun.wingx.capability.entity.wings.WingsProvider;
 import dzuchun.wingx.capability.entity.wings.storage.FireballData;
 import dzuchun.wingx.capability.entity.wings.storage.Serializers;
+import dzuchun.wingx.damage.IWingxDamageShield;
+import dzuchun.wingx.damage.WingxDamageMap;
 import dzuchun.wingx.init.EntityTypes;
 import dzuchun.wingx.trick.NoWingsException;
 import dzuchun.wingx.util.WorldHelper;
@@ -37,23 +39,23 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 
 	private UUID ownerUniqueId;
 	private double initialSpeed;
-	public boolean isDebug = true;
+	public boolean isDebug = false;
+	public boolean isSelfHarm = false;
 	public int packedColor;
-	public float mainDamage;
 
 	/**
 	 * Used to create fireball that was casted, on server
 	 */
-	public FireballEntity(PlayerEntity caster) throws NoWingsException {
+	public FireballEntity(PlayerEntity caster, boolean isDebugIn, boolean isSelfHarmIn) throws NoWingsException {
 		this(caster.world);
-		this.isDebug = false;
+		this.isDebug = isDebugIn;
+		this.isSelfHarm = isSelfHarmIn;
 		IWingsCapability cap = caster.getCapability(WingsProvider.WINGS, null)
 				.orElseThrow(() -> new NoWingsException(caster));
 		this.ownerUniqueId = caster.getUniqueID();
 		FireballData data = cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER);
 		this.initialSpeed = data.initialSpeed;
 		this.packedColor = data.packedColor;
-		this.mainDamage = data.damage;
 		this.setMotion(caster.getMotion()
 				.add(Vector3d.fromPitchYaw(caster.getPitchYaw()).normalize().scale(this.initialSpeed)));
 		this.setPositionAndRotation(caster.getPosX(), (caster.getPosY() + caster.getEyeHeight()) - 0.2d,
@@ -77,7 +79,6 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 	private static final String OWNER_TAG = "wingx_fireball_owner";
 	private static final String INITIAL_SPEED_TAG = "wingx_initial_speed";
 	private static final String COLOR_TAG = "wingx_color";
-	private static final String MAIN_DAMAGE_TAG = "wingx_main_damage";
 
 	@Override
 	protected void readAdditional(CompoundNBT compound) {
@@ -97,11 +98,6 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 		} else {
 			LOG.debug("{} tag not found for {}", COLOR_TAG, this);
 		}
-		if (compound.contains(MAIN_DAMAGE_TAG)) {
-			this.mainDamage = compound.getFloat(MAIN_DAMAGE_TAG);
-		} else {
-			LOG.debug("{} tag not found for {}", MAIN_DAMAGE_TAG, this);
-		}
 	}
 
 	@Override
@@ -111,7 +107,6 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 		}
 		compound.putDouble(INITIAL_SPEED_TAG, this.initialSpeed);
 		compound.putInt(COLOR_TAG, this.packedColor);
-		compound.putFloat(MAIN_DAMAGE_TAG, this.mainDamage);
 	}
 
 	@Override
@@ -140,10 +135,43 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 //			return;
 //		}
 		this.world.getEntitiesInAABBexcluding(this, this.getBoundingBox(), entity -> true).forEach(entity -> {
-			if (!entity.getUniqueID().equals(this.ownerUniqueId)) {
+			if (!entity.getUniqueID().equals(this.ownerUniqueId) || this.isSelfHarm) {
 				this.applyEntityCollision(entity);
 			}
 		});
+	}
+
+	public PlayerEntity getOwner() {
+		Entity e = WorldHelper.getEntityFromWorldByUniqueId(this.world, this.ownerUniqueId);
+		if (e instanceof PlayerEntity) {
+			return (PlayerEntity) e;
+		} else {
+			return null;
+		}
+	}
+
+	public double getPassedDamage(Entity entityIn) {
+		PlayerEntity caster = this.getOwner();
+		if (caster == null) {
+			LOG.warn("No caster found for fireball: {}", this);
+			return 0.0d;
+		}
+		IWingsCapability cap = caster.getCapability(WingsProvider.WINGS).orElse(null);
+		if (cap == null) {
+			LOG.warn("No wings found for fireball's caster: {}", caster);
+			return 0.0d;
+		}
+		WingxDamageMap damage = cap.getDataManager().getOrAddDefault(Serializers.FIREBALL_SERIALIZER).damageMap;
+		IWingsCapability targetCap = entityIn.getCapability(WingsProvider.WINGS).orElse(null);
+		double resultDamage;
+		if (targetCap == null) {
+			resultDamage = damage.getTotalDamage();
+		} else {
+			IWingxDamageShield shield = targetCap.getDataManager()
+					.getOrAddDefault(Serializers.SHIELD_SERIALIZER).shield;
+			resultDamage = damage.getPassedDamage(shield);
+		}
+		return resultDamage;
 	}
 
 	@Override
@@ -151,7 +179,11 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 		if (this.isDebug) {
 			return;
 		}
-		entityIn.attackEntityFrom(this.getDamageSource(), this.mainDamage);
+		float passedDamage = (float) this.getPassedDamage(entityIn);
+		if (this.isSelfHarm) {
+			LOG.info("Self-harm planning to deal: {}", passedDamage);
+		}
+		entityIn.attackEntityFrom(this.getDamageSource(), passedDamage);
 		this.onInsideBlock(Blocks.STONE.getDefaultState()); // TODO get block
 	}
 
@@ -161,10 +193,12 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 			return;
 		}
 		if (!blockStateIn.equals(Blocks.AIR.getDefaultState())) {
-			WorldHelper.getEntitiesWithin(this.world, this.getPositionVec(), 1.0d).forEach(entity -> {
+			// TODO parametrize
+			double radius = 1.0d;
+			WorldHelper.getEntitiesWithin(this.world, this.getPositionVec(), radius).forEach(entity -> {
 				if ((this.ownerUniqueId != null) && !entity.getUniqueID().equals(this.ownerUniqueId)
 						&& !this.getUniqueID().equals(entity.getUniqueID())) {
-					entity.attackEntityFrom(this.getDamageSource(), this.mainDamage);
+					entity.attackEntityFrom(this.getDamageSource(), (float) this.getPassedDamage(entity));
 				}
 			});
 			this.remove();
@@ -248,6 +282,7 @@ public class FireballEntity extends Entity implements IEntityAdditionalSpawnData
 
 	public DamageSource getDamageSource() {
 		return new EntityDamageSource("fireball",
-				WorldHelper.getEntityFromWorldByUniqueId(this.world, this.ownerUniqueId));
+				WorldHelper.getEntityFromWorldByUniqueId(this.world, this.ownerUniqueId)).setMagicDamage()
+						.setDamageIsAbsolute();
 	}
 }

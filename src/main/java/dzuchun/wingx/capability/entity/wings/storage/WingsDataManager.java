@@ -200,4 +200,13 @@ public class WingsDataManager {
 		}
 	}
 
+	@Override
+	public WingsDataManager clone() {
+		WingsDataManager res = new WingsDataManager();
+		CompoundNBT nbt = new CompoundNBT();
+		this.write(nbt);
+		res.read(nbt);
+		return res;
+	}
+
 }
